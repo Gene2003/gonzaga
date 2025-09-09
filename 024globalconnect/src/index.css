@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-blue-night: #063b61;
+  --color-blue-deep: #0d5d90;
+  --color-blue-bright: #3ea7d4;
+  --color-blue-light: #6ec1e4;
+  --color-blue-marine: #0a4975;
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-fade-in-delayed {
+  animation: fadeIn 1s ease-out 0.3s both;
+}
+
+.animate-fade-in-buttons {
+  animation: fadeIn 1s ease-out 0.6s both;
+}
