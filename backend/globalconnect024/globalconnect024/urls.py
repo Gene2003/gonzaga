@@ -10,6 +10,8 @@ from users.views import EmailOrUsernameTokenObtainPairView  # ✅ custom login v
 from .views import guest_checkout
 
 
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     # ✅ Guest checkout endpoint
@@ -30,6 +32,8 @@ urlpatterns = [
 
     # 🌐 Redirect base URL `/` to your React frontend vendor dashboard
     path('', lambda request: HttpResponseRedirect(f"{settings.FRONTEND_URL}/vendor/dashboard")),
+    path('', lambda request: HttpResponseRedirect(f"{settings.FRONTEND_URL}/affiliate/dashboard")),
+    
 
 ]
 

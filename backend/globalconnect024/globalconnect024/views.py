@@ -9,6 +9,8 @@ from django.conf import settings
 from products.serializers import GuestCheckoutSerializer
 
 
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def paystack_initialize_payment(request):

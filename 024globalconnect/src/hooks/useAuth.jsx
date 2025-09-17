@@ -62,7 +62,9 @@ export const AuthProvider = ({ children }) => {
           ? '/admin/dashboard'
           : user.role === 'vendor'
           ? '/vendor/dashboard'
-          : '/affiliate/dashboard';
+          : user.role === 'user'
+          ? '/affiliate/dashboard'
+          : '/';
 
       return { success: true, data };
     } catch (error) {

@@ -71,7 +71,7 @@ function App() {
         <Route
           path="/affiliate/dashboard"
           element={
-            <PrivateRoute allowedRoles={['affiliate']}>
+            <PrivateRoute allowedRoles={['user']}>
               <AffiliateDashboard />
             </PrivateRoute>
           }
