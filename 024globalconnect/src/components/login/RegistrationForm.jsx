@@ -28,6 +28,7 @@ const RegistrationForm = () => {
     termsAccepted: false,
     country: "",
     city: "",
+    certificate_number: "",
     promotion_methods: [],
     role: "user", // default to affiliate
   });
@@ -63,6 +64,7 @@ const RegistrationForm = () => {
     if (!formData.last_name.trim()) newErrors.last_name = "Last name is required";
     if (!formData.username.trim()) newErrors.username = "Username is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
+    if (!formData.certificate_number.trim()) newErrors.certificate_number = "Certificate Number is required";
     if (!formData.password) newErrors.password = "Password is required";
     if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
     if (formData.password !== formData.confirm_password) newErrors.confirm_password = "Passwords do not match";
@@ -128,6 +130,7 @@ const RegistrationForm = () => {
             <InputField label="Email" type="email" name="email" value={formData.email} onChange={handleChange} />
             <InputField label="Password" type="password" name="password" value={formData.password} onChange={handleChange} />
             <InputField label="Confirm Password" type="password" name="confirm_password" value={formData.confirm_password} onChange={handleChange} />
+            <InputField label="Certificate Number" name="certificate_number" value={formData.certificate_Number} onChange={handleChange} />
 
             {/* Country */}
             <div>
@@ -181,6 +184,20 @@ const RegistrationForm = () => {
                 <strong>Vendor:</strong> Upload products to sell.
               </p>
             </div>
+
+            <div className="form-group">
+             <label htmlFor="certificate_number">Certificate Number</label>
+             <input
+               type="text"
+               id="certificate_number"
+               name="certificate_number"
+               value={formData.certificate_number}
+               onChange={(e) => setFormData({ ...formData, certificate_number: e.target.value })}
+               required // ✅ mandatory
+               placeholder="Enter your certificate number"
+            />
+           </div>
+
 
             {/* Terms */}
             <div className="md:col-span-2 flex items-start">

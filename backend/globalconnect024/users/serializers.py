@@ -30,7 +30,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'first_name', 'last_name', 'username', 'email',
-            'password', 'confirm_password',
+            'password', 'confirm_password', 'certificate_number',
             'country', 'city', 'promotion_methods', 'role'
         ]
 
@@ -51,6 +51,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             password=validated_data.get('password'),
             country=validated_data.get('country', ''),
             city=validated_data.get('city', ''),
+            certificate_Number=validated_data.get('certificate_number'),
             promotion_methods=validated_data.get('promotion_methods', []),
             role=validated_data.get('role', 'user'),
             is_active=False  # 🔒 Require email activation
@@ -65,7 +66,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'email',
-            'is_active', 'date_joined', 'role', 'country', 'city', 'promotion_methods'
+            'is_active', 'date_joined', 'role', 'country', 'city', 'certificate_number', 'promotion_methods'
         ]
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
@@ -78,6 +79,9 @@ class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError({"detail": "No active account found with the given credentials"})
         if not user.is_active:
             raise serializers.ValidationError({"detail": "Account is inactive"})
+    def validate_certificate(self, value):
+        if not value:
+            raise serializers.ValidationError("Certificate Number is required")    
 
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
@@ -94,6 +98,7 @@ class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
                 "role": user.role,
                 "country": user.country,
                 "city": user.city,
+                "certificate_Number": user.certificate_number,
                 "promotion_methods": user.promotion_methods,
             }
         }
