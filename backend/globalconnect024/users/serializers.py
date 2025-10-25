@@ -25,6 +25,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         child=serializers.CharField(), required=False
     )
     role = serializers.ChoiceField(choices=[('user', 'Affiliate'), ('vendor', 'Vendor')], default='user')
+    certificate_number = serializers.CharField(required=False, allow_blank=True,allow_null=True)
 
     class Meta:
         model = User
@@ -37,18 +38,18 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         role = attrs.get('role')
         certificate_number = attrs.get('certificate_number')
+           
+           #certificate only for affiliates 
 
-        if role == 'affiliate' and not certificate_number:
+        if role == 'user' and not (certificate_number and certificate_number.strip()):
             raise serializers.ValidationError({"certificate_number": "Certificate Number is required for affiliates."})
-        return attrs
 
-    def validate(self, attrs):
-        if attrs['password'] != attrs['confirm_password']:
+        if attrs.get('password') != attrs('confirm_password'):
             raise serializers.ValidationError({"password": "Passwords do not match."})
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('confirm_password')  # Exclude confirm_password
+        validated_data.pop('confirm_password', None)  # Exclude confirm_password
         request = self.context.get('request')
 
         user = User.objects.create_user(
@@ -59,7 +60,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             password=validated_data.get('password'),
             country=validated_data.get('country', ''),
             city=validated_data.get('city', ''),
-            certificate_Number=validated_data.get('certificate_number'),
+            certificate_number=validated_data.get('certificate_number', ''),
             promotion_methods=validated_data.get('promotion_methods', []),
             role=validated_data.get('role', 'user'),
             is_active=False  # 🔒 Require email activation

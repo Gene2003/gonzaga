@@ -184,6 +184,8 @@ const RegistrationForm = () => {
                 <strong>Vendor:</strong> Upload products to sell.
               </p>
             </div>
+            {/*show certificate field only if role is affiliate*/}
+            {formData.role ==="user" && (
 
             <div className="form-group">
              <label htmlFor="certificate_number">Certificate Number</label>
@@ -193,10 +195,10 @@ const RegistrationForm = () => {
                name="certificate_number"
                value={formData.certificate_number}
                onChange={(e) => setFormData({ ...formData, certificate_number: e.target.value })}
-               required // ✅ mandatory
                placeholder="Enter your certificate number"
             />
            </div>
+            )}
 
 
             {/* Terms */}

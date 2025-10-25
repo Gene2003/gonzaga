@@ -11,7 +11,7 @@ class CustomUserAdmin(UserAdmin):
 
     fieldsets = (
         (_('Login Info'), {'fields': ('username', 'password')}),
-        (_('Personal Info'), {'fields': ('first_name', 'last_name', 'email', 'role', 'country', 'city', 'promotion_methods')}),
+        (_('Personal Info'), {'fields': ('first_name', 'last_name', 'email', 'role', 'country', 'city', 'promotion_methods','certificate_number')}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
@@ -21,8 +21,29 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'role', 'password1', 'password2'),
+            'fields': ('username', 'email', 'role','certificate_number', 'password1', 'password2'),
         }),
     )
 
+
     ordering = ('username',)
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()#runs clean() validation
+        super().save_model(request, obj, form, change)
+
+    def get_fieldsets(self, request, obj=None):
+        """Hide certificate_number for non-affiliates."""
+        fieldsets =super().get_fieldsets(request, obj)
+        if obj and obj.role != 'user':#role 'user =affiliate
+            # Remove certificate_number field
+            new_fieldsets = []
+            for name, opts in fieldsets:
+                fields = list(opts.get('fields', ()))
+                if 'certificate_number' in fields:
+                    fields.remove('certificate_number')
+                new_fieldsets.append((name, {'fields': fields}))
+            return new_fieldsets
+        return fieldsets
+
+   

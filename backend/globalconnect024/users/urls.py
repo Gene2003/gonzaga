@@ -1,4 +1,5 @@
 from django.urls import path
+from.views import VendorLoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     # Auth
@@ -35,7 +36,7 @@ urlpatterns = [
     path('auth/activate/<uidb64>/<token>/', ActivateAccount.as_view(), name='activate'),
     path('registration/resend-email/', ResendActivationEmail.as_view(), name='resend_activation_email'),
     path('logout/', LogoutView.as_view(), name='logout'),
-
+    path('vendor_login/', VendorLoginView.as_view(), name='vendor_login'),
     # 👤 Profile Management
     path('me/', CurrentUserView.as_view(), name='current_user'),
     path('update/', UpdateProfileView.as_view(), name='update_profile'),

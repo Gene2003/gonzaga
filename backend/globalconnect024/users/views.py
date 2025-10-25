@@ -20,6 +20,7 @@ from django.template.loader import render_to_string, TemplateDoesNotExist
 from django.shortcuts import redirect
 from django.conf import settings
 
+from .models import CustomUser
 from .tokens import account_activation_token
 from .utils import send_activation_email
 from .serializers import RegistrationSerializer, UserSerializer
@@ -42,6 +43,22 @@ class RegisterView(generics.CreateAPIView):
 
         user = serializer.save(is_active=False)
 
+        if user.role =="vendor":
+            unique_code = str(random.randint(10000,99999))
+            user.vendor_login_code = unique_code
+            user.save()
+
+            try:
+                send_mail(
+                    subject="Your Vendor Login Code",
+                    message=f"Welcome{user.first_name}! Your unique login code is: {unique_code}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+            except BadHeaderError:
+                return Response({"error": "Invalid header found."}, status=500)
+               #create activation email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
         activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
@@ -63,6 +80,32 @@ class RegisterView(generics.CreateAPIView):
         return Response({
             "message": "Account created successfully. Please check your email to activate your account."
         }, status=201)
+    
+class VendorLoginView(APIView):
+    def post(self, request):
+        vendor_code =request.data.get('vendor_code')
+        password = request.data.get('password')
+
+        try:
+            user = CustomUser.objects.get(vendor_login_code=vendor_code)
+            user = authenticate(username=user.username, password=password)
+            if user:
+                return Response({
+                    "success": True,
+                    "message":"login successful.",
+                    "vendor_id": user.id,
+                    "email": user.email,
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "success": False,
+                    "message":"Invalid password."
+                },status=status.HTTP_401_UNAUTHORIZED)
+        except CustomUser.DoesNotExist:
+            return Response({
+                "success": False,
+                "message":"Invalid vendor code."
+            },status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ActivateAccount(APIView):
