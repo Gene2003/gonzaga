@@ -35,6 +35,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
+        role = attrs.get('role')
+        certificate_number = attrs.get('certificate_number')
+
+        if role == 'affiliate' and not certificate_number:
+            raise serializers.ValidationError({"certificate_number": "Certificate Number is required for affiliates."})
+        return attrs
+
+    def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
             raise serializers.ValidationError({"password": "Passwords do not match."})
         return attrs
