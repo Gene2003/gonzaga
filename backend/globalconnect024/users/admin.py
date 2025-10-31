@@ -21,16 +21,16 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'role','certificate_number', 'password1', 'password2'),
+            'fields': ('username', 'email', 'role','certificate_number', 'password1', 'password2','is_staff','is_superuser','is_active'),
         }),
     )
-
-
-    ordering = ('username',)
-
     def save_model(self, request, obj, form, change):
-        obj.full_clean()#runs clean() validation
-        super().save_model(request, obj, form, change)
+     if not change:  # Creating new user
+        password1 = form.cleaned_data.get("password1")
+        if password1:
+           obj.set_password(password1)
+     super(CustomUserAdmin, self).save_model(request, obj, form, change)
+
 
     def get_fieldsets(self, request, obj=None):
         """Hide certificate_number for non-affiliates."""
@@ -45,5 +45,4 @@ class CustomUserAdmin(UserAdmin):
                 new_fieldsets.append((name, {'fields': fields}))
             return new_fieldsets
         return fieldsets
-
    

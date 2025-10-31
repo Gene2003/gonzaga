@@ -10,6 +10,7 @@ import ContactForm from './components/login/ContactForm';
 import AboutUs from './pages/AboutUs';
 import AffiliatePartner from './components/affiliate/AffiliatePartner';
 import GuestCheckout from './pages/guest-checkout';
+import Books from './pages/Books';
 
 
 import PrivateRoute from './components/auth/PrivateRoute';
@@ -61,6 +62,7 @@ function App() {
         <Route path="/register" element={<RegistrationForm />} />
         <Route path="/contact" element={<ContactForm />} />
         <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/books" element={<Books />} />
         <Route path="/affiliate-partner" element={<AffiliatePartner />} />
         <Route path="/guest-checkout" element={<GuestCheckout />} />
 

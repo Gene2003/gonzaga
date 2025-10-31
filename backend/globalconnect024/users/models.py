@@ -1,6 +1,7 @@
 from django.db import models 
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError 
+import random
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -16,15 +17,15 @@ class CustomUser(AbstractUser):
     certificate_number = models.CharField(max_length=100, blank=True, null=True)
     vendor_code = models.CharField(max_length=100, blank=True, null=True ,unique=True)
 
-    def save (save,*args, **kwargs):
+    def save (self, *args, **kwargs):
         #auto generate the 5 digit code for vendors
-        if self.role == "vendor"and not self.vendor_code:
-            self.vendor_code =self.generate_unique_code()
+        if self.role == "vendor" and not self.vendor_code:
+            self.vendor_code =self.generate_unique_vendor_code()
             super().save(*args, **kwargs)
     def generate_unique_vendor_code(self):
         """Generate a unique 5-digit vendor code."""
         while True:
-            code = str(random.randit(10000, 99999))
+            code = str(random.randint(10000, 99999))
             if not CustomUser.objects.filter(vendor_code=code).exists():
                 return code        
 
