@@ -1,6 +1,8 @@
 from django.db.models import Sum 
 from orders.models import Referral, Order
 from products.models import Product
+import random
+
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, status, serializers
@@ -19,12 +21,15 @@ from django.core.mail import send_mail, BadHeaderError
 from django.template.loader import render_to_string, TemplateDoesNotExist
 from django.shortcuts import redirect
 from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import CustomUser
 from .tokens import account_activation_token
 from .utils import send_activation_email
 from .serializers import RegistrationSerializer, UserSerializer
 from rest_framework.serializers import ModelSerializer
+
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -42,6 +47,7 @@ class RegisterView(generics.CreateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         user = serializer.save(is_active=False)
+        print("user created:", user)
 
         if user.role =="vendor":
             unique_code = str(random.randint(10000,99999))
@@ -213,7 +219,7 @@ class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
         }
         return data
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class EmailOrUsernameTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailOrUsernameTokenObtainSerializer
 

@@ -11,6 +11,8 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail, BadHeaderError
 from django.template.loader import render_to_string, TemplateDoesNotExist
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from rest_framework.generics import RetrieveUpdateAPIView
 
 from .serializers import RegistrationSerializer, UserSerializer
@@ -158,8 +160,9 @@ class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
         })
 
         return data
+    
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class EmailOrUsernameTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailOrUsernameTokenObtainSerializer
 

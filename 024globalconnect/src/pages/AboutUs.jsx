@@ -1,6 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Globe, Users, TrendingUp, Shield, Award, Target, ArrowRight, Check } from 'lucide-react';
+import { Globe, Users, TrendingUp, Shield, Award, Target, ArrowRight, Check, Sliders } from 'lucide-react';
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const AboutUs = () => {
   const stats = [
@@ -40,12 +43,7 @@ const AboutUs = () => {
       image: '',
       bio: '10+ years in digital marketing and affiliate networks'
     },
-    {
-      name: 'Claire',
-      role: 'Head of Technology',
-      image: '',
-      bio: 'Expert in marketing technology and data analytics'
-    },
+
     {
       name: 'Gonzaga Shyachi',
       role: 'Head of Software Development',
@@ -221,6 +219,55 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
+
+      {/*Gallary Section*/}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Gallary</h2>
+          <p className="text-xl text-gray-600 mb-12">
+            A glimpse into our journey and the vibrant community we serve.
+            </p>
+
+            <div className="max-w-4xl mx-auto">
+              <Slider
+                dots={true}
+                infinite={true}
+                speed={800}
+                slidesToShow={1}
+                slidesToScroll={1}
+                autoplay={true}
+                autoplaySpeed={3000}
+                arrows={true}
+                className="rounded-2xl shadow-lg overflow-hidden"
+              >
+
+                {[
+                  '/images/1.png',
+                  '/images/2.png',
+                  '/images/3.png',
+                  '/images/4.png',
+                  '/images/5.png',
+                  '/images/6.png',
+                  '/images/7.png',
+                  '/images/8.png',
+                  '/images/9.png',
+                ].map((src, index) => (
+                  <div key={index} className="relative">
+                    <img
+                    src={src}
+                    alt={`Gallary image ${index + 1}`}
+                    className="w-full h-[500px] object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/30 flex items-center opacity-0 hover:opacity-100 transition-opacity">
+                      <p className="text-white text-2x1 font-semibold">024GlobalConnect</p>
+                    </div>
+                  </div>
+                ))}
+              </Slider>
+            </div>
+          </div>
+        </section>
+     
 
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">

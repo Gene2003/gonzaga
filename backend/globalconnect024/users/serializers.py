@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.utils import send_activation_email  # ✅ import this
+from .models import CustomUser, AffiliateCertificate
 
 User = get_user_model()
 
@@ -41,16 +42,28 @@ class RegistrationSerializer(serializers.ModelSerializer):
            
            #certificate only for affiliates 
 
-        if role == 'user' and not (certificate_number and certificate_number.strip()):
-            raise serializers.ValidationError({"certificate_number": "Certificate Number is required for affiliates."})
-
-        if attrs.get('password') != attrs('confirm_password'):
+        if attrs.get('password') != attrs.get('confirm_password'):
             raise serializers.ValidationError({"password": "Passwords do not match."})
+        
+        if role == 'user':
+            if not certificate_number:
+                raise serializers.ValidationError(
+                    {"certificate_number": "Certificate Number is required for affiliates."}
+                )
+            try:
+                cert = AffiliateCertificate.objects.get(certificate_number=certificate_number)
+            except AffiliateCertificate.DoesNotExist:
+                raise serializers.ValidationError(
+                    {"certificate_number": "This certificate has already been used or revoked."}
+                )
+        
         return attrs
 
     def create(self, validated_data):
         validated_data.pop('confirm_password', None)  # Exclude confirm_password
         request = self.context.get('request')
+
+        certificate_number = validated_data.get('certificate_number')
 
         user = User.objects.create_user(
             first_name=validated_data.get('first_name'),
@@ -65,6 +78,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
             role=validated_data.get('role', 'user'),
             is_active=False  # 🔒 Require email activation
         )
+
+        if user.role == 'user' and certificate_number:
+            # Mark certificate as used
+            cert = AffiliateCertificate.objects.get(certificate_number=certificate_number)
+            cert.is_valid = False
+            cert.used_by = user
+            cert.save()
 
         send_activation_email(request, user)  # ✅ Send activation email
         return user

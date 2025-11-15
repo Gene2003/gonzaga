@@ -31,8 +31,8 @@ urlpatterns = [
     path("api/", include("orders.urls")),
 
     # 🌐 Redirect base URL `/` to your React frontend vendor dashboard
-    path('', lambda request: HttpResponseRedirect(f"{settings.FRONTEND_URL}/vendor/dashboard")),
-    path('', lambda request: HttpResponseRedirect(f"{settings.FRONTEND_URL}/affiliate/dashboard")),
+    path('', lambda request: HttpResponseRedirect(f"{settings.FRONTEND_URL}/")),
+   
     
 
 ]

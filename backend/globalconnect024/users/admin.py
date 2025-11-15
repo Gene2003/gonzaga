@@ -1,7 +1,14 @@
 from django.contrib import admin 
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import CustomUser
+from .models import CustomUser , AffiliateCertificate
+
+@admin.register(AffiliateCertificate)
+class AffiliateCertificateAdmin(admin.ModelAdmin):
+    list_display = ('certificate_number', 'full_name', 'issued_date', 'is_valid', 'used_by')
+    search_fields = ('certificate_number', 'full_name', 'used_by__username', 'used_by__email')
+    list_filter = ('is_valid', 'issued_date')
+    readonly_fields = ('issued_date',)
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
