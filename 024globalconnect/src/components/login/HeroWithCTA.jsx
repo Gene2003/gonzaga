@@ -25,50 +25,29 @@ const HeroWithCTA = () => {
         />
 
         {/* Overlay Content */}
-        <div className="relative z-10 h-full w-full flex flex-col justify-center items-center text-center px-6 bg-black/50 backdrop-blur-sm">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 animate-fade-in-up max-w-3xl drop-shadow-md">
-            Empowering African Communities Through Digital Solutions
+        <div className="relative z-10 h-full w-full flex flex-col justify-center items-center text-center px-6 bg-black/50 backdrop-blur-sm pt-36">
+          <h1 className="text-3xl md:text-4xl lg:text-5x1 font-bold mb-6 animate-fade-in-up max-w-2xl drop-shadow-md">
+            BUILDING AFRICA'S MOST EFFICIENT AND PROFITABLE AGRICULTURAL MARKETPLACE.
           </h1>
 
           <p className="text-lg max-w-2xl mb-8 animate-fade-in-delayed text-blue-100">
-            Bridging the gap between opportunities and communities through innovative technology solutions.
+            024 Global Connect is transforming how agricultural value chain actors interact by creating a predictable,transparent and effective digital marketplace across.
+          </p>
+
+          <p className="text-lg max-w-2xl mb-8 animate-fade-in-delayed text-blue-100">
+            We levarage appropriate technologies to remove inefficiencies, educe post harvest losses,enhance profitability,and open meaningfull employment oppotunities for youth and women.
+          </p>
+          <p className="text-lg max-w-2xl mb-8 animate-fade-in-delayed text-blue-100">
+            Our marketplace is build on pillers of QUALITY,QUANTITY,PLACE AND PRICE- the 2Qs2Ps that ensures every transaction delivers exceptional value.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-buttons">
             <a
               href="#"
-              className="bg-white text-blue-700 font-semibold px-6 py-3 rounded-lg hover:scale-105 hover:shadow-lg transition"
-            >
-              Learn More
-            </a>
-            <a
-              href="#"
               className="border border-white text-white px-6 py-3 rounded-lg hover:bg-white hover:text-blue-700 hover:shadow-lg transition"
             >
-              Watch Video
+             💡  WE'RE NOT JUST BUILDING A PLATFORM.WE'RE BUILDING OPPOTUNITIES.
             </a>
-          </div>
-
-          {/* CTA Box */}
-          <div className="bg-white/10 rounded-xl px-8 py-10 max-w-2xl w-full text-white backdrop-blur-md shadow-xl animate-fade-in-delayed">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to Join the Digital Revolution?</h2>
-            <p className="mb-6">
-              Become part of our growing community and access opportunities through our platform.
-            </p>
-            <div className="flex justify-center gap-4">
-              <a
-                href="/login"
-                className="bg-white text-blue-700 px-6 py-3 rounded-lg font-semibold hover:scale-105 hover:shadow-lg transition"
-              >
-                Login to Your Account
-              </a>
-              <a
-                href="/register"
-                className="border border-white text-white px-6 py-3 rounded-lg hover:bg-white hover:text-blue-700 hover:shadow-lg transition"
-              >
-                Create New Account
-              </a>
-            </div>
           </div>
         </div>
       </section>

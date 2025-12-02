@@ -39,21 +39,47 @@ const AboutUs = () => {
   const teamMembers = [
     {
       name: 'Jimmy Murigi',
-      role: 'CEO & Founder',
+      role: 'CEO & CoFounder',
       image: '',
       bio: '10+ years in digital marketing and affiliate networks'
     },
 
     {
       name: 'Gonzaga Shyachi',
-      role: 'Head of Software Development',
+      role: 'Software Maintenance Assistant',
       image: '',
       bio: 'software developer'
+    },
+    {
+      name: 'John ',
+      role: 'IT and System Manager',
+      image: '',
+      bio: ''
+    },
+    {
+      name: 'Stacy Jahenda',  
+      role: 'Agribusiness Manager',
+      image: '',
+      bio: ''
+    },
+    {
+      name: 'Francescah Wanja',
+      role: 'Affiliate Program Manager',
+      image: '',
+      bio: ''
+    },
+    {
+      name: 'Janet Mackenzie',
+      role: 'Human Resource Manager',
+      image: '',
+      bio: ''
     }
   ];
 
+
   return (
     <div className="min-h-screen bg-white">
+  
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white py-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -111,9 +137,9 @@ const AboutUs = () => {
               <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
-                  Founded in 2025, 024GlobalConnect is a digital ecosystem providing smart linkages in marketing, e-commerce,affiliate sells and data-driven community support.</p>
+                  024 GLOBAL CONNECT is a pan african agritech company dedicated to building an EFFICIENT,PROFITABLE AND AGRICULTURAL MARKETPLACE.We connect producers, services providers,traders,input suppliers,processors, and logistics partners through a tech-enabled ecosystem that enhances trust,transparency, and business growth.</p>
                 <p>
-                  We use technology,partnerships and community training to bridge market gaps, generate income and scale local businesses.
+                  We focus on creating an enabling environment  where agricultural becomes a SUSTAINABLE LIVELIHOOD-Especially for youth and women.
                 </p>
               </div>
               <div className="mt-8">
@@ -123,7 +149,7 @@ const AboutUs = () => {
                     <span className="font-semibold">Our Mission</span>
                   </div>
                   <p className="text-blue-100">
-                    To leverage on ICT and other emerging technologies in providing our clients with the best solutions around employment opportunities, access to financial services and markets.
+                    To leverage appropriate technologies to make agricultural value chain interactions efficient and profitable—while creating decent work opportunities for youth and women across Africa.
                   </p>
                 </div>
               </div>
@@ -156,31 +182,319 @@ const AboutUs = () => {
       </section>
 
       {/* Values Section */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Core Values</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              The principles that guide everything we do and shape our relationships with partners
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => {
-              const Icon = value.icon;
-              return (
-                <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{value.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{value.description}</p>
-                </div>
-              );
-            })}
-          </div>
+
+      <section className="py-20 px-6 bg-gray-50">
+  <div className="max-w-6xl mx-auto">
+    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+      Our Core Values
+    </h2>
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+      {/* People-Centred */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">1</span>
         </div>
-      </section>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">People-Centred</h3>
+        <p className="text-gray-600 leading-relaxed">
+          We place people at the heart of every innovation.
+        </p>
+      </div>
+
+      {/* Technology-Driven */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">2</span>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Technology-Driven</h3>
+        <p className="text-gray-600 leading-relaxed">
+          We embrace solutions that enhance efficiency and transparency.
+        </p>
+      </div>
+
+      {/* Customer Satisfaction */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">3</span>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Customer Satisfaction</h3>
+        <p className="text-gray-600 leading-relaxed">
+          We listen, improve, and deliver value.
+        </p>
+      </div>
+
+      {/* Integrity & Trust */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">4</span>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Integrity & Trust</h3>
+        <p className="text-gray-600 leading-relaxed">
+          We keep our word and build lasting relationships.
+        </p>
+      </div>
+
+      {/* Environmental Care */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 md:col-span-2 lg:col-span-4">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">5</span>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-4">Environmental Care</h3>
+        <p className="text-gray-600 leading-relaxed">
+          We work towards a responsible and sustainable agricultural future.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+{/* What We Do Section */}
+<section className="py-20 px-4 bg-gray-50">
+  <div className="max-w-6xl mx-auto">
+    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+      What We Do
+    </h2>
+
+    <div className="grid md:grid-cols-2 gap-8">
+      {/* Service Items */}
+      {[
+        {
+          icon: '🌱',
+          title: 'Digital Agricultural Marketplace',
+          description: (
+            <>
+              We onboard and connect all key actors across the agricultural ecosystem, including:
+              <ul className="list-disc ml-5 mt-2">
+                <li>Input providers</li>
+                <li>Service providers</li>
+                <li>Producers</li>
+                <li>Aggregators</li>
+                <li>Processors</li>
+                <li>Wholesalers & retailers</li>
+                <li>Logistics and transport service providers</li>
+              </ul>
+              Our platform ensures seamless, efficient, and profitable interactions.
+            </>
+          )
+        },
+        {
+          icon: '📊',
+          title: 'Real-Time Market Information',
+          description: (
+            <>
+              We provide reliable access to:
+              <ul className="list-disc ml-5 mt-2">
+                <li>Market prices</li>
+                <li>Weather updates</li>
+                <li>Local and regional trends</li>
+                <li>Demand and supply insights</li>
+              </ul>
+              This empowers actors to make informed decisions that reduce risks and increase profits.
+            </>
+          )
+        },
+        {
+          icon: '📉',
+          title: 'Reducing Post-Harvest Losses',
+          description: (
+            <>
+              Our model is engineered to bring post-harvest losses down to 5% or less through:
+              <ul className="list-disc ml-5 mt-2">
+                <li>Structured supply chains</li>
+                <li>Timely market linkages</li>
+                <li>Efficient logistics</li>
+                <li>Better handling practices</li>
+              </ul>
+            </>
+          )
+        },
+        {
+          icon: '📚',
+          title: 'Upskilling, Mentorship & Capacity Building',
+          description: (
+            <>
+              We partner with development agencies, training institutions, and private sector actors to offer:
+              <ul className="list-disc ml-5 mt-2">
+                <li>Agribusiness training</li>
+                <li>Digital marketing skills</li>
+                <li>Financial literacy</li>
+                <li>Technical mentorship</li>
+                <li>Value chain coaching</li>
+              </ul>
+              This empowers youth, women, and SMEs to grow strong, resilient agribusinesses.
+            </>
+          )
+        },
+        {
+          icon: '💸',
+          title: 'Linkage to Affordable Finance',
+          description: (
+            <>
+              We collaborate with financial service providers to help actors access:
+              <ul className="list-disc ml-5 mt-2">
+                <li>Tailor-made financing</li>
+                <li>Credit for inputs and operations</li>
+                <li>Asset financing</li>
+                <li>Working capital facilities</li>
+              </ul>
+              Our goal is to unlock growth for agricultural entrepreneurs.
+            </>
+          )
+        },
+        {
+          icon: '🤝',
+          title: 'Affiliate Program',
+          description: (
+            <>
+              Our affiliate system allows youth, producers, and digital marketers to earn from:
+              <ul className="list-disc ml-5 mt-2">
+                <li>Referrals</li>
+                <li>Linking buyers and sellers</li>
+                <li>Promoting agricultural products and services</li>
+              </ul>
+              This program creates a new earning frontier in agriculture through digital participation.
+            </>
+          )
+        }
+      ].map((service, index) => (
+        <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="text-4xl mb-4">{service.icon}</div>
+          <h3 className="text-2xl font-bold mb-3 text-gray-900">{service.title}</h3>
+          <p className="text-gray-700">{service.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+{/*features and Goals Section */}
+<section className="py-20 px-4 bg-gray-50">
+  <div className="max-w-6xl mx-auto">
+    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">System Features
+      & Goals
+    </h2>
+    <p className="text-center text-gray-700 mb-16 max-w-3xl mx-auto">
+      our platform is designed to support aan end to end agricultural ecosystem with features such as:
+    </p>
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+    {/* Features*/}
+    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">1</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+         SEAMLESS ONBOARDING OF ALL THE VALUE CHAIN ACTORS.
+        </p>
+      </div>
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">2</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          SEAMLESS REALTIME TRANSACTIONS.
+        </p>
+      </div>
+
+       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">3</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          REAL-TIME DATA AND ANALYTICS.
+        </p>
+      </div>
+
+       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">4</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          AFFILIATE EARNING DASHBOARD.
+        </p>
+      </div>
+
+       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">5</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          PRODUCT LISTING & SERVICE MARKETPLACE.
+        </p>
+      </div>
+
+       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">6</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          VERIFIED LOGISTICS & DELIVERY INTERGRATION.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{/*GOALS SECTION*/}
+<section className="py-20 px-4">
+  <div className="max-w-6xl mx-auto">
+    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Our Goals</h2>
+
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+      {/* Goal Items */}
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">1</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+         ESTABLISHING A PREDICTABLE,PROFITABLE AND EFFICIENT MARKETPLACE SYSTEM LEADING TO A PAN-AFRICAN AGRICULTURAL NETWORK POWERED BY TECHNOLOGY.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">2</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          PROVIDIND ACCURATE MARKET INFORMATION AND REAL-TIME INSIGHTS.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">3</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          REDUCING POST HERVEST LOSSES TO 5%.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">4</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          ENHANCING THE CAPACTY OF VALUE CHAIN ACTORS THROUGH TRAINING AND MENTORSHIP.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <span className="text-white text-2xl font-bold">5</span>
+        </div>
+        <p className="text-gray-600 leading-relaxed">
+          CREATING LINKAGES TO AFFORDABLE FINANCIAL SERVICES.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Team Section */}
       <section className="py-20 px-4">
@@ -274,9 +588,14 @@ const AboutUs = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Join 024GlobalConnect?</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Whether you're a brand looking to expand your reach or an affiliate ready to monetize 
-            your audience, we're here to help you succeed.
+           ARE YOU A FARMER ,TRADER TRANSPORTER ,INPUT SUPPLIER ,PROCESSOR OR YOUTH LOOKING FOR OPPORTUNITIES IN AGRIBUSINESS? 024GLOBALCONNECT IS YOUR GROWTH PARTNER.
           </p>
+          <ul className="list-disc list-inside text-blue-100 mb-8 max-w-2xl mx-auto">
+            <li>🔗 Get onboard.</li>
+            <li>💼 Grow your business.</li>
+            <li>📈 Unlock new opportunities.</li>
+            <li>🌍 Be part of Africa’s agricultural transformation.</li>
+          </ul>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               to="/register" 
