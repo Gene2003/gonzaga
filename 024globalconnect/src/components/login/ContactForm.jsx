@@ -18,7 +18,6 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
-import { handleApiError } from '../../api/utils/apiutils';
 import logo from '../../assets/024global_logo_200x200.png';
 import { submitContactForm } from '../../api/contactAPI';
 
