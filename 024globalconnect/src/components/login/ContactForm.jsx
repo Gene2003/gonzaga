@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { handleApiError } from '../../api/utils/apiutils';
 import logo from '../../assets/024global_logo_200x200.png';
+import { submitContactForm } from '../../api/contactAPI';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -111,6 +112,13 @@ const ContactForm = () => {
     }
 
     try {
+      const payload ={
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        subject: formData.subject,
+        message: formData.message.trim(),
+      };
       // TODO: Replace with actual API call
       // const response = await contactAPI.submitForm({
       //   name: formData.name.trim(),
@@ -119,9 +127,7 @@ const ContactForm = () => {
       //   subject: formData.subject,
       //   message: formData.message.trim()
       // });
-      
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await submitContactForm(payload);
       
       setSubmitStatus('success');
       

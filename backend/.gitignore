@@ -4,7 +4,6 @@ __pycache__/
 *.pyo
 *.pyd
 *.pyc
-settings.py
 # Virtual environment
 env/
 venv/

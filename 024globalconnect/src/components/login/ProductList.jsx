@@ -6,7 +6,9 @@ const ProductList = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/products")
+
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    fetch(`${BASE_URL}/products/`)
       .then((res) => res.json())
       .then((data) => {
         console.log("products data:", data);
