@@ -13,4 +13,10 @@ export default defineConfig({
       '79c552f7d91c.ngrok-free.app'
     ]
   },
+  preview: {
+    allowedHosts: [
+      'enthusiastic-inspiration-production-a98c.up.railway.app',
+      '.up.railway.app'  // Covers Railway subdomains
+    ]
+  }
 })
