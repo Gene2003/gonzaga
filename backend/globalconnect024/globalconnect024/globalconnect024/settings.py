@@ -19,6 +19,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "79c552f7d91c.ngrok-free.app"
+   
 ]
 
 # Application definition
@@ -118,12 +119,13 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
     'http://localhost:5173',
     'http://79c552f7d91c.ngrok-free.app',
-]
+    
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://localhost:5173',
     'http://79c552f7d91c.ngrok-free.app',
+   
    
 
 ]

@@ -5,7 +5,7 @@ const Books = () => {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/books/')
+    axios.get(' import.meta.env.VITE_API_BASE_URL/api/books/')
       .then(response => setBooks(response.data))
       .catch(error => console.error('Error fetching books:', error));
   }, []);
@@ -18,7 +18,7 @@ const Books = () => {
           <div key={book.id} className="border rounded-xl p-4 shadow-md bg-white">
             {book.cover_image && (
               <img
-                src={`http://localhost:8000${book.cover_image}`}
+                src={` import.meta.env.VITE_API_BASE_URL${book.cover_image}`}
                 alt={book.title}
                 className="w-full h-64 object-cover rounded"
               />

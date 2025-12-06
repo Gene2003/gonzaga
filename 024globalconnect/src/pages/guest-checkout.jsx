@@ -41,7 +41,7 @@ const GuestCheckout = () => {
       };
 
       const res = await axios.post(
-        "http://localhost:8000/api/paystack/initialize/",
+        " import.meta.env.VITE_API_BASE_URL/api/paystack/initialize/",
         orderPayload
       );
 

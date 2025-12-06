@@ -56,7 +56,7 @@ const ProductList = () => {
             >
               {product.image ? (
                 <img
-                  src={`http://localhost:8000${product.image}`}
+                  src={` import.meta.env.VITE_API_BASE_URL${product.image}`}
                   alt={product.name}
                   className="w-full h-40 object-cover rounded mb-3"
                 />

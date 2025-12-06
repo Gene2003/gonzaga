@@ -9,7 +9,7 @@ export default defineConfig({
     port: 5173, // optional – use your preferred port
     strictPort: true, // optional – prevents Vite from trying to use another port if this one is taken
     allowedHosts: [
-      'localhost',
+      ' import.meta.env.VITE_API_BASE_URL',
       '79c552f7d91c.ngrok-free.app'
     ]
   },
