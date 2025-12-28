@@ -31,6 +31,7 @@ const RegistrationForm = () => {
     certificate_number: "",
     promotion_methods: [],
     role: "user", // default to affiliate
+    vendor_type: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -69,6 +70,7 @@ const RegistrationForm = () => {
     if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
     if (formData.password !== formData.confirm_password) newErrors.confirm_password = "Passwords do not match";
     if (!formData.termsAccepted) newErrors.termsAccepted = "You must accept the terms and policies";
+    if (formData.role === "vendor" && !formData.vendor_type) newErrors.vendor_type = "Vendor type is required for vendors";
     return newErrors;
   };
 
@@ -184,6 +186,18 @@ const RegistrationForm = () => {
                 <strong>Vendor:</strong> Upload products to sell.
               </p>
             </div>
+            {/* Vendor Type - show only if role is vendor */}
+            {formData.role === "vendor" && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-blue-night mb-1">Vendor Type</label>
+                <select name="vendor_type" value={formData.vendor_type} onChange={handleChange} className="w-full border rounded px-3 py-2">
+                  <option value="">Select Vendor Type</option>
+                  <option value="farmer">Farmer</option>
+                  <option value="wholesaler">Wholesaler</option>
+                  <option value="retailer">Retailer</option>
+                </select>
+              </div>
+            )}
             {/*show certificate field only if role is affiliate*/}
             {formData.role ==="user" && (
 

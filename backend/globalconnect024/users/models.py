@@ -27,6 +27,13 @@ class CustomUser(AbstractUser):
         ('vendor', 'Vendor'),
         ('admin', 'Admin'),  # optional
         ('customer', 'Customer'),  # optional
+
+    )
+
+    VENDOR_TYPE_CHOICES = (
+        ('farmer', 'Farmer'),
+        ('wholesaler', 'Wholesaler'),
+        ('retailer', 'Retailer'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
     country = models.CharField(max_length=100, blank=True, null=True)
@@ -34,6 +41,7 @@ class CustomUser(AbstractUser):
     promotion_methods = models.TextField(blank=True, null=True)
     certificate_number = models.CharField(max_length=100, blank=True, null=True)
     vendor_code = models.CharField(max_length=100, blank=True, null=True ,unique=True)
+    vendor_type = models.CharField(max_length=20, choices=VENDOR_TYPE_CHOICES, blank=True, null=True)
 
     def save (self, *args, **kwargs):
         #auto generate the 5 digit code for vendors

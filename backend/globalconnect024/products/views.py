@@ -55,8 +55,18 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        if not user.is_authenticated:
-            return Product.objects.filter(approved=True, stock__gt=0)
+        #consumers
+
+        if not user.is_authenticated or user.role =='consumer':
+                return Product.objects.filter(visible_to='consumer')
+        #wholesalers
+        if user.vendor_type == 'wholesaler':
+            return Product.objects.filter(visible_to='wholesaler')
+        #retailers
+        if user.vendor_type == 'retailer':
+            return Product.objects.filter(visible_to='retailer')    
+        
+        return Product.objects.none()
 
         if user.role == 'vendor':
             return Product.objects.filter(vendor=user)

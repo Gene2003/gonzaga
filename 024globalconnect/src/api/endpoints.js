@@ -56,7 +56,7 @@ export const getFullUrl = (endpoint, baseUrl = '') => {
   return `${baseUrl}${endpoint}`;
 };
 
-export const validateEndpoint = (endpoint) => {
+export const Endpoint = (endpoint) => {
   if (!endpoint) throw new Error('Endpoint is required');
   if (!endpoint.startsWith('/')) {
     console.warn(`Endpoint "${endpoint}" should start with "/"`);
