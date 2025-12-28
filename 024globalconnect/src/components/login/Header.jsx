@@ -85,7 +85,6 @@ const Header = () => {
               { label: 'Mission', href: '#mission' },
               { label: 'Contact', href: '/contact' },
               { label: 'About Us', href: '/aboutus' },
-              { label: 'Books', href: '/books' }
             ].map(({ label, href }) => (
               <a
                 key={label}
@@ -158,13 +157,6 @@ const Header = () => {
                 >
                   Login
                 </a>
-                <a
-                  href="/register"
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer"
-                  onClick={(e) => { e.preventDefault(); handleNavClick('/register'); }}
-                >
-                  Register
-                </a>
               </>
             )}
           </div>
@@ -192,7 +184,6 @@ const Header = () => {
               { label: 'Blog', href: '/blog' },
               { label: 'Contact', href: '/contact' },
               { label: 'About Us', href: '/aboutus' },
-              { label: 'Books', href: '/books' }
             ].map(({ label, href }) => (
               <a
                 key={label}

@@ -5,8 +5,6 @@ from django.conf import settings
 import requests
 from rest_framework.exceptions import PermissionDenied
 from .models import Product
-from .models import Book
-from .serializers import BookSerializer
 from .serializers import ProductSerializer
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
@@ -36,10 +34,6 @@ def initialize_paystack_payment(request):
 
     response = requests.post("https://api.paystack.co/transaction/initialize", json=payload, headers=headers)
     return Response(response.json())
-
-class BooklistCreateview(ListCreateAPIView):
-    queryset = Book.objects.all().order_by('-created_at')
-    serializer_class = BookSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
