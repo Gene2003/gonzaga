@@ -238,13 +238,7 @@ const Header = () => {
                     onClick={(e) => { e.preventDefault(); handleNavClick('/login'); }}
                   >
                     Login
-                  </a>
-                  <a
-                    href="/register"
-                    className="block w-full px-4 py-2 text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 cursor-pointer"
-                    onClick={(e) => { e.preventDefault(); handleNavClick('/register'); }}
-                  >
-                    Register
+                 
                   </a>
                 </>
               )}
