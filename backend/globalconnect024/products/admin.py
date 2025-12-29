@@ -3,7 +3,7 @@ from .models import Product
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'vendor', 'price', 'stock', 'approved', 'is_active', 'created_at']
+    list_display = ['name', 'vendor', 'farmer_price','wholesaler_price','retailer_price', 'stock', 'approved', 'is_active', 'created_at']
     list_filter = ['approved', 'is_active', 'vendor', 'created_at']
     search_fields = ['name', 'description', 'vendor__username']
     ordering = ['-created_at']

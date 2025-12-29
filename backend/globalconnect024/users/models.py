@@ -33,6 +33,7 @@ class CustomUser(AbstractUser):
     VENDOR_TYPE_CHOICES = (
         ('farmer', 'Farmer'),
         ('wholesaler', 'Wholesaler'),
+        ('transporter', 'Transporter'),
         ('retailer', 'Retailer'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
