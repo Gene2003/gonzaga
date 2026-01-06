@@ -25,7 +25,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
     promotion_methods = serializers.ListField(
         child=serializers.CharField(), required=False
     )
-    role = serializers.ChoiceField(choices=[('user', 'Affiliate'), ('vendor', 'Vendor')], default='user')
+    role = serializers.ChoiceField(choices=[('user', 'Affiliate'), ('vendor', 'Vendor'), ('service_provider', 'Service Provider')], default='user')
     certificate_number = serializers.CharField(required=False, allow_blank=True,allow_null=True)
 
     class Meta:

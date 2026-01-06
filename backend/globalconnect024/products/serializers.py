@@ -46,7 +46,8 @@ class ProductSerializer(serializers.ModelSerializer):
         else:
             raise serializers.ValidationError("Invalid vendor type.")
         return data
-
+    
+   
 
     image = serializers.ImageField(required=False, allow_null=True)
 

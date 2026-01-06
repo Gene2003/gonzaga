@@ -180,10 +180,12 @@ const RegistrationForm = () => {
               <select name="role" value={formData.role} onChange={handleChange} className="w-full border rounded px-3 py-2">
                 <option value="user">User (Affiliate)</option>
                 <option value="vendor">Vendor</option>
+                <option value="service_provider">Service Provider</option>
               </select>
               <p className="text-sm text-gray-500 mt-1">
                 <strong>Affiliate:</strong> Promote products and earn commission.<br />
-                <strong>Vendor:</strong> Upload products to sell.
+                <strong>Vendor:</strong> Upload products to sell.<br />
+                <strong>Service Provider:</strong> Offer services to users.
               </p>
             </div>
             {/* Vendor Type - show only if role is vendor */}
@@ -198,6 +200,20 @@ const RegistrationForm = () => {
                 </select>
               </div>
             )}
+
+              {/* Service Provider Type - show only if role is service_provider */}
+              {formData.role === "service_provider" && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-blue-night mb-1">Service Provider Type</label>
+                  <select name="service_provider_type" value={formData.service_provider_type} onChange={handleChange} className="w-full border rounded px-3 py-2">
+                    <option value="">Select Service Provider Type</option>
+                    <option value="veterinary">Veterinary Services</option>
+                    <option value="transport">Transporter</option>
+                    <option value="storage">Storage provider</option>
+                  </select>
+                </div>
+              )}
+              
             {/*show certificate field only if role is affiliate*/}
             {formData.role ==="user" && (
 
