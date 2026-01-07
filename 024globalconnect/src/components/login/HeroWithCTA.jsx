@@ -29,18 +29,6 @@ const HeroWithCTA = () => {
           <h1 className="text-3xl md:text-4xl lg:text-5x1 font-bold mb-6 animate-fade-in-up max-w-2xl drop-shadow-md">
             BUILDING AFRICA'S MOST EFFICIENT AND PROFITABLE AGRICULTURAL MARKETPLACE.
           </h1>
-
-          <p className="text-lg max-w-2xl mb-8 animate-fade-in-delayed text-blue-100">
-            024 Global Connect is transforming how agricultural value chain actors interact by creating a predictable,transparent and effective digital marketplace across.
-          </p>
-
-          <p className="text-lg max-w-2xl mb-8 animate-fade-in-delayed text-blue-100">
-            We levarage appropriate technologies to remove inefficiencies, educe post harvest losses,enhance profitability,and open meaningfull employment oppotunities for youth and women.
-          </p>
-          <p className="text-lg max-w-2xl mb-8 animate-fade-in-delayed text-blue-100">
-            Our marketplace is build on pillers of QUALITY,QUANTITY,PLACE AND PRICE- the 2Qs2Ps that ensures every transaction delivers exceptional value.
-          </p>
-
           <div className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-buttons">
             <a
               href="#"

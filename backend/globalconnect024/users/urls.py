@@ -1,6 +1,7 @@
 from django.urls import path
 from.views import VendorLoginView
 from rest_framework_simplejwt.views import TokenRefreshView
+from .admin_views import AdminResetPassword, AdminUserList, AdminCreateUser, AdminDeleteUser, AdminUpdateUserRole
 from .views import (
     # Auth
     RegisterView,
@@ -58,4 +59,11 @@ urlpatterns = [
     path('admin/commissions/<int:referral_id>/approve/', approve_commission, name='approve_commission'),
     path('admin/commissions/<int:referral_id>/payout/', mark_commission_paid, name='payout_commission'),
     path('admin/system-logs/', system_logs, name='system_logs'),
+    # 🛡️ Admin User Management
+    path('admin/users/list/', AdminUserList.as_view()), 
+    path('admin/users/create/', AdminCreateUser.as_view()),
+    path('admin/users/<int:pk>/delete/', AdminDeleteUser.as_view()), 
+    path('admin/users/<int:pk>/update-role/', AdminUpdateUserRole.as_view()),
+    path("admin/users/<int:pk>/reset-password/", AdminResetPassword.as_view()),
+
 ]

@@ -1,9 +1,17 @@
+from backend.globalconnect024.services.utils import auto_match_service_provider
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated      
 from rest_framework.exceptions import PermissionDenied
 from .models import Service
 from .serializers import ServiceSerializer
 
+booking = ServiceBooking.objects.create(**data)
+
+provider = auto_match_service_provider(booking)
+if provider:
+    booking.service_provider = provider
+    booking.status = 'matched'
+    booking.save()
 
 
 class ServiceViewSet(ModelViewSet):
