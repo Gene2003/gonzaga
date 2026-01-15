@@ -1,10 +1,13 @@
 from math import sqrt
-from backend.globalconnect024.users.models import User
-from backend.globalconnect024.category.models import ServiceType
+from users.models import CustomUser
+from category.models import ServiceType
 from django.db import models
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+
+User = get_user_model()
 
 
 def calculate_distance(lat1, lon1, lat2, lon2):

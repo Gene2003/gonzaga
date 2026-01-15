@@ -1,10 +1,26 @@
-from urllib import request
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
-from backend.globalconnect024.category.models import User
+User = get_user_model()
 
 
+# =========================
+# COMMON STATUS CHOICES
+# =========================
+STATUS_CHOICES = (
+    ('pending', 'Pending'),
+    ('matched', 'Matched'),
+    ('accepted', 'Accepted'),
+    ('completed', 'Completed'),
+    ('cancelled', 'Cancelled'),
+)
+
+
+# =========================
+# SERVICE PROVIDER PROFILE
+# =========================
 class ServiceProviderProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -23,57 +39,31 @@ class ServiceProviderProfile(models.Model):
     available = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user.username} ({self.user.service_type})"
-    
+        return f"{self.user.username} ({self.user.service_provider_type})"
 
 
-class ServiceBooking(models.Model):
-
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
-    )
-
-    customer = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="service_bookings"
-    )
-
-    service_provider = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="received_bookings"
-    )
-
-    service_type = models.CharField(max_length=20)
-    description = models.TextField()
-
-    scheduled_date = models.DateField()
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='pending'
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def clean(self):
-        if self.service_provider.role != 'service_provider':
-            raise ValidationError("Selected user is not a service provider")
-
-    def __str__(self):
-        return f"{self.service_type} - {self.customer.username}"
-    
-
+# =========================
+# TRANSPORTER PROFILE
+# =========================
 class TransporterProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="transporter_profile"
+    )
+
     price_per_km = models.DecimalField(max_digits=10, decimal_places=2)
     max_capacity_kg = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
 
-class TransportRequest(models.Model):
+    def __str__(self):
+        return f"{self.user.username} - {self.price_per_km}/km"
 
+
+# =========================
+# TRANSPORT REQUEST (VENDOR → TRANSPORTER)
+# =========================
+class TransportRequest(models.Model):
     vendor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -82,7 +72,7 @@ class TransportRequest(models.Model):
 
     transporter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="assigned_transports",
         null=True,
         blank=True
@@ -96,81 +86,42 @@ class TransportRequest(models.Model):
     quantity_kg = models.PositiveIntegerField()
     pickup_location = models.CharField(max_length=255)
     delivery_location = models.CharField(max_length=255)
-    vehicle_type = models.CharField(max_length=100, blank=True)
-    capacity_kg = models.PositiveIntegerField(null=True, blank=True)
+
     price_per_km = models.DecimalField(max_digits=10, decimal_places=2)
 
     status = models.CharField(
         max_length=20,
-        choices=(
-            ('pending', 'Pending'),
-            ('accepted', 'Accepted'),
-            ('in_transit', 'In Transit'),
-            ('delivered', 'Delivered'),
-        ),
+        choices=STATUS_CHOICES,
         default='pending'
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def auto_assign_transporter(request):
-     transporters = User.objects.filter(
+    def auto_assign_transporter(self):
+        transporter = User.objects.filter(
             role='service_provider',
-            service_type='transporter',
-            service_profile__available=True
-        )
-    # Optional: filter by location later
-    if transporters.exists():
-        request.transporter = transporters.first()
-        request.status = 'accepted'
-        request.save()
-        
+            service_provider_type='transport',
+            transporter_profile__is_available=True
+        ).first()
 
-class ServiceBooking(models.Model):
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('matched', 'Matched'),
-        ('accepted', 'Accepted'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-    )
+        if transporter:
+            self.transporter = transporter
+            self.status = 'accepted'
+            self.save()
 
-    customer = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='service_requests'
-    )
-
-    service_provider = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='assigned_services'
-    )
-
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-
-    pickup_location = models.CharField(max_length=255)
-    dropoff_location = models.CharField(max_length=255, blank=True)
-
-    quantity_kg = models.PositiveIntegerField(null=True, blank=True)
-    distance_km = models.DecimalField(max_digits=6, decimal_places=2)
-
-    agreed_price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"Transport request by {self.vendor.username}"
 
 
-
+# =========================
+# SERVICE (VET, STORAGE, TRANSPORT)
+# =========================
 class Service(models.Model):
     PROVIDER_TYPE_CHOICES = (
         ('veterinary', 'Veterinary Services'),
         ('transport', 'Transporter'),
-        ('storage', 'Storage provider'),
-        
+        ('storage', 'Storage Provider'),
     )
 
     provider = models.ForeignKey(
@@ -201,3 +152,46 @@ class Service(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.service_type})"
+
+
+# =========================
+# SERVICE BOOKING
+# =========================
+class ServiceBooking(models.Model):
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='service_requests'
+    )
+
+    service_provider = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_services'
+    )
+
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE
+    )
+
+    pickup_location = models.CharField(max_length=255)
+    dropoff_location = models.CharField(max_length=255, blank=True)
+
+    quantity_kg = models.PositiveIntegerField(null=True, blank=True)
+    distance_km = models.DecimalField(max_digits=6, decimal_places=2)
+
+    agreed_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.service.service_type} booking by {self.customer.username}"

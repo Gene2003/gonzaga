@@ -3,9 +3,11 @@ import requests
 from datetime import datetime
 from base64 import b64encode
 
+from services.views import get_nearest_transporters
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
@@ -59,6 +61,27 @@ def initiate_stk_push(phone, amount):
     )
 
     return response.json()
+
+# orders/views.py
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def buy_now(request):
+    product = Product.objects.get(id=request.data['product_id'])
+    vendor = product.vendor
+
+    transporters = get_nearest_transporters(vendor)
+
+    return Response({
+        "transporters": [
+            {
+                "id": t.id,
+                "name": t.username,
+                "price_per_km": t.transporterprofile.price_per_km,
+                "rating": t.rating
+            }
+            for t in transporters
+        ]
+    })
 
 
 @api_view(["POST"])
