@@ -159,7 +159,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173''https://www.024global.com')
+FRONTEND_URL = env('FRONTEND_URL', default='https://www.024global.com')
 
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
