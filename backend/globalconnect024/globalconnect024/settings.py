@@ -106,10 +106,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS')
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = ["https://www.024global.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.024global.com",
+    "https://024globalconnect-backend-production.up.railway.app"
+]
 
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -147,7 +150,7 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
-    'TOKEN_USER_CLASS': 'django.contrib.auth.models.User',
+    'TOKEN_USER_CLASS': 'AUTH_USER_MODEL',
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'TOKEN_OBTAIN_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
 }
@@ -156,7 +159,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173''https://www.024global.com')
 
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
