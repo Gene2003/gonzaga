@@ -9,7 +9,22 @@ from products.models import Product
 from .models import Service
 from.models import ServiceBooking
 from .serializers import ServiceSerializer
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 import math
+
+
+
+def notify_transporter(transporter, order, vendor, user):
+    channel_layer = get_channel_layer()
+
+    async_to_sync(channel_layer.group_send)(
+        f"transporter_{transporter.id}",
+    {
+        "type": "transport_request",    
+        "order_id": order.id
+    }
+)
 
 @api_view(['GET'])
 def find_transporters(request, product_id):
@@ -82,6 +97,20 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     
 
     return R *(2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)))
+
+@api_view(['POST'])
+def respond_transport(request, pk):
+    tr = TransportRequest.objects.get(id=pk)
+
+    if request.data['action'] == 'accept':
+        tr.status = 'accepted'
+        tr.save()
+        return Response({"status": "accepted"})
+
+    tr.status = 'declined'
+    tr.save()
+    return Response({"status": "declined"})
+
 
 def create_service_booking(data):
     return ServiceBooking.objects.create(**data)

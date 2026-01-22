@@ -6,9 +6,15 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+import africastalking
+
 
 User = get_user_model()
-
+def send_sms(phone_number, message):
+    sms.send(
+        message="New delivary request. please accept or decline.",
+        recipients=[transporter.phone_number]
+    )
 
 def calculate_distance(lat1, lon1, lat2, lon2):
     return sqrt((lat1-lat2)**2 + (lon1-lon2)**2)

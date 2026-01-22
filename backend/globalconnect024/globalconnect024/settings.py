@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'category',
     'orders',
     'services',
+    'channels',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -69,6 +70,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'globalconnect024.wsgi.application'
+ASGI_APPLICATION = 'globalconnect024.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 DATABASES = {
     'default': {
