@@ -157,6 +157,14 @@ const Header = () => {
                 >
                   Login
                 </a>
+
+                <a
+                  href="/register"
+                  className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg transition-all duration-200 hover:shadow-md cursor-pointer"
+                  onClick={(e) => { e.preventDefault(); handleNavClick('/register'); }}
+                >
+                  Register
+                </a>
               </>
             )}
           </div>
@@ -239,6 +247,14 @@ const Header = () => {
                   >
                     Login
                  
+                  </a>
+
+                  <a
+                    href="/register"
+                    className="block w-full px-4 py-2 text-center text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg transition-all duration-200 cursor-pointer"
+                    onClick={(e) => { e.preventDefault(); handleNavClick('/register'); }}
+                  >
+                    Register
                   </a>
                 </>
               )}
