@@ -1,6 +1,8 @@
 // src/hooks/useAuth.jsx
 import { useState, useEffect, createContext, useContext } from 'react';
 import { authService } from '../api/services/authService';
+import apiClient from '../api/client';
+import { API_ENDPOINTS } from '../api/endpoints';
 
 const AuthContext = createContext();
 
@@ -84,29 +86,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (formData) => {
+  const register = async (userData) => {
     setLoading(true);
     try {
-      const promotionMethods = Array.isArray(formData.promotion_methods)
-        ? formData.promotion_methods
+      const promotionMethods = Array.isArray(userData.promotion_methods)
+        ? userData.promotion_methods
         : [];
 
       const payload = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        confirm_password: formData.confirm_password,
-        country: formData.country,
-        city: formData.city,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        confirm_password: userData.confirm_password,
+        country: userData.country,
+        city: userData.city,
         promotion_methods: promotionMethods,
-        role: formData.role?.trim() || 'user',
+        role: userData.role?.trim() || 'user',
       };
 
-      const registrationResult = await authService.register(payload);
+      const response = await apiClient.post(API_ENDPOINTS.REGISTER, payload,
+        {
+          timeout: 30000, // 30 seconds timeout
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      ).then(res => res.data);
 
-      if (registrationResult.success) {
+      if (response.success) {
         return {
           success: true,
           message: 'Registration successful. Please check your email.',
@@ -116,7 +125,7 @@ export const AuthProvider = ({ children }) => {
 
       return {
         success: false,
-        errors: registrationResult.errors || registrationResult,
+        errors: response.errors || response,
       };
     } catch (error) {
       console.error("🔥 useAuth registration error:", JSON.stringify(error, null, 2));

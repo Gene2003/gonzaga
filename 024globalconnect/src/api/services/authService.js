@@ -3,7 +3,7 @@ import axios from 'axios';
 import apiClient from '../client';
 import { API_ENDPOINTS } from '../endpoints';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BACKEND_URL;
 
 export const authService = {
   login: async ({ username, password }) => {
