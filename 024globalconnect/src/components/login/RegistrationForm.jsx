@@ -65,7 +65,7 @@ const RegistrationForm = () => {
     if (!formData.last_name.trim()) newErrors.last_name = "Last name is required";
     if (!formData.username.trim()) newErrors.username = "Username is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
-    if (!formData.certificate_number.trim()) newErrors.certificate_number = "Certificate Number is required";
+    if (formData.role === "affiliate" && !formData.certificate_number.trim()) newErrors.certificate_number = "Certificate Number is required";
     if (!formData.password) newErrors.password = "Password is required";
     if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
     if (formData.password !== formData.confirm_password) newErrors.confirm_password = "Passwords do not match";
@@ -132,7 +132,6 @@ const RegistrationForm = () => {
             <InputField label="Email" type="email" name="email" value={formData.email} onChange={handleChange} />
             <InputField label="Password" type="password" name="password" value={formData.password} onChange={handleChange} />
             <InputField label="Confirm Password" type="password" name="confirm_password" value={formData.confirm_password} onChange={handleChange} />
-            <InputField label="Certificate Number" name="certificate_number" value={formData.certificate_Number} onChange={handleChange} />
 
             {/* Country */}
             <div>
@@ -188,6 +187,25 @@ const RegistrationForm = () => {
                 <strong>Service Provider:</strong> Offer services to users.
               </p>
             </div>
+
+            {/* certificate number - show only if role is affiliate */}
+            {formData.role === "user" && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-blue-night mb-1">Certificate Number</label>
+                <input
+                  type="text"
+                  name="certificate_number"
+                  value={formData.certificate_number}
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter your certificate number"
+                />
+                {errors.certificate_number && (
+                  <p className="text-red-500 text-sm mt-1">{errors.certificate_number}</p>
+                )}
+              </div>
+            )}
+
             {/* Vendor Type - show only if role is vendor */}
             {formData.role === "vendor" && (
               <div className="md:col-span-2">
@@ -214,23 +232,7 @@ const RegistrationForm = () => {
                 </div>
               )}
               
-            {/*show certificate field only if role is affiliate*/}
-            {formData.role ==="user" && (
-
-            <div className="form-group">
-             <label htmlFor="certificate_number">Certificate Number</label>
-             <input
-               type="text"
-               id="certificate_number"
-               name="certificate_number"
-               value={formData.certificate_number}
-               onChange={(e) => setFormData({ ...formData, certificate_number: e.target.value })}
-               placeholder="Enter your certificate number"
-            />
-           </div>
-            )}
-
-
+           
             {/* Terms */}
             <div className="md:col-span-2 flex items-start">
               <input
@@ -244,6 +246,9 @@ const RegistrationForm = () => {
               <label htmlFor="termsAccepted" className="ml-2 text-sm text-blue-night">
                 I agree to the <a href="#" className="text-blue-marine hover:underline">terms and policies</a>
               </label>
+            {errors.termsAccepted && (
+              <p className="text-red-500 text-sm mt-1 ml-2">{errors.termsAccepted}</p>
+            )}
             </div>
 
             {/* Submit Button */}
@@ -265,7 +270,7 @@ const RegistrationForm = () => {
   );
 };
 
-const InputField = ({ label, name, value, onChange, type = "text" }) => (
+const InputField = ({ label, name, value, onChange, type = "text", error }) => (
   <div>
     <label className="block text-sm font-medium text-blue-night mb-1">{label}</label>
     <input
@@ -275,6 +280,7 @@ const InputField = ({ label, name, value, onChange, type = "text" }) => (
       onChange={onChange}
       className="w-full border rounded px-3 py-2"
     />
+    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
 );
 

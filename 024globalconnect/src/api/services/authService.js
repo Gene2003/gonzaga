@@ -44,6 +44,8 @@ export const authService = {
         role: userData.role,
       };
 
+      console.log('Sending payload:', registrationPayload);
+
       const response = await axios.post(`${API_BASE_URL}/users/register/`, registrationPayload, {
         timeout: 30000,
         headers: { 'Content-Type': 'application/json' },
@@ -51,6 +53,10 @@ export const authService = {
 
       return { success: true, ...response.data };
     } catch (error) {
+      console.log('Full error:', error);
+      console.log('Error response:', error.response);
+      console.log('Error data:', error.response?.data);
+      console.log('Error status:', error.response?.status);
       const errData = error.response?.data;
       if (errData) {
         if (typeof errData === 'object') {

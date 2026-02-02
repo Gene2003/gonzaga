@@ -103,6 +103,7 @@ export const AuthProvider = ({ children }) => {
         country: userData.country,
         city: userData.city,
         promotion_methods: promotionMethods,
+        certificate_number: userData.certificate_number || '',
         role: userData.role?.trim() || 'user',
       };
 
@@ -113,25 +114,25 @@ export const AuthProvider = ({ children }) => {
             'Content-Type': 'application/json',
           },
         }
-      ).then(res => res.data);
+      );
 
-      if (response.success) {
-        return {
-          success: true,
-          message: 'Registration successful. Please check your email.',
-          requiresActivation: true,
-        };
-      }
-
-      return {
-        success: false,
-        errors: response.errors || response,
-      };
+      return { success: true, data: response.data };
     } catch (error) {
-      console.error("🔥 useAuth registration error:", JSON.stringify(error, null, 2));
-      return { success: false, errors: error };
-    } finally {
-      setLoading(false);
+      console.log('Full error response:', error.response);
+      console.log('Error data:', error.response?.data);
+
+      const errData = error.response?.data;
+      if (errData) {
+        if (typeof errData === 'object') {
+          const formatted = {};
+          for (const key in errData) {
+            formatted[key] = Array.isArray(errData[key]) ? errData[key][0] : errData[key];
+          }
+          throw formatted;
+        }
+        throw { general: errData.detail || errData.message };
+      }
+      throw { general: error.message || 'Unexpected registration error' };
     }
   };
 
