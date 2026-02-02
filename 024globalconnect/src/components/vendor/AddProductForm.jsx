@@ -71,7 +71,7 @@ const handleSubmit = async (e) => {
 
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-
+console.log("API_ENDPOINTS.VENDOR_PRODUCTS", API_ENDPOINTS.VENDOR_PRODUCTS, import.meta.env.VITE_API_BASE_URL);
     const response = await axios.post(API_ENDPOINTS.VENDOR_PRODUCTS, formData, {
       headers: {
         Authorization: `Bearer ${token}`,

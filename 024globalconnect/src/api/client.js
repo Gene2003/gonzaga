@@ -4,7 +4,7 @@ import { API_CONFIG } from './config';
 import { authService } from './services/authService';
 
 const apiClient = axios.create({
-  baseURL: API_CONFIG.baseURL,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: API_CONFIG.timeout,
   headers: {
     ...API_CONFIG.headers,

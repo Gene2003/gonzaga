@@ -9,7 +9,9 @@ export const authService = {
   login: async ({ username, password }) => {
     try {
       const payload = { username, password };
-      const response = await apiClient.post(API_ENDPOINTS.TOKEN_OBTAIN, payload);
+      const response = await apiClient.post(API_ENDPOINTS.TOKEN_OBTAIN,
+        {username, password}
+        );
 
       if (response.data.access) {
         localStorage.setItem('authToken', response.data.access);
@@ -46,7 +48,7 @@ export const authService = {
 
       console.log('Sending payload:', registrationPayload);
 
-      const response = await axios.post(`${API_BASE_URL}/users/register/`, registrationPayload, {
+      const response = await apiClient.post(`${API_BASE_URL}/users/register/`, registrationPayload, {
         timeout: 30000,
         headers: { 'Content-Type': 'application/json' },
       });
