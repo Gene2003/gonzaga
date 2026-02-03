@@ -7,11 +7,11 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=50, default="Tags")
-    vendor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categories")
+    vendor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categories", null=True, blank=True)
 
     def __str__(self):
         return self.name
-
+    
 class ServiceType(models.Model):
         name = models.CharField(max_length=100)
         description = models.TextField(blank=True)

@@ -17,6 +17,7 @@ import GuestCheckout from './pages/guest-checkout';
 
 import PrivateRoute from './components/auth/PrivateRoute';
 import ProtectedData from './pages/ProtectedData';
+import ProductsPage from './pages/ProductsPage';
 
 import AffiliateDashboard from './components/affiliate/AffiliateDashboard';
 import VendorDashboard from './components/vendor/VendorDashboard';
@@ -66,6 +67,7 @@ function App() {
         <Route path="/aboutus" element={<AboutUs />} />
         <Route path="/affiliate-partner" element={<AffiliatePartner />} />
         <Route path="/guest-checkout" element={<GuestCheckout />} />
+        <Route path="/products" element={<ProductsPage />} />
 
         {/* ✅ Role-based redirect */}
         <Route path="/dashboard" element={<PrivateRoute>{roleBasedRedirect()}</PrivateRoute>} />

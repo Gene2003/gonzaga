@@ -59,6 +59,10 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         if not user.is_authenticated or user.role =='consumer':
                 return Product.objects.filter(visible_to='consumer')
+        
+        #vendors
+        if user.role == 'vendor':
+            return Product.objects.filter(vendor=user)
         #wholesalers
         if user.vendor_type == 'wholesaler':
             return Product.objects.filter(visible_to='wholesaler')
@@ -68,12 +72,11 @@ class ProductViewSet(viewsets.ModelViewSet):
         
         return Product.objects.none()
 
-        if user.role == 'vendor':
-            return Product.objects.filter(vendor=user)
-        elif user.role == 'admin' or user.is_superuser:
+        #admins
+        if user.role == 'admin' or user.is_superuser:
             return Product.objects.all()
-        else:
-            return Product.objects.filter(approved=True, stock__gt=0)
+    
+            return Product.objects.none()
 
     def perform_create(self, serializer):
         user = self.request.user
