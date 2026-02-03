@@ -32,6 +32,7 @@ const RegistrationForm = () => {
     promotion_methods: [],
     role: "user", // default to affiliate
     vendor_type: "",
+    social_media_handles: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -69,6 +70,7 @@ const RegistrationForm = () => {
     if (!formData.password) newErrors.password = "Password is required";
     if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters";
     if (formData.password !== formData.confirm_password) newErrors.confirm_password = "Passwords do not match";
+    if (!formData.social_media_handles.trim()) newErrors.social_media_handles = "Social media handles are required";
     if (!formData.termsAccepted) newErrors.termsAccepted = "You must accept the terms and policies";
     if (formData.role === "vendor" && !formData.vendor_type) newErrors.vendor_type = "Vendor type is required for vendors";
     return newErrors;
@@ -132,6 +134,7 @@ const RegistrationForm = () => {
             <InputField label="Email" type="email" name="email" value={formData.email} onChange={handleChange} />
             <InputField label="Password" type="password" name="password" value={formData.password} onChange={handleChange} />
             <InputField label="Confirm Password" type="password" name="confirm_password" value={formData.confirm_password} onChange={handleChange} />
+            <InputField label="Social Media Handles" name="social_media_handles" value={formData.social_media_handles} onChange={handleChange} />
 
             {/* Country */}
             <div>
@@ -188,6 +191,7 @@ const RegistrationForm = () => {
               </p>
             </div>
 
+            
             {/* certificate number - show only if role is affiliate */}
             {formData.role === "user" && (
               <div className="md:col-span-2">
@@ -202,6 +206,24 @@ const RegistrationForm = () => {
                 />
                 {errors.certificate_number && (
                   <p className="text-red-500 text-sm mt-1">{errors.certificate_number}</p>
+                )}
+              </div>
+            )}
+
+            {/* social media handles - show only if role is affiliate */}
+            {formData.role === "user" && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-blue-night mb-1">Social Media Handles</label>
+                <input
+                  type="text"
+                  name="social_media_handles"
+                  value={formData.social_media_handles}
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter your social media handles"
+                />
+                {errors.social_media_handles && (
+                  <p className="text-red-500 text-sm mt-1">{errors.social_media_handles}</p>
                 )}
               </div>
             )}
