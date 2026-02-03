@@ -110,6 +110,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "https://www.024global.com",
+    "https://024global.com",
     "https://024globalconnect-backend-production.up.railway.app",
     "http://localhost:8000",
     "http://localhost:5173",
@@ -120,6 +121,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://www.024global.com",
+    "https://024global.com",
     "https://024globalconnect-backend-production.up.railway.app"
 ]
 

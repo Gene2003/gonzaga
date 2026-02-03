@@ -26,7 +26,6 @@ urlpatterns = [
     path('api/users/', include('users.urls')),  # 👈 this exposes /api/admin/users/ etc. correctly
 
     # ✅ Other apps
-    path('api/', include('products.urls')),
     path('api/', include('category.urls')),
     path("api/", include("orders.urls")),
 

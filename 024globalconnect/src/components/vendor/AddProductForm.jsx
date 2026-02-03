@@ -1,7 +1,7 @@
 // src/components/vendor/AddProductForm.jsx
 
 import React, { useState } from "react";
-import axios from "axios";
+import apiClient from "../../api/client";
 import toast from "react-hot-toast";
 import { Listbox } from "@headlessui/react";
 import {
@@ -71,10 +71,8 @@ const handleSubmit = async (e) => {
 
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => formData.append(key, value));
-console.log("API_ENDPOINTS.VENDOR_PRODUCTS", API_ENDPOINTS.VENDOR_PRODUCTS, import.meta.env.VITE_API_BASE_URL);
-    const response = await axios.post(API_ENDPOINTS.VENDOR_PRODUCTS, formData, {
+    const response = await apiClient.post(API_ENDPOINTS.VENDOR_PRODUCTS, formData, {
       headers: {
-        Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       },
     });

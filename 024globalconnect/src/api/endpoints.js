@@ -1,13 +1,11 @@
 // src/api/endpoints.js
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const API_ENDPOINTS = {
   // ✅ Authentication
-  TOKEN_OBTAIN: '/token/',                           // login (email or username)
-  REFRESH_TOKEN: '/token/refresh/',                  // refresh token
-  LOGOUT: '/users/logout/',
-  REGISTER: '/users/register/',
-  CURRENT_USER: '/users/me/',
-
+  TOKEN_OBTAIN: `/token/`,                           // login (email or username)
+  REFRESH_TOKEN: `/token/refresh/`,                  // refresh token
+  LOGOUT: `/users/logout/`,
+  REGISTER: `/users/register/`,
+  CURRENT_USER: `/users/me/`,
   // ✅ Activation
   ACTIVATE_ACCOUNT: (uid, token) => `/users/auth/activate/${uid}/${token}/`,
   RESEND_ACTIVATION_EMAIL: '/users/registration/resend-email/',
@@ -25,8 +23,8 @@ export const API_ENDPOINTS = {
   AFFILIATE_REFERRALS: '/users/affiliate/referrals/',
 
   // ✅ Vendor
-  VENDOR_PRODUCTS: `${API_BASE_URL}/products/`,
-  VENDOR_PRODUCT_DETAIL: (id) => `${API_BASE_URL}/products/${id}/`,
+  VENDOR_PRODUCTS: `/products/`,
+  VENDOR_PRODUCT_DETAIL: (id) => `/products/${id}/`,
 
   // ✅ Admin
   ADMIN_REPORTS: '/admin/reports/',

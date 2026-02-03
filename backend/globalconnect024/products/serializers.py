@@ -7,8 +7,17 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'image', 'stock', 'approved', 'vendor_name']
-        read_only_fields = ['id', 'vendor', 'approved']
+        fields = ['id', 'name', 'description', 'farmer_price','wholesaler_price', 'retailer_price','quantity_kg', 'image', 'stock', 'approved', 'vendor_name','category','visible_to']
+        read_only_fields = ['id', 'vendor', 'approved', 'vendor_name','visible_to']
+
+        def get_vendor_name(self, obj):
+            return obj.vendor.first_name or obj.vendor.username if obj.vendor else None
+        
+        def create(self, validated_data):
+            validated_data.pop('category', None)  # Remove category if present
+            validated_data['vendor'] = self.context['request'].user
+            return super().create(validated_data)
+        
 
         
     def validate(self, data):
@@ -22,27 +31,20 @@ class ProductSerializer(serializers.ModelSerializer):
         if vendor_type =='farmer':
             if not data.get('farmer_price'):
                 raise serializers.ValidationError("Farmer must set farmer_price")
-            data['wholesale_price'] = None
-            data['retail_price'] = None
+            data['wholesaler_price'] = data.get('wholesaler_price',0)
+            data['retail_price'] = data.get('retail_price',0)
         #wholesaler
         elif vendor_type =='wholesaler':
             if not data.get('wholesaler_price'):
                 raise serializers.ValidationError("Wholesaler must set wholesaler_price")
-            data['farmer_price'] = None
-            data['retail_price'] = None
+            data['farmer_price'] = data.get('farmer_price',0)
+            data['retailer_price'] = data.get('retailer_price',0)
         #retailer
         elif vendor_type =='retailer':
             if not data.get('retailer_price'):
-                raise serializers.ValidationError("Retailer must set retailer_price")
-            data['farmer_price'] = None
-            data['wholesale_price'] = None
-            data['retail_price'] = None
-        #retailer
-        elif vendor_type =='retailer':
-            if not data.get('retailer_price'):
-                raise serializers.ValidationError("Retailer must set retailer_price")
-            data['farmer_price'] = None
-            data['wholesale_price'] = None
+                raise serializers.ValidationError("Retailer must set retail_price")
+            data['farmer_price'] = data.get('farmer_price',0)
+            data['wholesaler_price'] = data.get('wholesaler_price',0)
         else:
             raise serializers.ValidationError("Invalid vendor type.")
         return data

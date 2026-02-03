@@ -3,12 +3,12 @@ import axios from 'axios';
 import apiClient from '../client';
 import { API_ENDPOINTS } from '../endpoints';
 
-const API_BASE_URL = import.meta.env.VITE_API_BACKEND_URL;
+console.log('API Base URL:', import.meta.env.VITE_API_BACKEND_URL);
 
+console.log('All env vars:', import.meta.env);
 export const authService = {
   login: async ({ username, password }) => {
     try {
-      const payload = { username, password };
       const response = await apiClient.post(API_ENDPOINTS.TOKEN_OBTAIN,
         {username, password}
         );
@@ -44,13 +44,14 @@ export const authService = {
         city: userData.city,
         promotion_methods: userData.promotion_methods,
         role: userData.role,
+        certificate_number: userData.certificate_number || '',
+        vendor_type: userData.vendor_type || '',
+        service_provider_type: userData.service_provider_type || '',
       };
 
-      console.log('Sending payload:', registrationPayload);
 
-      const response = await apiClient.post(`${API_BASE_URL}/users/register/`, registrationPayload, {
+      const response = await apiClient.post(`/users/register/`, registrationPayload, {
         timeout: 30000,
-        headers: { 'Content-Type': 'application/json' },
       });
 
       return { success: true, ...response.data };
@@ -157,7 +158,7 @@ export const authService = {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) throw new Error('No refresh token available');
 
-      const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {
+      const response = await apiClient.post(`/token/refresh/`, {
         refresh: refreshToken,
       });
 

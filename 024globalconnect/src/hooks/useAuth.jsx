@@ -27,11 +27,16 @@ export const AuthProvider = ({ children }) => {
         if (currentUser && isAuth) {
           setUser(currentUser);
         } else {
-          authService.logout();
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
           setUser(null);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
         setUser(null);
       } finally {
         setLoading(false);
