@@ -6,7 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 import logoImage from "../../assets/024global_logo_200x200.png";
 
 const countryCityData = {
-  Kenya: ["Nairobi", "Mombasa", "Kisumu", "Eldoret", "Nakuru"],
+  Kenya: ["Nairobi", "Mombasa", "Kisumu", "Eldoret", "Nakuru","Machakos" ],
   Nigeria: ["Lagos", "Abuja", "Ibadan", "Port Harcourt"],
   Ghana: ["Accra", "Kumasi", "Takoradi", "Tamale"],
   Uganda: ["Kampala", "Entebbe", "Jinja"],
