@@ -86,6 +86,7 @@ const Header = () => {
               { label: 'Contact', href: '/contact' },
               { label: 'About Us', href: '/aboutus' },
               { label: 'ProductsPage', href: '/products' },
+              { label: 'ServicesPage', href: '/services' },
             ].map(({ label, href }) => (
               <a
                 key={label}
@@ -194,6 +195,7 @@ const Header = () => {
               { label: 'Contact', href: '/contact' },
               { label: 'About Us', href: '/aboutus' },
               { label: 'ProductsPage', href: '/products' },
+              { label: 'ServicesPage', href: '/services' },
             ].map(({ label, href }) => (
               <a
                 key={label}

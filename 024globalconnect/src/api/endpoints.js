@@ -26,6 +26,10 @@ export const API_ENDPOINTS = {
   VENDOR_PRODUCTS: `/products/`,
   VENDOR_PRODUCT_DETAIL: (id) => `/products/${id}/`,
 
+  // ✅ Services
+  SERVICE: `/services/`,
+  SERVICE_DETAIL: (id) => `/services/${id}/`,
+
   // ✅ Admin
   ADMIN_REPORTS: '/admin/reports/',
   ADMIN_PAYOUT_APPROVAL: '/admin/payouts/approve/',

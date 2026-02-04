@@ -44,6 +44,7 @@ const ProductsPage = () => {
     try {
       setLoading(true);
       const response = await apiClient.get(API_ENDPOINTS.VENDOR_PRODUCTS);
+      console.log('Products fetched:', response.data); // ✅ Debug log
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -57,11 +58,16 @@ const ProductsPage = () => {
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    
+    // ✅ FIX: category might be null or an object
+    const productCategory = product.category?.name || product.category || '';
+    const matchesCategory = selectedCategory === 'All' || productCategory === selectedCategory;
+    
     const matchesVendorType = selectedVendorType === 'All' || 
                               product.vendor_type?.toLowerCase() === selectedVendorType.toLowerCase();
     
-    return matchesSearch && matchesCategory && matchesVendorType && product.approved && product.is_active;
+    // ✅ FIX: Don't filter by approved and is_active on frontend (backend should handle this)
+    return matchesSearch && matchesCategory && matchesVendorType;
   });
 
   // Get price based on vendor type
@@ -189,7 +195,9 @@ const ProductsPage = () => {
               No products found
             </h3>
             <p className="text-gray-500">
-              Try adjusting your filters or search query
+              {products.length === 0 
+                ? 'No products available yet. Check back soon!'
+                : 'Try adjusting your filters or search query'}
             </p>
           </div>
         ) : (
@@ -213,6 +221,9 @@ const ProductsPage = () => {
 const ProductCard = ({ product, onAddToCart, getPrice }) => {
   const price = getPrice(product);
   const imageUrl = product.image || 'https://via.placeholder.com/300x300?text=No+Image';
+  
+  // ✅ FIX: Use quantity_kg, not stock
+  const isOutOfStock = product.quantity_kg === 0;
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
@@ -226,7 +237,7 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
             e.target.src = 'https://via.placeholder.com/300x300?text=No+Image';
           }}
         />
-        {product.stock === 0 && (
+        {isOutOfStock && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <span className="text-white font-bold text-lg">Out of Stock</span>
           </div>
@@ -247,7 +258,10 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
         <div className="flex items-center gap-2 mb-3">
           <Store className="w-4 h-4 text-gray-500" />
           <span className="text-xs text-gray-500">
-            by {product.vendor_name || 'Unknown Vendor'}
+            {product.vendor_type && (
+              <span className="font-medium">{product.vendor_type}</span>
+            )}
+            {product.vendor_name && ` - ${product.vendor_name}`}
           </span>
         </div>
 
@@ -263,23 +277,20 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
               </p>
             )}
           </div>
-          <div className="text-right">
-            <span className="text-xs text-gray-500">Stock: {product.stock}</span>
-          </div>
         </div>
 
         {/* Add to Cart Button */}
         <button
           onClick={() => onAddToCart(product)}
-          disabled={product.stock === 0}
+          disabled={isOutOfStock}
           className={`w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
-            product.stock === 0
+            isOutOfStock
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >
           <ShoppingCart className="w-5 h-5" />
-          {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+          {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </button>
       </div>
     </div>

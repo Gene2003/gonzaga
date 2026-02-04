@@ -13,6 +13,8 @@ import ContactForm from './components/login/ContactForm';
 import AboutUs from './pages/AboutUs';
 import AffiliatePartner from './components/affiliate/AffiliatePartner';
 import GuestCheckout from './pages/guest-checkout';
+import ServicesPage from './pages/ServicesPage';
+import ServiceProviderDashboard from './components/service-provider/ServiceProviderDashboard';
 
 
 import PrivateRoute from './components/auth/PrivateRoute';
@@ -45,6 +47,7 @@ function App() {
     if (!user) return <Navigate to="/login" replace />;
     if (user.role === 'admin') return <Navigate to="/admin" replace />;
     if (user.role === 'vendor') return <Navigate to="/vendor/dashboard" replace />;
+    if (user.role === 'service_provider') return <Navigate to="/service-provider/dashboard" replace />;
     return <Navigate to="/affiliate/dashboard" replace />;
   };
 
@@ -68,6 +71,7 @@ function App() {
         <Route path="/affiliate-partner" element={<AffiliatePartner />} />
         <Route path="/guest-checkout" element={<GuestCheckout />} />
         <Route path="/products" element={<ProductsPage />} />
+        <Route path="/services" element={<ServicesPage />} />
 
         {/* ✅ Role-based redirect */}
         <Route path="/dashboard" element={<PrivateRoute>{roleBasedRedirect()}</PrivateRoute>} />
@@ -88,6 +92,16 @@ function App() {
           element={
             <PrivateRoute allowedRoles={['vendor']}>
               <VendorDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        {/* ✅ Service Provider Dashboard */}
+        <Route
+          path="/service-provider/dashboard"
+          element={
+            <PrivateRoute allowedRoles={['service_provider']}>
+              <ServiceProviderDashboard />
             </PrivateRoute>
           }
         />

@@ -1,14 +1,17 @@
+from warnings import filters
 from services.utils import auto_match_service_provider
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated      
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, filters
 from rest_framework.decorators import api_view
 from .models import TransportRequest, TransporterProfile
 from products.models import Product
 from .models import Service
 from.models import ServiceBooking
-from .serializers import ServiceSerializer
+from .serializers import ServiceBookingSerializer, ServiceSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import math
@@ -145,15 +148,39 @@ def get_nearest_transporters(vendor):
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['service_type', 'is_active']
+    search_fields = ['title', 'description']
+    ordering_fields = ['price_per_hour', 'created_at', 'title']
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        if self.request.user.role != 'service_provider':
-            raise PermissionDenied(
-                "Only service providers can add services"
-            )
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]  # Public read access
+        return [IsAuthenticated()]  # Authenticated write access
+    def get_queryset(self):
+        user = self.request.user
 
-        serializer.save(provider=self.request.user)
+        if not user.is_authenticated or user.role not in ['service_provider', 'admin']:
+            return Service.objects.filter(is_active=True)
+        
+        #service_providers
+        if user.role == 'service_provider':
+            return Service.objects.filter(provider=user)
+        
+        #admins
+        if user.role == 'admin' or user.is_superuser:
+            return Service.objects.all()
+        
+        return Service.objects.filter(is_active=True)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role != 'service_provider':
+            raise PermissionDenied(
+                "Only service providers can add services")
+        serializer.save(provider=user)
+
     def perform_update(self, serializer):
         user = self.request.user
         instance = serializer.instance
@@ -165,3 +192,30 @@ class ServiceViewSet(ModelViewSet):
             serializer.validated_data.pop('approved', None)
 
         serializer.save()
+
+class ServiceBookingViewSet(viewsets.ModelViewSet):
+    serializer_class = ServiceBookingSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status', 'service__service_type']
+    ordering_fields = ['created_at', 'agreed_price']
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        # Customers see their own bookings
+        if user.role in ['user', 'vendor', 'customer']:
+            return ServiceBooking.objects.filter(customer=user)
+        
+        # Service providers see bookings assigned to them
+        if user.role == 'service_provider':
+            return ServiceBooking.objects.filter(service_provider=user)
+        
+        # Admins see everything
+        if user.role == 'admin' or user.is_superuser:
+            return ServiceBooking.objects.all()
+        
+        return ServiceBooking.objects.none()
+    
+    def perform_create(self, serializer):
+        serializer.save(customer=self.request.user)

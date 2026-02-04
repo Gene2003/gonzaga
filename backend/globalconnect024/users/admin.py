@@ -12,13 +12,14 @@ class AffiliateCertificateAdmin(admin.ModelAdmin):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_staff')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'role','vendor_type','service_provider_type','is_staff')
     search_fields = ('username', 'email', 'first_name', 'last_name')
-    list_filter = ('role', 'is_staff', 'is_superuser', 'is_active', 'groups')
+    list_filter = ('role', 'vendor_type','service_provider_type','is_staff', 'is_superuser', 'is_active', 'groups')
 
     fieldsets = (
         (_('Login Info'), {'fields': ('username', 'password')}),
         (_('Personal Info'), {'fields': ('first_name', 'last_name', 'email', 'role', 'country', 'city', 'promotion_methods','certificate_number')}),
+        (_('Vendor Info'), {'fields': ('vendor_type', 'service_provider_type')}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
@@ -28,9 +29,13 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'role','certificate_number', 'password1', 'password2','is_staff','is_superuser','is_active'),
+            'fields': ('username', 'email', 'role','certificate_number', 'password1', 'password2','vendor_type','service_provider_type','is_staff','is_superuser','is_active'),
         }),
     )
+
+    search_fields = ('username', 'email', 'first_name', 'last_name')
+    ordering = ('username',)
+    
     def save_model(self, request, obj, form, change):
      if not change:  # Creating new user
         password1 = form.cleaned_data.get("password1")

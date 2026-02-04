@@ -3,6 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponseRedirect
+from rest_framework.routers import DefaultRouter
+from services.views import ServiceViewSet, ServiceBookingViewSet
 
 
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -10,10 +12,12 @@ from users.views import EmailOrUsernameTokenObtainPairView  # ✅ custom login v
 from .views import guest_checkout
 
 
-
+router = DefaultRouter()
+router.register(r'services', ServiceViewSet, basename='service')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include(router.urls)),  # ✅ Services endpoints
     # ✅ Guest checkout endpoint
     path('api/guest-checkout/', guest_checkout, name='guest_checkout'),
     path('api/', include('products.urls')), 
