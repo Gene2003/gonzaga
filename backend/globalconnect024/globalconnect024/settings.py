@@ -83,16 +83,13 @@ DATABASE_URL = env('DATABASE_URL', default='')
 
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.config(default=DATABASE_URL, 
-                                          conn_max_age=600,
-                                          conn_health_checks=True,
-                                          )
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
     }
-    #ssl for neon database
-    if 'neon.tech' in DATABASE_URL:
-        DATABASES['default']['OPTIONS'] = {
-            'sslmode': 'require',
-        }
 else:
     DATABASES = {
         'default': {
