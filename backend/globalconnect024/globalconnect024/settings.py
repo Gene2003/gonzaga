@@ -82,12 +82,17 @@ CHANNEL_LAYERS = {
 DATABASE_URL = env('DATABASE_URL', default='')
 
 if DATABASE_URL:
+    if '?' in DATABASE_URL:
+        if 'sslmode' not in DATABASE_URL:
+            DATABASE_URL += '&sslmode=require'
+        else:
+            DATABASE_URL += '?sslmode=require'
+
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
-            ssl_require=True,
         )
     }
 else:
