@@ -85,7 +85,7 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(default=DATABASE_URL, 
                                           conn_max_age=600,
-                                          con_health_checks=True,
+                                          conn_health_checks=True,
                                           )
     }
     #ssl for neon database
