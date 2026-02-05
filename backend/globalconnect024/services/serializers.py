@@ -3,14 +3,15 @@ from .models import Service, ServiceBooking
 
 
 class ServiceSerializer(serializers.ModelSerializer):
-    provider_name = serializers.SerializerMethodField()
-    provider_type = serializers.SerializerMethodField()
+    provider_name = serializers.SerializerMethodField(source='provider.username', read_only=True)
+    provider_type = serializers.SerializerMethodField(source='provider.type', read_only=True)
 
 
     class Meta:
         model = Service
         fields = [
-            'id', 'title', 'description', 'service_type', 'price_per_hour', 
+            'id', 'title', 'description', 'service_type', 'price', 
+            'category','availability', 'provider','duration','image',
             'provider_name', 'provider_type', 'is_active', 'created_at'
         ]
         read_only_fields = ['id', 'provider', 'provider_name', 'provider_type', 'created_at']
@@ -34,10 +35,11 @@ class ServiceBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceBooking
         fields = [
-            'id', 'service', 'service_title', 'scheduled_date', 
+            'id', 'service', 'service_title', 'scheduled_date',
+            'customer', 'customer_name','notes',
             'scheduled_time', 'agreed_price', 'status', 'created_at'
         ]
-        read_only_fields = ['id', 'service_title', 'service_provider', 'agreed_price', 'status', 'created_at']
+        read_only_fields = ['id', 'service_title', 'customer_name', 'agreed_price', 'status', 'created_at']
 
         def create(self, validated_data):
             validated_data['customer'] = self.context['request'].user

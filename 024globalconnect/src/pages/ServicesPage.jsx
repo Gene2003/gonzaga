@@ -35,7 +35,13 @@ const ServicesPage = () => {
       setLoading(true);
       const response = await apiClient.get('/services/');
       console.log('Services fetched:', response.data);
-      setServices(response.data);
+    
+    
+      const fetchedServices = Array.isArray(response.data)
+       ? response.data
+       : response.data.results || [];
+
+      setServices(fetchedServices);
     } catch (error) {
       console.error('Error fetching services:', error);
       toast.error('Failed to load services');
@@ -55,6 +61,11 @@ const ServicesPage = () => {
     
     return matchesSearch && matchesType;
   });
+
+  const handleBooking = (service) => {
+    toast.success(`Booking request sent for ${service.title}`);
+    // Implement booking logic here
+  };
 
   if (loading) {
     return (
@@ -164,6 +175,7 @@ const ServicesPage = () => {
 // Service Card Component
 const ServiceCard = ({ service }) => {
   const imageUrl = service.image || 'https://via.placeholder.com/400x300?text=Service';
+  const isUnavailable = !service.availability;
   
   const getServiceTypeLabel = (type) => {
     const types = {
@@ -197,6 +209,13 @@ const ServiceCard = ({ service }) => {
             e.target.src = 'https://via.placeholder.com/400x300?text=Service';
           }}
         />
+        {isUnavailable && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <span className="text-white text-lg font-semibold bg-red-600 px-3 py-1 rounded">
+              Unavailable
+            </span>
+          </div>
+        )}
         <div className="absolute top-2 right-2">
           <span className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-medium">
             {getServiceTypeLabel(service.service_type)}

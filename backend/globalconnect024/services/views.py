@@ -1,9 +1,10 @@
 from warnings import filters
 from services.utils import auto_match_service_provider
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated      
+from rest_framework.permissions import AllowAny, IsAuthenticated      
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 from rest_framework.decorators import api_view
@@ -149,30 +150,41 @@ class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['service_type', 'is_active']
-    search_fields = ['title', 'description']
-    ordering_fields = ['price_per_hour', 'created_at', 'title']
+    filterset_fields = ['service_type', 'is_active','category']
+    search_fields = ['title', 'description','name']
+    ordering_fields = ['price_per_hour', 'created_at', 'title','name']
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
+        """
+        - List/Retrieve: Anyone can view (AllowAny)
+        - Create/Update/Delete: Only authenticated users
+        """
         if self.action in ['list', 'retrieve']:
             return [AllowAny()]  # Public read access
         return [IsAuthenticated()]  # Authenticated write access
     def get_queryset(self):
+        """
+        Returns services based on user role:
+        - Service Providers: Only their own services
+        - Affiliates: All active services
+        - Admins: All services
+        - Others: Only active services
+        """
         user = self.request.user
 
-        if not user.is_authenticated or user.role not in ['service_provider', 'admin']:
-            return Service.objects.filter(is_active=True)
-        
-        #service_providers
-        if user.role == 'service_provider':
-            return Service.objects.filter(provider=user)
-        
-        #admins
-        if user.role == 'admin' or user.is_superuser:
+        #admin
+        if user.is_authenticated and (user.role == 'admin' or user.is_superuser):
             return Service.objects.all()
-        
+        #affiliates
+        if user.is_authenticated and user.role == 'affiliate':
+            return Service.objects.all()
+        #service providers
+        if user.is_authenticated and user.role == 'service_provider':
+            return Service.objects.filter(provider=user)
+        #others
         return Service.objects.filter(is_active=True)
+
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -193,6 +205,11 @@ class ServiceViewSet(ModelViewSet):
 
         serializer.save()
 
+       
+        services = Service.objects.filter(provider=self.srequest.user)
+        serializer = self.get_serializer(services, many=True)
+        return Response(serializer.data)
+
 class ServiceBookingViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceBookingSerializer
     permission_classes = [IsAuthenticated]
@@ -204,7 +221,7 @@ class ServiceBookingViewSet(viewsets.ModelViewSet):
         user = self.request.user
         
         # Customers see their own bookings
-        if user.role in ['user', 'vendor', 'customer']:
+        if user.role in ['user', 'vendor', 'customer','consumer']:
             return ServiceBooking.objects.filter(customer=user)
         
         # Service providers see bookings assigned to them

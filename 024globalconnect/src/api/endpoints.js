@@ -23,7 +23,8 @@ export const API_ENDPOINTS = {
   AFFILIATE_REFERRALS: '/users/affiliate/referrals/',
 
   // ✅ Vendor
-  VENDOR_PRODUCTS: `/products/`,
+  VENDOR_PRODUCTS: `/products/vendor/`,
+  ALL_PRODUCTS: `/products/`,
   VENDOR_PRODUCT_DETAIL: (id) => `/products/${id}/`,
 
   // ✅ Services

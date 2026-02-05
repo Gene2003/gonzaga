@@ -2,13 +2,17 @@ import React, { useState, useEffect } from "react";
 import MyProduct from "./MyProducts";
 import AddProductForm from "./AddProductForm";
 import SalesOverview from "./SalesOverview";
+import toast from "react-hot-toast";
 
-const VendorDashboard = () => {
+const VendorDashboard = async () => {
   const [activeTab, setActiveTab] = useState("products");
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
+  const [deleteLoading, setDeleteLoading] = useState(null);
+
+
 
   useEffect(() => {
     // Fetch existing feedbacks for this vendor
@@ -21,6 +25,51 @@ const VendorDashboard = () => {
       .then((data) => setFeedbacks(data))
       .catch((err) => console.error("Error loading feedbacks:", err));
   }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await apiClient.get('http://localhost:8000/api/products/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      toast.error("Failed to load products");
+      setLoading(false)
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    setDeleteLoading(productId);
+    try {
+      const token = localStorage.getItem("accessToken");
+       await apiClient.delete(`http://localhost:8000/api/products/${productId}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`},
+        },
+      );
+
+      setProducts(ProductList.filter(product => product.id !== productId));
+      toast.success("Product deleted successfully");
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      if (error.response?.status === 403) {
+      toast.error("Failed to delete product");
+    }else if (error.response?.status === 404) {
+      toast.error("Product not found");
+    }else {
+      toast.error("An unexpected error occurred");
+    }
+  } finally {
+      setDeleteLoading(null);
+    }
+  };
+
+
 
   const handleFeedbackSubmit = () => {
     fetch("http://127.0.0.1:8000/api/vendor-feedback/", {

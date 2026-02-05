@@ -1,19 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../../api/client';
+import toast from 'react-hot-toast';
 
 const ServiceProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddServiceModal, setShowAddServiceModal] = useState(false);
   const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [newService, setNewService] = useState({
-    name: '',
+    title: '',
     description: '',
     price: '',
-    category: '',
+    service_type: 'veterinary',
     duration: '',
+    image: null,
   });
 
-  // Sales data for charts - will be populated from backend
+  // ✅ Fetch services from backend on component mount
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/services/');
+      console.log('✅ Fetched services:', response.data);
+      setServices(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('❌ Error fetching services:', error);
+      toast.error('Failed to load services');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sales data for charts
   const salesData = [
     { month: 'Jan', sales: 0 },
     { month: 'Feb', sales: 0 },
@@ -24,25 +47,85 @@ const ServiceProviderDashboard = () => {
   ];
 
   const recentSales = [];
-
   const totalRevenue = recentSales.reduce((sum, sale) => sum + sale.amount, 0);
   const completedSales = recentSales.filter(sale => sale.status === 'Completed').length;
 
-  const handleAddService = (e) => {
+  // ✅ Save service to backend
+  const handleAddService = async (e) => {
     e.preventDefault();
-    const service = {
-      id: services.length + 1,
-      ...newService,
-      status: 'Active',
-      price: parseFloat(newService.price),
-    };
-    setServices([...services, service]);
-    setNewService({ name: '', description: '', price: '', category: '', duration: '' });
-    setShowAddServiceModal(false);
+    
+    try {
+      setLoading(true);
+      
+      const formData = new FormData();
+      formData.append('title', newService.title);
+      formData.append('description', newService.description);
+      formData.append('price', parseFloat(newService.price));
+      formData.append('service_type', newService.service_type);
+      
+      if (newService.image) {
+        formData.append('image', newService.image);
+      }
+
+      // ✅ POST to backend
+      const response = await apiClient.post('/services/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      console.log('✅ Service created:', response.data);
+      toast.success('Service added successfully!');
+
+      // Reset form
+      setNewService({
+        title: '',
+        description: '',
+        price: '',
+        service_type: 'veterinary',
+        duration: '',
+        image: null,
+      });
+      
+      setShowAddServiceModal(false);
+      
+      // Refresh services list
+      fetchServices();
+    } catch (error) {
+      console.error('❌ Error creating service:', error);
+      console.error('Error details:', error.response?.data);
+      toast.error(error.response?.data?.detail || 'Failed to add service');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteService = (id) => {
-    setServices(services.filter(service => service.id !== id));
+  // ✅ Delete service from backend
+  const handleDeleteService = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this service?')) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/services/${id}/`);
+      toast.success('Service deleted successfully!');
+      fetchServices(); // Refresh list
+    } catch (error) {
+      console.error('❌ Error deleting service:', error);
+      toast.error('Failed to delete service');
+    }
+  };
+
+  // ✅ Toggle service availability
+  const toggleAvailability = async (id, currentStatus) => {
+    try {
+      await apiClient.patch(`/services/${id}/`, {
+        is_active: !currentStatus,
+      });
+      toast.success('Service status updated!');
+      fetchServices(); // Refresh list
+    } catch (error) {
+      console.error('❌ Error updating service:', error);
+      toast.error('Failed to update service');
+    }
   };
 
   return (
@@ -91,7 +174,7 @@ const ServiceProviderDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">${totalRevenue.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">KES {totalRevenue.toLocaleString()}</p>
               </div>
               <div className="text-4xl">💰</div>
             </div>
@@ -154,7 +237,6 @@ const ServiceProviderDashboard = () => {
                 
                 {recentSales.length > 0 ? (
                   <>
-                    {/* Simple Bar Chart */}
                     <div className="mb-8">
                       <h3 className="text-lg font-medium mb-4">Monthly Revenue</h3>
                       <div className="flex items-end justify-between h-64 gap-4">
@@ -164,14 +246,13 @@ const ServiceProviderDashboard = () => {
                               className="w-full bg-blue-500 rounded-t-lg transition-all hover:bg-blue-600"
                               style={{ height: `${(data.sales / 10000) * 100}%` }}
                             ></div>
-                            <p className="text-sm font-semibold mt-2">${(data.sales / 1000).toFixed(1)}k</p>
+                            <p className="text-sm font-semibold mt-2">KES {(data.sales / 1000).toFixed(1)}k</p>
                             <p className="text-xs text-gray-500">{data.month}</p>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Summary Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg">
                         <p className="text-blue-600 text-sm font-semibold">This Month</p>
@@ -220,63 +301,78 @@ const ServiceProviderDashboard = () => {
                   </button>
                 </div>
 
-                {/* Services Table */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Service Name
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Category
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Price
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {services.map((service) => (
-                        <tr key={service.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{service.name}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">{service.category}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">${service.price}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              {service.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
-                            <button
-                              onClick={() => handleDeleteService(service.id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {services.length === 0 && (
+                {loading ? (
                   <div className="text-center py-12">
+                    <p className="text-gray-500">Loading services...</p>
+                  </div>
+                ) : services.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <div className="text-6xl mb-4">🛠️</div>
                     <p className="text-gray-500 text-lg">No services yet. Add your first service!</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Service Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Type
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Price
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {services.map((service) => (
+                          <tr key={service.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{service.title}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{service.service_type}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">KES {service.price}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  service.is_active
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {service.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => toggleAvailability(service.id, service.is_active)}
+                                className="text-blue-600 hover:text-blue-900 mr-3"
+                              >
+                                Toggle
+                              </button>
+                              <button
+                                onClick={() => handleDeleteService(service.id)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>
@@ -286,66 +382,11 @@ const ServiceProviderDashboard = () => {
             {activeTab === 'sales' && (
               <div>
                 <h2 className="text-2xl font-semibold mb-6">Recent Sales</h2>
-                {recentSales.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Service
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Client
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Amount
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {recentSales.map((sale) => (
-                          <tr key={sale.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{sale.service}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{sale.client}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-semibold text-gray-900">${sale.amount}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{sale.date}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  sale.status === 'Completed'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}
-                              >
-                                {sale.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <div className="text-6xl mb-4">📊</div>
-                    <p className="text-gray-500 text-lg font-medium">No sales yet</p>
-                    <p className="text-gray-400 text-sm mt-2">Sales will appear here once clients book your services</p>
-                  </div>
-                )}
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                  <div className="text-6xl mb-4">📊</div>
+                  <p className="text-gray-500 text-lg font-medium">No sales yet</p>
+                  <p className="text-gray-400 text-sm mt-2">Sales will appear here once clients book your services</p>
+                </div>
               </div>
             )}
           </div>
@@ -371,15 +412,15 @@ const ServiceProviderDashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Service Name *
+                      Service Title *
                     </label>
                     <input
                       type="text"
                       required
-                      value={newService.name}
-                      onChange={(e) => setNewService({ ...newService, name: e.target.value })}
+                      value={newService.title}
+                      onChange={(e) => setNewService({ ...newService, title: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., Web Development"
+                      placeholder="e.g., Veterinary Consultation"
                     />
                   </div>
 
@@ -410,42 +451,36 @@ const ServiceProviderDashboard = () => {
                         value={newService.price}
                         onChange={(e) => setNewService({ ...newService, price: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="100.00"
+                        placeholder="1000.00"
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category *
+                        Service Type *
                       </label>
                       <select
                         required
-                        value={newService.category}
-                        onChange={(e) => setNewService({ ...newService, category: e.target.value })}
+                        value={newService.service_type}
+                        onChange={(e) => setNewService({ ...newService, service_type: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       >
-                        <option value="">Select category</option>
-                        <option value="Development">Development</option>
-                        <option value="Design">Design</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Consulting">Consulting</option>
-                        <option value="Writing">Writing</option>
-                        <option value="Other">Other</option>
+                        <option value="veterinary">Veterinary</option>
+                        <option value="transport">Transport</option>
+                        <option value="storage">Storage</option>
                       </select>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Duration *
+                      Service Image
                     </label>
                     <input
-                      type="text"
-                      required
-                      value={newService.duration}
-                      onChange={(e) => setNewService({ ...newService, duration: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="e.g., 2 weeks, 5 days, 10 hours"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setNewService({ ...newService, image: e.target.files[0] })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
                     />
                   </div>
                 </div>
@@ -453,9 +488,10 @@ const ServiceProviderDashboard = () => {
                 <div className="flex gap-3 mt-6">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium"
+                    disabled={loading}
+                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium disabled:bg-gray-400"
                   >
-                    Add Service
+                    {loading ? 'Adding...' : 'Add Service'}
                   </button>
                   <button
                     type="button"

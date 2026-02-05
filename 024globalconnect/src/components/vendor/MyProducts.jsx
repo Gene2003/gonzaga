@@ -2,6 +2,8 @@
 import React, { use, useEffect, useState } from "react";
 import apiClient from "../../api/client";
 import toast from "react-hot-toast";
+import { Import } from "lucide-react";
+import { API_ENDPOINTS } from "../../api/endpoints";
 
 const MyProducts = () => {
   const [products, setProducts] = useState([]);
@@ -10,12 +12,14 @@ const MyProducts = () => {
   const fetchVendorProducts = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get("/products/");
-      console.log("Products response:", res.data);
-      setProducts(res.data);
+      const res = await apiClient.get(`/products/my_products/`);
+      console.log(" Vendor Products response:", res.data);
+      setProducts(Array.isArray(res.data) ? res.data : [res.data]);
     } catch (err) {
       console.error("Error fetching vendor products:", err);
+      console.error("Error details:", err?.response?.data);
       toast.error("Failed to load your products");
+      setProducts([]);
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { ClipboardCheck, Gift, TrendingUp, Coins } from "lucide-react";
 import ProductList from "./ProductList";
+import ServiceList from "./ServiceList";
 import ReferralTable from "./ReferralTable";
 import ProfileOverview from "./ProfileOverview";
 import apiClient from "../../api/client"; 
@@ -9,6 +10,8 @@ import CommissionStats from "./CommissionStats";
 
 const AffiliateDashboard = () => {
   const { user } = useAuth();
+
+  const [activeTab, setActiveTab] = useState("products");
 
   const [stats, setStats] = useState({
     totalCommission: 0,
@@ -58,15 +61,34 @@ const AffiliateDashboard = () => {
         {/* ✅ Profile Overview */}
         <ProfileOverview />
 
-       {/* 📊 Stats + Chart */}
-<CommissionStats />
+        {/* 📊 Stats + Chart */}
+        <CommissionStats />
 
-        {/* Product List Section */}
+        {/* tab navigation */}
         <section>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Promote Products
-          </h2>
-          <ProductList />
+          <div className="flex gap-4 mb-6 border-b">
+            <button
+            onClick={() => setActiveTab("products")}
+            className={`px-4 py-2 font-medium transition ${
+              activeTab === "products"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+             Products
+          </button>
+          <button
+            onClick={() => setActiveTab("services")}
+            className={`px-4 py-2 font-medium transition ${
+              activeTab === "services"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+             Services
+          </button>
+          </div>
+          {activeTab === "products" ? <ProductList /> : <ServiceList />}
         </section>
 
         {/* Referral Earnings Table */}

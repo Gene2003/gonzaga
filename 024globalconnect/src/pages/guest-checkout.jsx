@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import {  useLocation, useNavigate } from "react-router-dom";
+import apiClient from "../api/client";
 
 const GuestCheckout = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -13,14 +16,29 @@ const GuestCheckout = () => {
   });
 
   useEffect(() => {
+    //first from react router state
+    if (location.state?.product) {
+      setProduct(location.state.product);
+      setFormData((prev) => ({
+        ...prev,
+        amount: location.state.product.price || 0
+      }));
+    }
+    else {
     const productFromStorage = localStorage.getItem("buyNowProduct");
     if (productFromStorage) {
-      setProduct(JSON.parse(productFromStorage));
+      const parsedProduct = JSON.parse(productFromStorage);
+      setProduct(parsedProduct);
+      setFormData((prev) => ({
+        ...prev,
+        amount: parsedProduct.price || ""
+      }));
     } else {
       alert("No product selected. Redirecting...");
-      window.location.href = "/";
+      navigate("/products");
     }
-  }, []);
+  }
+  }, [location, navigate]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -40,8 +58,7 @@ const GuestCheckout = () => {
         product: product.id,
       };
 
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_BACKEND_URL}/api/paystack/initialize/`,
+      const res = await apiClient.post(`/paystack/initialize/`, 
         orderPayload
       );
 
@@ -53,7 +70,15 @@ const GuestCheckout = () => {
     }
   };
 
-  return (
+  if (!product) {
+    return(
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (  
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <h2>Guest Checkout - Pay with Paystack</h2>
       <form onSubmit={handlePaystack} className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">

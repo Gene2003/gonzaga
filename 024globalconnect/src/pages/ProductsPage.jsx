@@ -1,5 +1,6 @@
 // src/pages/ProductsPage.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
 import toast from 'react-hot-toast';
@@ -43,7 +44,7 @@ const ProductsPage = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(API_ENDPOINTS.VENDOR_PRODUCTS);
+      const response = await apiClient.get('/products/');
       console.log('Products fetched:', response.data); // ✅ Debug log
       setProducts(response.data);
     } catch (error) {
@@ -219,11 +220,36 @@ const ProductsPage = () => {
 
 // Product Card Component
 const ProductCard = ({ product, onAddToCart, getPrice }) => {
+  const navigate = useNavigate();
   const price = getPrice(product);
   const imageUrl = product.image || 'https://via.placeholder.com/300x300?text=No+Image';
   
   // ✅ FIX: Use quantity_kg, not stock
   const isOutOfStock = product.quantity_kg === 0;
+
+  const handleBuyNow = () => {
+    //local storage
+    localStorage.setItem("buyNowProduct", JSON.stringify({
+      id: product.id,
+      name: product.name,
+      price: price,
+      image: product.image,
+      vendor_type: product.vendor_type,
+    }));
+    
+    navigate('/guest-checkout', {
+      state: {
+        product: {
+          id: product.id,
+          name: product.name,
+          price: price,
+          image: product.image,
+          vendor_type: product.vendor_type,
+        },
+        quantity: 1,
+      }
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
@@ -283,7 +309,7 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
         <button
           onClick={() => onAddToCart(product)}
           disabled={isOutOfStock}
-          className={`w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
+          className={`w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition mb-2 ${
             isOutOfStock
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -292,8 +318,21 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
           <ShoppingCart className="w-5 h-5" />
           {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </button>
+
+        {/* Buy Now Button */}
+        <button
+         onClick={handleBuyNow}
+         disabled={isOutOfStock}
+         className={`w-full py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
+          isOutOfStock
+           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+           : 'bg-green-600 text-white hover:bg-green-700'
+      }`}
+        > 
+        🛒 Buy Now
+        </button>
+        </div>
       </div>
-    </div>
   );
 };
 

@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 const ProductList = () => {
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(null);
   const [showInStockOnly, setShowInStockOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState("default");
@@ -15,6 +16,7 @@ const ProductList = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setLoading(true);
         const queryParams = new URLSearchParams();
 if (showInStockOnly) queryParams.append("stock__gt", 0);
 if (sortOrder === "low-high") queryParams.append("ordering", "price");
@@ -39,11 +41,13 @@ const res = await apiClient.get(`/products/?${queryParams.toString()}`);
       } catch (error) {
         console.error("Product fetch error:", error);
         toast.error("Failed to load products.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [showInStockOnly, sortOrder]);
 
   const handleCopy = (productId) => {
     const link = `${window.location.origin}/products/${productId}?ref=${user?.username}`;
