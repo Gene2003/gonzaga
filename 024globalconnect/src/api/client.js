@@ -3,10 +3,10 @@ import axios from 'axios';
 import { API_CONFIG } from './config';
 import { authService } from './services/authService';
 
-const  baseURL = import.meta.env.VITE_API_BACKEND_URL || 'http://localhost:8000/api';
+const  baseURL = import.meta.env.VITE_BACKEND_URL || 'https://gonzaga-u98x.onrender.com/api';
 
 console.log('🔍 Base URL being used:', baseURL);
-console.log('🔍 Env var value:', import.meta.env.VITE_API_BACKEND_URL);
+console.log('🔍 Env var value:', import.meta.env.VITE_BACKEND_URL);
 
 const apiClient = axios.create({
   baseURL: baseURL,
