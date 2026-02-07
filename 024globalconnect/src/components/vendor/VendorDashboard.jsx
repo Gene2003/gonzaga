@@ -29,7 +29,7 @@ const VendorDashboard = async () => {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("accessToken");
-      const response = await apiClient.get('http://localhost:8000/api/products/', {
+      const response = await apiClient.get('/products/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -47,7 +47,7 @@ const VendorDashboard = async () => {
     setDeleteLoading(productId);
     try {
       const token = localStorage.getItem("accessToken");
-       await apiClient.delete(`http://localhost:8000/api/products/${productId}/`, {
+       await apiClient.delete(`/products/${productId}/`, {
         headers: {
           Authorization: `Bearer ${token}`},
         },
