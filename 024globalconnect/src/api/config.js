@@ -1,7 +1,7 @@
 // src/api/config.js
 const API_CONFIG = {
   baseURL: 'https://gonzaga-u98x.onrender.com/api',
-  timeout: 90000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
