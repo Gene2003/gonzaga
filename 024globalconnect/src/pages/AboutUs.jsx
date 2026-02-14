@@ -81,33 +81,43 @@ const AboutUs = () => {
     <div className="min-h-screen bg-white">
   
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white py-20 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-400/20 rounded-full blur-xl"></div>
-          <div className="absolute bottom-20 right-10 w-48 h-48 bg-indigo-400/20 rounded-full blur-xl"></div>
-        </div>
-        
-        <div className="relative max-w-6xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent">
-            024GlobalConnect
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-            Empowering African Communities through Smart Digital Linkages.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium">
-              Est. 2025
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium">
-              Global Leader
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium">
-              Trusted Network
-            </div>
-          </div>
-        </div>
-      </section>
+        <section className="relative text-white py-20 px-4 overflow-hidden h-screen flex items-center">
+  {/* Background Image */}
+  <div className="absolute inset-0">
+    <img
+      src="/images/7.png"
+      className="w-full h-full object-cover"
+    />
+  </div>
+
+
+  {/* Decorative blurred circles */}
+  <div className="absolute top-0 left-0 w-full h-full">
+    <div className="absolute top-20 left-10 w-32 h-32 bg-black/20 rounded-full blur-xl"></div>
+    <div className="absolute bottom-20 right-10 w-48 h-48 bg-indigo-400/20 rounded-full blur-xl"></div>
+  </div>
+  
+  <div className="relative max-w-6xl mx-auto text-center z-10">
+    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent drop-shadow-2xl">
+      024GlobalConnect
+    </h1>
+    <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto drop-shadow-lg">
+      Empowering African Communities through Smart Digital Linkages.
+    </p>
+    <div className="flex flex-wrap justify-center gap-4">
+      <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium border border-white/20">
+        Est. 2025
+      </div>
+      <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium border border-white/20">
+        Global Leader
+      </div>
+      <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium border border-white/20">
+        Trusted Network
+      </div>
+    </div>
+  </div>
+</section>
+      
 
       {/* Stats Section */}
       <section className="py-16 px-4 bg-gray-50">
