@@ -57,23 +57,11 @@ const AboutUs = () => {
       bio: ''
     },
     {
-      name: 'Stacy Jahenda',  
+      name: 'Scovian',  
       role: 'Agribusiness Manager',
       image: '',
       bio: ''
     },
-    {
-      name: 'Francescah Wanja',
-      role: 'Affiliate Program Manager',
-      image: '',
-      bio: ''
-    },
-    {
-      name: 'Janet Mackenzie',
-      role: 'Human Resource Manager',
-      image: '',
-      bio: ''
-    }
   ];
 
 

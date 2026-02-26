@@ -1,4 +1,4 @@
-from django.db.models import Sum 
+from django.db.models import Sum, Q, Count
 from orders.models import Referral, Order
 from products.models import Product
 import random
@@ -7,6 +7,13 @@ import random
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
+from django.db import transaction
+from django.utils import timezone
+from django.http import JsonResponse
+import requests
+from datetime import datetime
+from base64 import b64encode
+from decimal import Decimal
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateAPIView
@@ -24,7 +31,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import CustomUser
+from .models import CustomUser, VendorRegistration, AffiliateCertificate
 from .tokens import account_activation_token
 from .utils import send_activation_email
 from .serializers import RegistrationSerializer, UserSerializer
@@ -35,6 +42,230 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 # -------------------- Auth & Registration --------------------
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_all_users(request):
+    """Get all users with filtering options"""
+    role = request.GET.get('role')  # Filter by role
+    registration_status = request.GET.get('registration_status')  # paid/unpaid
+    search = request.GET.get('search')  # Search by name/email
+    
+    users = CustomUser.objects.all()
+    
+    # Apply filters
+    if role:
+        users = users.filter(role=role)
+    
+    if registration_status == 'paid':
+        users = users.filter(registration_paid=True)
+    elif registration_status == 'unpaid':
+        users = users.filter(registration_paid=False)
+    
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) |
+            Q(email__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(phone_number__icontains=search) |
+            Q(vendor_code__icontains=search)
+        )
+    
+    # Order by newest first
+    users = users.order_by('-date_joined')
+    
+    # Serialize data
+    serialized_users = []
+    for user in users:
+        serialized_users.append({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': user.role,
+            'phone_number': user.phone_number,
+            'mpesa_phone': user.mpesa_phone if hasattr(user, 'mpesa_phone') else user.phone_number,
+            'vendor_code': user.vendor_code,
+            'certificate_number': user.certificate_number,
+            'registration_paid': user.registration_paid,
+            'registration_fee_amount': float(user.registration_fee_amount),
+            'registered_by_affiliate': user.registered_by_affiliate.email if user.registered_by_affiliate else None,
+            'is_active': user.is_active,
+            'date_joined': user.date_joined,
+            'last_login': user.last_login,
+        })
+    
+    return Response({
+        'count': users.count(),
+        'users': serialized_users
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_affiliates(request):
+    """Get all affiliates with stats"""
+    # Use 'user' role for affiliates based on your ROLE_CHOICES
+    affiliates = CustomUser.objects.filter(role='user').order_by('-date_joined')
+    
+    data = []
+    for affiliate in affiliates:
+        # Count referred vendors
+        referred_count = CustomUser.objects.filter(
+            registered_by_affiliate=affiliate,
+            role='vendor'
+        ).count()
+        
+        # Calculate total commissions from referrals
+        total_commission = Referral.objects.filter(
+            affiliate=affiliate,
+            is_approved=True
+        ).aggregate(total=Sum('commission_earned'))['total'] or 0
+        
+        data.append({
+            'id': affiliate.id,
+            'username': affiliate.username,
+            'email': affiliate.email,
+            'full_name': f"{affiliate.first_name} {affiliate.last_name}".strip(),
+            'phone_number': affiliate.phone_number,
+            'mpesa_phone': affiliate.mpesa_phone if hasattr(affiliate, 'mpesa_phone') else affiliate.phone_number,
+            'vendor_code': affiliate.vendor_code,
+            'certificate_number': affiliate.certificate_number,
+            'referred_vendors_count': referred_count,
+            'total_commission_earned': float(total_commission),
+            'is_active': affiliate.is_active,
+            'date_joined': affiliate.date_joined,
+        })
+    
+    return Response({
+        'count': len(data),
+        'affiliates': data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_vendors(request):
+    """Get all vendors with registration info"""
+    vendors = CustomUser.objects.filter(role='vendor').order_by('-date_joined')
+    
+    data = []
+    for vendor in vendors:
+        data.append({
+            'id': vendor.id,
+            'username': vendor.username,
+            'email': vendor.email,
+            'full_name': f"{vendor.first_name} {vendor.last_name}".strip(),
+            'phone_number': vendor.phone_number,
+            'mpesa_phone': vendor.mpesa_phone if hasattr(vendor, 'mpesa_phone') else vendor.phone_number,
+            'vendor_code': vendor.vendor_code,
+            'vendor_type': vendor.vendor_type if hasattr(vendor, 'vendor_type') else None,
+            'registration_paid': vendor.registration_paid,
+            'registration_fee': float(vendor.registration_fee_amount),
+            'referred_by': vendor.registered_by_affiliate.email if vendor.registered_by_affiliate else None,
+            'referred_by_code': vendor.registered_by_affiliate.vendor_code if vendor.registered_by_affiliate else None,
+            'is_active': vendor.is_active,
+            'date_joined': vendor.date_joined,
+        })
+    
+    return Response({
+        'count': len(data),
+        'vendors': data
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_dashboard_stats(request):
+    """Get dashboard statistics"""
+    total_users = CustomUser.objects.count()
+    total_affiliates = CustomUser.objects.filter(role='user').count()  # 'user' role = affiliate
+    total_vendors = CustomUser.objects.filter(role='vendor').count()
+    total_customers = CustomUser.objects.filter(role='customer').count()
+    
+    paid_vendors = CustomUser.objects.filter(role='vendor', registration_paid=True).count()
+    unpaid_vendors = CustomUser.objects.filter(role='vendor', registration_paid=False).count()
+    
+    # Calculate total commissions
+    total_commissions = Referral.objects.filter(
+        is_approved=True
+    ).aggregate(total=Sum('commission_earned'))['total'] or 0
+    
+    paid_commissions = Referral.objects.filter(
+        is_approved=True,
+        is_paid=True
+    ).aggregate(total=Sum('commission_earned'))['total'] or 0
+    
+    pending_commissions = Referral.objects.filter(
+        is_approved=True,
+        is_paid=False
+    ).aggregate(total=Sum('commission_earned'))['total'] or 0
+    
+    return Response({
+        'users': {
+            'total': total_users,
+            'affiliates': total_affiliates,
+            'vendors': total_vendors,
+            'customers': total_customers,
+        },
+        'vendors': {
+            'total': total_vendors,
+            'paid': paid_vendors,
+            'unpaid': unpaid_vendors,
+        },
+        'commissions': {
+            'total': float(total_commissions),
+            'paid': float(paid_commissions),
+            'pending': float(pending_commissions),
+        }
+    })
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_user_status(request, user_id):
+    """Update user active status"""
+    try:
+        user = CustomUser.objects.get(id=user_id)
+        is_active = request.data.get('is_active')
+        
+        if is_active is not None:
+            user.is_active = is_active
+            user.save()
+            
+            return Response({
+                'message': f'User {"activated" if is_active else "deactivated"} successfully',
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'is_active': user.is_active
+                }
+            })
+        
+        return Response({'error': 'is_active field required'}, status=400)
+        
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user(request, user_id):
+    """Delete a user"""
+    try:
+        user = CustomUser.objects.get(id=user_id)
+        email = user.email
+        user.delete()
+        
+        return Response({
+            'message': f'User {email} deleted successfully'
+        })
+        
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()

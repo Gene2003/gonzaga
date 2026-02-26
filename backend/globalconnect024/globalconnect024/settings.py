@@ -210,6 +210,14 @@ DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+
+# M-Pesa and Paystack settings
+MPESA_CONSUMER_KEY = env('MPESA_CONSUMER_KEY', default='')
+MPESA_CONSUMER_SECRET = env('MPESA_CONSUMER_SECRET', default='')
+MPESA_SHORTCODE = env('MPESA_SHORTCODE', default='')
+MPESA_INITIATOR_NAME = env('MPESA_INITIATOR_NAME', default='')
+MPESA_SECURITY_CREDENTIAL = env('MPESA_SECURITY_CREDENTIAL', default='')
+
 PAYSTACK_SECRET_KEY = env('PAYSTACK_SECRET_KEY', default='')
 PAYSTACK_PUBLIC_KEY = env('PAYSTACK_PUBLIC_KEY', default='')
 PAYSTACK_CALLBACK_URL = env('PAYSTACK_CALLBACK_URL', default='http://localhost:5173/payment-success')

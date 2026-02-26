@@ -5,6 +5,7 @@ from .admin_views import AdminResetPassword, AdminUserList, AdminCreateUser, Adm
 from .views import (
     # Auth
     RegisterView,
+    VendorLoginView,
     ActivateAccount,
     ResendActivationEmail,
     LogoutView,
@@ -27,6 +28,12 @@ from .views import (
     approve_commission,
     mark_commission_paid,
     system_logs,
+    get_all_users,
+    get_affiliates,
+    get_vendors,
+    get_dashboard_stats,
+    update_user_status,
+    delete_user,
 )
 
 urlpatterns = [
@@ -65,5 +72,11 @@ urlpatterns = [
     path('admin/users/<int:pk>/delete/', AdminDeleteUser.as_view()), 
     path('admin/users/<int:pk>/update-role/', AdminUpdateUserRole.as_view()),
     path("admin/users/<int:pk>/reset-password/", AdminResetPassword.as_view()),
+    path('admin/users/', get_all_users, name='get_all_users'),
+    path('admin/affiliates/', get_affiliates, name='get_affiliates'),
+    path('admin/vendors/', get_vendors, name='get_vendors'),
+    path('admin/dashboard-stats/', get_dashboard_stats, name='get_dashboard_stats'),
+    path('admin/users/<int:user_id>/update-status/', update_user_status, name='update_user_status'),
+    path('admin/users/<int:user_id>/delete/', delete_user, name='delete_user'),
 
 ]
