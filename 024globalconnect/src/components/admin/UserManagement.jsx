@@ -181,10 +181,6 @@ const UsersManagement = () => {
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      <div>{user.phone_number}</div>
-                      <div className="text-xs">{user.mpesa_phone}</div>
-                    </td>
                     <td className="px-6 py-4 text-sm font-mono">{user.vendor_code || '-'}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
