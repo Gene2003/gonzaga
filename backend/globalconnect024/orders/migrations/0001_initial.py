@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('quantity', models.PositiveIntegerField(default=1)),
-                ('total_amount', models.DecimalField(decimal_places=2, help_text='Total paid by customer', max_digits=10)),
+                ('amount', models.DecimalField(decimal_places=2, help_text='Total paid by customer', max_digits=10)),
                 ('company_amount', models.DecimalField(decimal_places=2, default=0, help_text='5% company fee', max_digits=10)),
                 ('vendor_amount', models.DecimalField(decimal_places=2, default=0, help_text='90-95% to vendor', max_digits=10)),
                 ('affiliate_amount', models.DecimalField(decimal_places=2, default=0, help_text='5% affiliate commission', max_digits=10)),
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('recipient_type', models.CharField(choices=[('company', 'Company'), ('vendor', 'Vendor'), ('affiliate', 'Affiliate')], max_length=20)),
-                ('recipient_phone', models.CharField(blank=True, help_text='M-Pesa phone number', max_length=15)),
+                ('recipient_phone', models.CharField(blank=True, help_text='M-Pesa phone', max_length=15)),
                 ('amount', models.DecimalField(decimal_places=2, max_digits=10)),
                 ('status', models.CharField(choices=[('pending', 'Pending'), ('processing', 'Processing'), ('completed', 'Completed'), ('failed', 'Failed')], default='pending', max_length=20)),
                 ('mpesa_conversation_id', models.CharField(blank=True, max_length=100, null=True)),

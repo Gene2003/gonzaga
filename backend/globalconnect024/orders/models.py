@@ -39,7 +39,7 @@ class Order(models.Model):
     
     # Quantities and amounts
     quantity = models.PositiveIntegerField(default=1)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total paid by customer", null=True, blank=True, default=0)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total paid by customer", null=True, blank=True, default=0)
     
     # Payment splits
     company_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="5% company fee")
@@ -79,13 +79,13 @@ class Order(models.Model):
         """
         if self.affiliate:
             # With affiliate: 5% company, 5% affiliate, 90% vendor
-            self.company_amount = self.total_amount * Decimal('0.05')
-            self.affiliate_amount = self.total_amount * Decimal('0.05')
-            self.vendor_amount = self.total_amount * Decimal('0.90')
+            self.company_amount = self.amount * Decimal('0.05')
+            self.affiliate_amount = self.amount * Decimal('0.05')
+            self.vendor_amount = self.amount * Decimal('0.90')
         else:
             # Without affiliate: 5% company, 95% vendor
-            self.company_amount = self.total_amount * Decimal('0.05')
-            self.vendor_amount = self.total_amount * Decimal('0.95')
+            self.company_amount = self.amount * Decimal('0.05')
+            self.vendor_amount = self.amount * Decimal('0.95')
             self.affiliate_amount = Decimal('0')
 
         self.save()
@@ -94,7 +94,7 @@ class Order(models.Model):
             'company': float(self.company_amount),
             'vendor': float(self.vendor_amount),
             'affiliate': float(self.affiliate_amount),
-            'total': float(self.total_amount)
+            'total': float(self.amount)
         }
 
     def mark_completed(self):

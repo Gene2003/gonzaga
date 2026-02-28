@@ -50,7 +50,7 @@ class CustomUser(AbstractUser):
     vendor_code = models.CharField(max_length=100, blank=True, null=True ,unique=True)
     vendor_type = models.CharField(max_length=20, choices=VENDOR_TYPE_CHOICES, blank=True, null=True)
     service_provider_type = models.CharField(max_length=20, choices=SERVICE_PROVIDER_CHOICES, blank=True, null=True)
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
     mpesa_number = models.CharField(max_length=20, blank=True, null=True, help_text="Required for vendors to receive payments.")
     mobile_money_provider = models.CharField(max_length=50,
                                              choices=[
@@ -71,8 +71,8 @@ class CustomUser(AbstractUser):
         if self.role == "affiliate" and not self.vendor_code:
                 self.vendor_code = self.generate_unique_vendor_code()
 
-        if not self.mpesa_number and self.phone_number:
-                    self.mpesa_number = self.phone_number
+        if not self.mpesa_number and self.phone:
+                    self.mpesa_number = self.phone
         super().save(*args, **kwargs)
         
     def generate_unique_vendor_code(self):
@@ -129,7 +129,7 @@ class VendorRegistration(models.Model):
     affiliate_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # 50% or 0%
     
     # M-Pesa transaction details
-    phone_number = models.CharField(max_length=15, help_text="Phone used for payment")
+    phone = models.CharField(max_length=15, help_text="Phone used for payment")
     checkout_request_id = models.CharField(max_length=100, blank=True, null=True)
     merchant_request_id = models.CharField(max_length=100, blank=True, null=True)
     mpesa_receipt_number = models.CharField(max_length=100, blank=True, null=True)

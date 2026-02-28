@@ -29,7 +29,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'id', 'buyer', 'product', 'product_name', 'vendor', 'vendor_name',
-            'affiliate', 'affiliate_name', 'quantity', 'total_amount',
+            'affiliate', 'affiliate_name', 'quantity', 'amount',
             'company_amount', 'vendor_amount', 'affiliate_amount',
             'payment_status', 'payment_reference',
             'vendor_paid', 'affiliate_paid', 'company_paid',

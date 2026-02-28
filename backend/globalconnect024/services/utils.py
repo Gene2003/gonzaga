@@ -10,10 +10,10 @@ from django.utils import timezone
 
 
 User = get_user_model()
-def send_sms(phone_number, message):
+def send_sms(phone, message):
     sms.send(
-        message="New delivary request. please accept or decline.",
-        recipients=[transporter.phone_number]
+        message=message,
+        recipients=[phone]
     )
 
 def calculate_distance(lat1, lon1, lat2, lon2):

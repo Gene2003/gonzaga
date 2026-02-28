@@ -69,7 +69,7 @@ def get_all_users(request):
             Q(email__icontains=search) |
             Q(first_name__icontains=search) |
             Q(last_name__icontains=search) |
-            Q(phone_number__icontains=search) |
+            Q(phone__icontains=search) |
             Q(vendor_code__icontains=search)
         )
     
@@ -86,8 +86,8 @@ def get_all_users(request):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'role': user.role,
-            'phone_number': user.phone_number,
-            'mpesa_phone': user.mpesa_phone if hasattr(user, 'mpesa_phone') else user.phone_number,
+            'phone': user.phone,
+            'mpesa_phone': user.mpesa_phone if hasattr(user, 'mpesa_phone') else user.phone,
             'vendor_code': user.vendor_code,
             'certificate_number': user.certificate_number,
             'registration_paid': user.registration_paid,
@@ -130,8 +130,8 @@ def get_affiliates(request):
             'username': affiliate.username,
             'email': affiliate.email,
             'full_name': f"{affiliate.first_name} {affiliate.last_name}".strip(),
-            'phone_number': affiliate.phone_number,
-            'mpesa_phone': affiliate.mpesa_phone if hasattr(affiliate, 'mpesa_phone') else affiliate.phone_number,
+            'phone': affiliate.phone,
+            'mpesa_phone': affiliate.mpesa_phone if hasattr(affiliate, 'mpesa_phone') else affiliate.phone,
             'vendor_code': affiliate.vendor_code,
             'certificate_number': affiliate.certificate_number,
             'referred_vendors_count': referred_count,
@@ -159,8 +159,8 @@ def get_vendors(request):
             'username': vendor.username,
             'email': vendor.email,
             'full_name': f"{vendor.first_name} {vendor.last_name}".strip(),
-            'phone_number': vendor.phone_number,
-            'mpesa_phone': vendor.mpesa_phone if hasattr(vendor, 'mpesa_phone') else vendor.phone_number,
+            'phone': vendor.phone,
+            'mpesa_phone': vendor.mpesa_phone if hasattr(vendor, 'mpesa_phone') else vendor.phone,
             'vendor_code': vendor.vendor_code,
             'vendor_type': vendor.vendor_type if hasattr(vendor, 'vendor_type') else None,
             'registration_paid': vendor.registration_paid,

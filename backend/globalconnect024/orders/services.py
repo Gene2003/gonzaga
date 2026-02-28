@@ -29,7 +29,7 @@ class PaymentSplitService:
                     affiliate = None
             
             # Calculate total
-            total_amount = product.price * quantity
+            amount = product.price * quantity
             
             # Create order
             order = Order.objects.create(
@@ -38,7 +38,7 @@ class PaymentSplitService:
                 vendor=vendor,
                 affiliate=affiliate,
                 quantity=quantity,
-                total_amount=total_amount,
+                amount=amount,
                 payment_status='pending'
             )
             

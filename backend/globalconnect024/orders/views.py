@@ -54,7 +54,7 @@ def initiate_stk_push(phone, amount):
         "Amount": int(amount),  # Ensure it's an integer
         "PartyA": phone,
         "PartyB": settings.MPESA_SHORTCODE,
-        "PhoneNumber": phone,
+        "Phone": phone,
         "CallBackURL": settings.MPESA_CALLBACK_URL,
         "AccountReference": "GlobalConnect",
         "TransactionDesc": "Product purchase"
@@ -163,7 +163,7 @@ def checkout(request):
             pass
 
     # Calculate total amount
-    total_amount = product.price * quantity
+    amount = product.price * quantity
 
     # Create order with payment splits
     with transaction.atomic():
@@ -173,7 +173,7 @@ def checkout(request):
             vendor=vendor,
             affiliate=affiliate,
             quantity=quantity,
-            total_amount=total_amount,
+            amount=amount,
             status="pending"
         )
 
@@ -193,7 +193,7 @@ def checkout(request):
             order=order,
             recipient_type='vendor',
             recipient=vendor,
-            recipient_phone=vendor.mpesa_phone,
+            recipient_phone=vendor.phone,
             amount=order.vendor_amount,
             status='pending'
         )
@@ -203,7 +203,7 @@ def checkout(request):
                 order=order,
                 recipient_type='affiliate',
                 recipient=affiliate,
-                recipient_phone=affiliate.mpesa_phone,
+                recipient_phone=affiliate.phone,
                 amount=order.affiliate_amount,
                 status='pending'
             )
@@ -220,7 +220,7 @@ def checkout(request):
 
     # Initiate STK Push (customer pays full amount to company)
     try:
-        stk_response = initiate_stk_push(phone, total_amount)
+        stk_response = initiate_stk_push(phone, amount)
 
         if stk_response.get("ResponseCode") != "0":
             order.status = "failed"
@@ -241,7 +241,7 @@ def checkout(request):
             "merchant_request_id": stk_response.get("MerchantRequestID"),
             "checkout_request_id": stk_response.get("CheckoutRequestID"),
             "payment_breakdown": {
-                "total": float(total_amount),
+                "total": float(amount),
                 "company_fee": float(order.company_amount),
                 "vendor_receives": float(order.vendor_amount),
                 "affiliate_commission": float(order.affiliate_amount) if affiliate else 0
@@ -478,7 +478,7 @@ def check_payment_status(request, order_id):
         return Response({
             "order_id": order.id,
             "status": order.status,
-            "total_amount": float(order.total_amount),
+            "amount": float(order.amount),
             "company_paid": order.company_paid,
             "vendor_paid": order.vendor_paid,
             "affiliate_paid": order.affiliate_paid,
@@ -508,7 +508,7 @@ def my_orders(request):
         orders_data.append({
             "id": order.id,
             "product": order.product.name,
-            "total_amount": float(order.total_amount),
+            "amount": float(order.amount),
             "status": order.status,
             "created_at": order.created_at,
             "my_earnings": float(
