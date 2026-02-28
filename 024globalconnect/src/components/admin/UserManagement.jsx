@@ -22,7 +22,7 @@ const UsersManagement = () => {
       if (searchTerm) params.search = searchTerm;
 
       const response = await apiClient.get('/users/admin/users/', { params });
-      setUsers(response.data.users);
+      setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {
@@ -33,7 +33,7 @@ const UsersManagement = () => {
   const fetchStats = async () => {
     try {
       const response = await apiClient.get('/users/admin/dashboard-stats/');
-      setStats(response.data.users);
+      setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
