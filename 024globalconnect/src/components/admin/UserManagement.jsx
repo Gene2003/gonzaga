@@ -33,7 +33,7 @@ const UsersManagement = () => {
   const fetchStats = async () => {
     try {
       const response = await apiClient.get('/users/admin/dashboard-stats/');
-      setStats(response.data);
+      setStats(response.data.users);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
