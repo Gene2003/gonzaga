@@ -11,10 +11,13 @@ from django.db import transaction
 from django.utils import timezone
 from django.http import JsonResponse
 import requests
+import json
+import hashlib
+import hmac
 from datetime import datetime
 from base64 import b64encode
 from decimal import Decimal
-from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAuthenticated, BasePermission, AllowAny
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -41,6 +44,9 @@ from rest_framework.serializers import ModelSerializer
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
+PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
+REGISTRATION_FEE = 20000  # KES 200 in kobo (Paystack uses smallest currency unit)
+
 # -------------------- Auth & Registration --------------------
 
 class RegisterView(generics.CreateAPIView):
@@ -56,22 +62,23 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save(is_active=False)
         print("user created:", user)
 
-        if user.role =="vendor":
-            unique_code = str(random.randint(10000,99999))
+        if user.role == "vendor":
+            unique_code = str(random.randint(10000, 99999))
             user.vendor_login_code = unique_code
             user.save()
 
             try:
                 send_mail(
                     subject="Your Vendor Login Code",
-                    message=f"Welcome{user.first_name}! Your unique login code is: {unique_code}",
+                    message=f"Welcome {user.first_name}! Your unique login code is: {unique_code}",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     fail_silently=False,
                 )
             except BadHeaderError:
                 return Response({"error": "Invalid header found."}, status=500)
-               #create activation email
+
+        # Create activation email
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
         activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
@@ -93,10 +100,11 @@ class RegisterView(generics.CreateAPIView):
         return Response({
             "message": "Account created successfully. Please check your email to activate your account."
         }, status=201)
-    
+
+
 class VendorLoginView(APIView):
     def post(self, request):
-        vendor_code =request.data.get('vendor_code')
+        vendor_code = request.data.get('vendor_code')
         password = request.data.get('password')
 
         try:
@@ -105,20 +113,20 @@ class VendorLoginView(APIView):
             if user:
                 return Response({
                     "success": True,
-                    "message":"login successful.",
+                    "message": "login successful.",
                     "vendor_id": user.id,
                     "email": user.email,
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({
                     "success": False,
-                    "message":"Invalid password."
-                },status=status.HTTP_401_UNAUTHORIZED)
+                    "message": "Invalid password."
+                }, status=status.HTTP_401_UNAUTHORIZED)
         except CustomUser.DoesNotExist:
             return Response({
                 "success": False,
-                "message":"Invalid vendor code."
-            },status=status.HTTP_401_UNAUTHORIZED)
+                "message": "Invalid vendor code."
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ActivateAccount(APIView):
@@ -196,6 +204,7 @@ class UpdateProfileView(RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+
 # -------------------- Custom JWT Login --------------------
 
 class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
@@ -226,9 +235,11 @@ class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
         }
         return data
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class EmailOrUsernameTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailOrUsernameTokenObtainSerializer
+
 
 # -------------------- Affiliate Views --------------------
 
@@ -284,32 +295,263 @@ def affiliate_referrals(request):
     serializer = ReferralSerializer(referrals, many=True)
     return Response(serializer.data)
 
+
+# -------------------- Paystack Vendor Registration Payment --------------------
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def initiate_vendor_payment(request):
+    """
+    Called when a vendor submits the registration form.
+    Creates an inactive user account and initializes a Paystack transaction with 50/50 split.
+    """
+    data = request.data.copy()
+
+    #extract affiliate certificate number before passing to serializer
+    affiliate_certificate_number = data.get('affiliate_certificate_number', '').strip()
+    data = {k: v for k, v in data.items() if k != 'affiliate_certificate_number'}
+
+    # Check for duplicate email or username
+    if User.objects.filter(email=data.get('email')).exists():
+        return Response({'error': 'Email already registered.'}, status=400)
+    if User.objects.filter(username=data.get('username')).exists():
+        return Response({'error': 'Username already taken.'}, status=400)
+
+    # Find affiliate by certificate number (optional)
+    affiliate = None
+    affiliate_subaccount = None
+
+    if affiliate_certificate_number:
+        try:
+            cert = AffiliateCertificate.objects.get(
+                certificate_number=affiliate_certificate_number
+            )
+            affiliate = cert.used_by
+            if affiliate:
+                affiliate_subaccount = affiliate.paystack_subaccount_code
+            else:
+                return Response({'error': 'Affiliate certificate number is valid but not linked to any user.'}, status=400)
+        except AffiliateCertificate.DoesNotExist:
+            return Response({'error': 'Invalid affiliate certificate number.'}, status=400)
+
+    # Validate and save user as inactive
+    serializer = RegistrationSerializer(data=data, context={'request': request})
+    if not serializer.is_valid():
+        print("SERIALIZER ERRORS:", serializer.errors)
+        return Response(serializer.errors, status=400)
+
+    user = serializer.save(is_active=False, registration_paid=False)
+
+    if affiliate:
+        user.registered_by_affiliate = affiliate
+        user.save()
+
+    # Create VendorRegistration record
+    vendor_reg = VendorRegistration.objects.create(
+        vendor=user,
+        affiliate=affiliate,
+        registration_fee=Decimal('200.00'),
+        payment_status='pending'
+    )
+    vendor_reg.calculate_splits()
+
+    # Build Paystack transaction payload
+    paystack_data = {
+        "email": user.email,
+        "amount": REGISTRATION_FEE,  # Amount in kobo (200 KES = 20000)
+        "currency": "KES",
+        "callback_url": f"{settings.FRONTEND_URL}/vendor/payment-success",
+        "metadata": {
+            "user_id": user.id,
+            "affiliate_id": affiliate.id if affiliate else None,
+            "vendor_registration_id": vendor_reg.id,
+        }
+    }
+
+    # Add split only if affiliate has a Paystack subaccount
+    if affiliate_subaccount:
+        paystack_data["split"] = {
+            "type": "percentage",
+            "bearer_type": "account",
+            "subaccounts": [
+                {
+                    "subaccount": affiliate_subaccount,
+                    "share": 50  # 50% to affiliate
+                }
+            ]
+        }
+
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        "https://api.paystack.co/transaction/initialize",
+        json=paystack_data,
+        headers=headers
+    )
+
+    res_data = response.json()
+
+    if not res_data.get('status'):
+        # Clean up the user we just created since payment init failed
+        user.delete()
+        return Response({'error': 'Failed to initialize payment.', 'detail': res_data}, status=500)
+
+    # Save Paystack reference to the registration record
+    vendor_reg.paystack_reference = res_data['data']['reference']
+    vendor_reg.save()
+
+    return Response({
+        'payment_url': res_data['data']['authorization_url'],
+        'reference': res_data['data']['reference'],
+        'user_id': user.id,
+    }, status=200)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def paystack_webhook(request):
+    """
+    Paystack calls this endpoint after a successful payment.
+    Verifies the signature, then activates the vendor account.
+    """
+    paystack_signature = request.headers.get('x-paystack-signature')
+    payload = request.body
+
+    # Verify Paystack signature to ensure request is genuine
+    expected_signature = hmac.new(
+        PAYSTACK_SECRET_KEY.encode('utf-8'),
+        payload,
+        hashlib.sha512
+    ).hexdigest()
+
+    if paystack_signature != expected_signature:
+        return Response({'error': 'Invalid signature'}, status=400)
+
+    event = json.loads(payload)
+
+    if event.get('event') == 'charge.success':
+        metadata = event['data'].get('metadata', {})
+        user_id = metadata.get('user_id')
+        vendor_registration_id = metadata.get('vendor_registration_id')
+        paystack_transaction_id = event['data'].get('id')
+
+        try:
+            user = User.objects.get(id=user_id)
+            user.is_active = True
+            user.registration_paid = True
+            user.save()
+
+            # Update VendorRegistration record
+            if vendor_registration_id:
+                try:
+                    vendor_reg = VendorRegistration.objects.get(id=vendor_registration_id)
+                    vendor_reg.payment_status = 'completed'
+                    vendor_reg.paystack_transaction_id = str(paystack_transaction_id)
+                    vendor_reg.paid_at = timezone.now()
+                    vendor_reg.save()
+                except VendorRegistration.DoesNotExist:
+                    pass
+
+            # Send welcome email to vendor
+            send_mail(
+                subject="Welcome to 024GlobalConnect — Account Activated!",
+                message=(
+                    f"Hi {user.first_name},\n\n"
+                    f"Your vendor account has been activated after successful payment of KES 200.\n"
+                    f"You can now log in and start uploading your products.\n\n"
+                    f"Welcome aboard!"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+
+        except User.DoesNotExist:
+            pass
+
+    return Response({'status': 'ok'}, status=200)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_affiliate_subaccount(request):
+    """
+    Admin or affiliate uses this to register a Paystack subaccount
+    so they can receive automatic 50% split on vendor registrations.
+    """
+    affiliate_id = request.data.get('affiliate_id')
+    bank_code = request.data.get('bank_code')         # e.g. "057" for Equity Kenya
+    account_number = request.data.get('account_number')
+
+    if not all([affiliate_id, bank_code, account_number]):
+        return Response({'error': 'affiliate_id, bank_code, and account_number are required.'}, status=400)
+
+    try:
+        affiliate = User.objects.get(id=affiliate_id, role='user')
+    except User.DoesNotExist:
+        return Response({'error': 'Affiliate not found.'}, status=404)
+
+    payload = {
+        "business_name": f"{affiliate.first_name} {affiliate.last_name}".strip() or affiliate.username,
+        "settlement_bank": bank_code,
+        "account_number": account_number,
+        "percentage_charge": 50,
+        "description": f"Affiliate subaccount for {affiliate.username}",
+    }
+
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        "https://api.paystack.co/subaccount",
+        json=payload,
+        headers=headers
+    )
+
+    res_data = response.json()
+
+    if res_data.get('status'):
+        affiliate.paystack_subaccount_code = res_data['data']['subaccount_code']
+        affiliate.save()
+        return Response({
+            'message': 'Subaccount created successfully.',
+            'subaccount_code': affiliate.paystack_subaccount_code
+        })
+
+    return Response({'error': 'Failed to create subaccount.', 'detail': res_data}, status=500)
+
+
 # -------------------- Admin Views --------------------
 
 class IsCustomAdmin(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'admin'
-    
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsCustomAdmin])
 def get_all_users(request):
     """Get all users with filtering options"""
-    role = request.GET.get('role')  # Filter by role
-    registration_status = request.GET.get('registration_status')  # paid/unpaid
-    search = request.GET.get('search')  # Search by name/email
-    
+    role = request.GET.get('role')
+    registration_status = request.GET.get('registration_status')
+    search = request.GET.get('search')
+
     users = CustomUser.objects.all()
-    
-    # Apply filters
+
     if role:
         users = users.filter(role=role)
-    
+
     if registration_status == 'paid':
         users = users.filter(registration_paid=True)
     elif registration_status == 'unpaid':
         users = users.filter(registration_paid=False)
-    
+
     if search:
         users = users.filter(
             Q(username__icontains=search) |
@@ -319,11 +561,9 @@ def get_all_users(request):
             Q(phone__icontains=search) |
             Q(vendor_code__icontains=search)
         )
-    
-    # Order by newest first
+
     users = users.order_by('-date_joined')
-    
-    # Serialize data
+
     serialized_users = []
     for user in users:
         serialized_users.append({
@@ -334,7 +574,6 @@ def get_all_users(request):
             'last_name': user.last_name,
             'role': user.role,
             'phone': user.phone,
-            'mpesa_phone': user.mpesa_phone if hasattr(user, 'mpesa_phone') else user.phone,
             'vendor_code': user.vendor_code,
             'certificate_number': user.certificate_number,
             'registration_paid': user.registration_paid,
@@ -344,7 +583,7 @@ def get_all_users(request):
             'date_joined': user.date_joined,
             'last_login': user.last_login,
         })
-    
+
     return Response({
         'count': users.count(),
         'users': serialized_users
@@ -355,38 +594,42 @@ def get_all_users(request):
 @permission_classes([IsAuthenticated, IsCustomAdmin])
 def get_affiliates(request):
     """Get all affiliates with stats"""
-    # Use 'user' role for affiliates based on your ROLE_CHOICES
     affiliates = CustomUser.objects.filter(role='user').order_by('-date_joined')
-    
+
     data = []
     for affiliate in affiliates:
-        # Count referred vendors
         referred_count = CustomUser.objects.filter(
             registered_by_affiliate=affiliate,
             role='vendor'
         ).count()
-        
-        # Calculate total commissions from referrals
+
         total_commission = Referral.objects.filter(
             affiliate=affiliate,
             is_approved=True
         ).aggregate(total=Sum('commission_earned'))['total'] or 0
-        
+
+        # Registration commissions earned (50% of KES 200 per referred vendor)
+        registration_commission = VendorRegistration.objects.filter(
+            affiliate=affiliate,
+            payment_status='completed'
+        ).aggregate(total=Sum('affiliate_amount'))['total'] or 0
+
         data.append({
             'id': affiliate.id,
             'username': affiliate.username,
             'email': affiliate.email,
             'full_name': f"{affiliate.first_name} {affiliate.last_name}".strip(),
             'phone': affiliate.phone,
-            'mpesa_phone': affiliate.mpesa_phone if hasattr(affiliate, 'mpesa_phone') else affiliate.phone,
             'vendor_code': affiliate.vendor_code,
             'certificate_number': affiliate.certificate_number,
+            'has_paystack_subaccount': bool(affiliate.paystack_subaccount_code),
             'referred_vendors_count': referred_count,
             'total_commission_earned': float(total_commission),
+            'registration_commission_earned': float(registration_commission),
             'is_active': affiliate.is_active,
             'date_joined': affiliate.date_joined,
         })
-    
+
     return Response({
         'count': len(data),
         'affiliates': data
@@ -398,26 +641,36 @@ def get_affiliates(request):
 def get_vendors(request):
     """Get all vendors with registration info"""
     vendors = CustomUser.objects.filter(role='vendor').order_by('-date_joined')
-    
+
     data = []
     for vendor in vendors:
+        # Get vendor registration payment details
+        try:
+            reg = vendor.registration
+            payment_status = reg.payment_status
+            paystack_reference = reg.paystack_reference
+        except VendorRegistration.DoesNotExist:
+            payment_status = None
+            paystack_reference = None
+
         data.append({
             'id': vendor.id,
             'username': vendor.username,
             'email': vendor.email,
             'full_name': f"{vendor.first_name} {vendor.last_name}".strip(),
             'phone': vendor.phone,
-            'mpesa_phone': vendor.mpesa_phone if hasattr(vendor, 'mpesa_phone') else vendor.phone,
             'vendor_code': vendor.vendor_code,
-            'vendor_type': vendor.vendor_type if hasattr(vendor, 'vendor_type') else None,
+            'vendor_type': vendor.vendor_type,
             'registration_paid': vendor.registration_paid,
             'registration_fee': float(vendor.registration_fee_amount),
+            'payment_status': payment_status,
+            'paystack_reference': paystack_reference,
             'referred_by': vendor.registered_by_affiliate.email if vendor.registered_by_affiliate else None,
             'referred_by_code': vendor.registered_by_affiliate.vendor_code if vendor.registered_by_affiliate else None,
             'is_active': vendor.is_active,
             'date_joined': vendor.date_joined,
         })
-    
+
     return Response({
         'count': len(data),
         'vendors': data
@@ -429,28 +682,41 @@ def get_vendors(request):
 def get_dashboard_stats(request):
     """Get dashboard statistics"""
     total_users = CustomUser.objects.count()
-    total_affiliates = CustomUser.objects.filter(role='user').count()  # 'user' role = affiliate
+    total_affiliates = CustomUser.objects.filter(role='user').count()
     total_vendors = CustomUser.objects.filter(role='vendor').count()
     total_customers = CustomUser.objects.filter(role='customer').count()
-    
+
     paid_vendors = CustomUser.objects.filter(role='vendor', registration_paid=True).count()
     unpaid_vendors = CustomUser.objects.filter(role='vendor', registration_paid=False).count()
-    
-    # Calculate total commissions
+
+    # Registration fee revenue
+    total_registration_revenue = VendorRegistration.objects.filter(
+        payment_status='completed'
+    ).aggregate(total=Sum('registration_fee'))['total'] or 0
+
+    company_registration_revenue = VendorRegistration.objects.filter(
+        payment_status='completed'
+    ).aggregate(total=Sum('company_amount'))['total'] or 0
+
+    affiliate_registration_payouts = VendorRegistration.objects.filter(
+        payment_status='completed'
+    ).aggregate(total=Sum('affiliate_amount'))['total'] or 0
+
+    # Product sale commissions
     total_commissions = Referral.objects.filter(
         is_approved=True
     ).aggregate(total=Sum('commission_earned'))['total'] or 0
-    
+
     paid_commissions = Referral.objects.filter(
         is_approved=True,
         is_paid=True
     ).aggregate(total=Sum('commission_earned'))['total'] or 0
-    
+
     pending_commissions = Referral.objects.filter(
         is_approved=True,
         is_paid=False
     ).aggregate(total=Sum('commission_earned'))['total'] or 0
-    
+
     return Response({
         'users': {
             'total': total_users,
@@ -462,6 +728,11 @@ def get_dashboard_stats(request):
             'total': total_vendors,
             'paid': paid_vendors,
             'unpaid': unpaid_vendors,
+        },
+        'registration_revenue': {
+            'total': float(total_registration_revenue),
+            'company_share': float(company_registration_revenue),
+            'affiliate_payouts': float(affiliate_registration_payouts),
         },
         'commissions': {
             'total': float(total_commissions),
@@ -478,11 +749,11 @@ def update_user_status(request, user_id):
     try:
         user = CustomUser.objects.get(id=user_id)
         is_active = request.data.get('is_active')
-        
+
         if is_active is not None:
             user.is_active = is_active
             user.save()
-            
+
             return Response({
                 'message': f'User {"activated" if is_active else "deactivated"} successfully',
                 'user': {
@@ -491,9 +762,9 @@ def update_user_status(request, user_id):
                     'is_active': user.is_active
                 }
             })
-        
+
         return Response({'error': 'is_active field required'}, status=400)
-        
+
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
 
@@ -506,13 +777,14 @@ def delete_user(request, user_id):
         user = CustomUser.objects.get(id=user_id)
         email = user.email
         user.delete()
-        
+
         return Response({
             'message': f'User {email} deleted successfully'
         })
-        
+
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
+
 
 @api_view(["GET"])
 @permission_classes([IsCustomAdmin])

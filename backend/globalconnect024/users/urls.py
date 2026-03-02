@@ -14,6 +14,9 @@ from .views import (
     PasswordResetConfirmView,
     UpdateProfileView,
     EmailOrUsernameTokenObtainPairView,
+    initiate_vendor_payment,
+    paystack_webhook,
+    create_affiliate_subaccount,
 
     # Affiliate
     affiliate_summary,
@@ -45,6 +48,9 @@ urlpatterns = [
     path('registration/resend-email/', ResendActivationEmail.as_view(), name='resend_activation_email'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('vendor_login/', VendorLoginView.as_view(), name='vendor_login'),
+    path( 'vendor/initiate-payment/', initiate_vendor_payment, name='initiate_vendor_payment' ),
+    path( 'paystack/webhook/', paystack_webhook, name='paystack_webhook' ),
+    path( 'admin/create-affiliate-subaccount/', create_affiliate_subaccount, name='create_affiliate_subaccount' ),
     # 👤 Profile Management
     path('me/', CurrentUserView.as_view(), name='current_user'),
     path('update/', UpdateProfileView.as_view(), name='update_profile'),

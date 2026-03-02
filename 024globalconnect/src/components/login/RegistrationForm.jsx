@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import toast, { Toaster } from "react-hot-toast";
 import logoImage from "../../assets/024global_logo_200x200.png";
+import apiClient from "../../api/client";
 
 const countryCityData = {
   Kenya: ["Nairobi", "Mombasa", "Kisumu", "Eldoret", "Nakuru","Machakos" ],
@@ -33,6 +34,7 @@ const RegistrationForm = () => {
     role: "user", // default to affiliate
     vendor_type: "",
     social_media_handles: "",
+    affiliate_certificate_number: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -75,19 +77,26 @@ const RegistrationForm = () => {
     return newErrors;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setErrors({});
 
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      setIsLoading(false);
-      return;
-    }
+  const formErrors = validateForm();
+  if (Object.keys(formErrors).length > 0) {
+    setErrors(formErrors);
+    setIsLoading(false);
+    return;
+  }
 
-    try {
+  try {
+    if (formData.role === "vendor") {
+      const response = await apiClient.post('/users/vendor/initiate-payment/', formData);
+      if (response.data.payment_url) {
+        toast.success("Redirecting to payment...");
+        window.location.href = response.data.payment_url;
+      }
+    } else {
       const result = await register(formData);
       if (result.success) {
         toast.success("Registration successful! Please check your email to activate your account.");
@@ -100,13 +109,18 @@ const RegistrationForm = () => {
       } else {
         toast.error("Registration failed. Please try again.");
       }
-    } catch (error) {
-      console.error("Registration error:", error);
-      toast.error("Something went wrong. Please try again later.");
-    } finally {
-      setIsLoading(false);
     }
-  };
+  } catch (error) {
+    const errData = error.response?.data;
+    if (errData) {
+      Object.entries(errData).forEach(([field, msg]) => toast.error(`${field}: ${msg}`));
+    } else {
+      toast.error("Something went wrong. Please try again later.");
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const countryOptions = Object.keys(countryCityData);
   const cityOptions = formData.country ? countryCityData[formData.country] || [] : [];
@@ -239,6 +253,22 @@ const RegistrationForm = () => {
               </div>
             )}
 
+            {formData.role === "vendor" && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-blue-night mb-1">
+                  Affliate Certificate Number <span className="text-grey-400 text-xs">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="affiliate_certificate_number"
+                  value={formData.affiliate_certificate_number  || ""}
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Enter your affiliate certificate number"
+                />
+              </div>
+            )}
+
               {/* Service Provider Type - show only if role is service_provider */}
               {formData.role === "service_provider" && (
                 <div className="md:col-span-2">
@@ -280,7 +310,7 @@ const RegistrationForm = () => {
                   isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-deep text-white hover:bg-blue-bright"
                 }`}
               >
-                {isLoading ? "Registering..." : "Register Now"}
+                {isLoading ? "Processing..." : formData.role === "vendor" ? "Pay Registration Fee" : "Register Now"}
               </button>
             </div>
           </div>

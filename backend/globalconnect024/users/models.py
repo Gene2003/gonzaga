@@ -52,15 +52,11 @@ class CustomUser(AbstractUser):
     service_provider_type = models.CharField(max_length=20, choices=SERVICE_PROVIDER_CHOICES, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     mpesa_number = models.CharField(max_length=20, blank=True, null=True, help_text="Required for vendors to receive payments.")
-    mobile_money_provider = models.CharField(max_length=50,
-                                             choices=[
-                                                 ('m-pesa', 'M-Pesa'),
-                                                 ('airtel-money', 'Airtel Money'),
-                                             ],
-                                             default='m-pesa', blank=True, null=True)
+    
     registration_paid = models.BooleanField(default=False, help_text="Indicates if the vendor has paid the registration fee.")
     registration_fee_amount = models.DecimalField(max_digits=10, decimal_places=2, default=200.00)
     registered_by_affiliate = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users', help_text="The affiliate who referred this user, if applicable.")
+    paystack_subaccount_code = models.CharField(max_length=100, blank=True, null=True, help_text="Paystack subaccount code for vendors to receive payments.")
 
 
     def save (self, *args, **kwargs):
@@ -100,130 +96,33 @@ class CustomUser(AbstractUser):
         verbose_name_plural = 'Global Users'
 
 class VendorRegistration(models.Model):
-    """Track vendor registration payments with splits"""
     PAYMENT_STATUS_CHOICES = [
         ('pending', 'Pending Payment'),
         ('completed', 'Payment Completed'),
         ('failed', 'Payment Failed'),
     ]
     
-    vendor = models.OneToOneField(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name='registration',
-        limit_choices_to={'role': 'vendor'}
-    )
-    affiliate = models.ForeignKey(
-        CustomUser,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='vendor_registrations',
-        limit_choices_to={'role': 'affiliate'},
-        help_text="Affiliate who gets 50% commission"
-    )
+    vendor = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='registration')
+    affiliate = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='vendor_registrations')
     
-    # Payment amounts
     registration_fee = models.DecimalField(max_digits=10, decimal_places=2, default=200.00)
-    company_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # 50% or 100%
-    affiliate_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # 50% or 0%
+    company_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    affiliate_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
-    # M-Pesa transaction details
-    phone = models.CharField(max_length=15, help_text="Phone used for payment")
-    checkout_request_id = models.CharField(max_length=100, blank=True, null=True)
-    merchant_request_id = models.CharField(max_length=100, blank=True, null=True)
-    mpesa_receipt_number = models.CharField(max_length=100, blank=True, null=True)
+    # Paystack fields
+    paystack_reference = models.CharField(max_length=100, blank=True, null=True)
+    paystack_transaction_id = models.CharField(max_length=100, blank=True, null=True)
     
-    # Payment status
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
-    company_paid = models.BooleanField(default=False, help_text="Company received payment")
-    affiliate_paid = models.BooleanField(default=False, help_text="Affiliate received commission")
-    
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Vendor Registration'
-        verbose_name_plural = 'Vendor Registrations'
-    
-    def __str__(self):
-        return f"Registration: {self.vendor.email} - KSh {self.registration_fee} ({self.payment_status})"
-    
+
     def calculate_splits(self):
-        """Calculate payment splits: 50% company, 50% affiliate (or 100% company if no affiliate)"""
         from decimal import Decimal
-        
         if self.affiliate:
-            # With affiliate: 50/50 split
             self.company_amount = self.registration_fee * Decimal('0.5')
             self.affiliate_amount = self.registration_fee * Decimal('0.5')
         else:
-            # No affiliate: All goes to company
             self.company_amount = self.registration_fee
             self.affiliate_amount = Decimal('0')
-        
         self.save()
-        
-        return {
-            'company': float(self.company_amount),
-            'affiliate': float(self.affiliate_amount),
-            'total': float(self.registration_fee)
-        }
-
-
-class RegistrationPaymentSplit(models.Model):
-    """Track individual payment splits for registration"""
-    RECIPIENT_TYPE_CHOICES = [
-        ('company', 'Company'),
-        ('affiliate', 'Affiliate'),
-    ]
-    
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-    ]
-    
-    registration = models.ForeignKey(
-        VendorRegistration, 
-        on_delete=models.CASCADE, 
-        related_name='splits'
-    )
-    recipient_type = models.CharField(max_length=20, choices=RECIPIENT_TYPE_CHOICES)
-    recipient = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.CASCADE, 
-        null=True, 
-        blank=True,
-        help_text="Null for company"
-    )
-    recipient_phone = models.CharField(max_length=15, blank=True)
-    
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    
-    # M-Pesa B2C transaction details
-    mpesa_conversation_id = models.CharField(max_length=100, blank=True, null=True)
-    mpesa_transaction_id = models.CharField(max_length=100, blank=True, null=True)
-    mpesa_response_code = models.CharField(max_length=10, blank=True, null=True)
-    mpesa_response_description = models.TextField(blank=True, null=True)
-    
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-    
-    # Retry mechanism
-    retry_count = models.IntegerField(default=0)
-    max_retries = models.IntegerField(default=3)
-    
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Registration Payment Split'
-        verbose_name_plural = 'Registration Payment Splits'
-    
-    def __str__(self):
-        recipient_name = self.recipient.email if self.recipient else "Company"
-        return f"{self.recipient_type} - {recipient_name} - KSh {self.amount} ({self.status})"

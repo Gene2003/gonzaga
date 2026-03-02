@@ -33,7 +33,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = [
             'first_name', 'last_name', 'username', 'email',
             'password', 'confirm_password', 'certificate_number',
-            'country', 'city', 'promotion_methods', 'role'
+            'country', 'city', 'promotion_methods', 'role', 'vendor_type'
         ]
 
     def validate(self, attrs):
@@ -52,6 +52,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
                 )
             try:
                 cert = AffiliateCertificate.objects.get(certificate_number=certificate_number)
+                if not cert.is_valid:
+                    raise serializers.ValidationError(
+                        {"certificate_number": "This certificate has already been used or revoked."}
+                    )
             except AffiliateCertificate.DoesNotExist:
                 raise serializers.ValidationError(
                     {"certificate_number": "This certificate has already been used or revoked."}
@@ -76,6 +80,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             certificate_number=validated_data.get('certificate_number', ''),
             promotion_methods=validated_data.get('promotion_methods', []),
             role=validated_data.get('role', 'user'),
+            vendor_type=validated_data.get('vendor_type', ''),
             is_active=False  # 🔒 Require email activation
         )
 
