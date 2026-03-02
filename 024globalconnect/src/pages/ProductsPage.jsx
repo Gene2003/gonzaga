@@ -228,6 +228,9 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
   const isOutOfStock = product.quantity_kg === 0;
 
   const handleBuyNow = () => {
+
+    const params = new URLSearchParams(window.location.search);
+    const affiliateCode = params.get('ref');
     //local storage
     localStorage.setItem("buyNowProduct", JSON.stringify({
       id: product.id,
@@ -247,6 +250,7 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
           vendor_type: product.vendor_type,
         },
         quantity: 1,
+        affiliate_code: affiliateCode || null,
       }
     });
   };

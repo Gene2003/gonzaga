@@ -3,6 +3,9 @@ import requests
 from datetime import datetime
 from base64 import b64encode
 from decimal import Decimal
+import json
+import hashlib
+import hmac
 
 from services.views import get_nearest_transporters
 from rest_framework.decorators import api_view, permission_classes
@@ -21,6 +24,8 @@ from orders.models import PaymentSplit, Referral, VendorPayout
 from rest_framework.permissions import AllowAny
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
+
+PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY.encode()
 
 
 
@@ -132,16 +137,16 @@ def buy_now(request):
 @permission_classes([IsAuthenticated])
 def checkout(request):
     """
-    Initiate checkout with automatic payment splitting
-    Customer pays full amount to company via M-Pesa STK Push
+    Initiate Paystack checkout with automatic split payment.
+    -with affiliate: 5% company, 90% vendor, 5% affiliate
+    -without affiliate: 5% company, 95% vendor
     """
     product_id = request.data.get("product")
-    quantity = request.data.get("quantity", 1)
-    phone = request.data.get("phone")
+    quantity = int(request.data.get("quantity", 1))
     affiliate_code = request.data.get("affiliate_code")  # Affiliate code instead of ID
 
-    if not all([product_id, phone]):
-        return Response({"error": "Missing required fields."}, status=400)
+    if not product_id:
+        return Response({"error": "Product is required."}, status=400)
 
     try:
         product = Product.objects.get(id=product_id)
@@ -150,20 +155,29 @@ def checkout(request):
 
     buyer = request.user
     vendor = product.vendor
+
+    # check vendor has a paystack subaccount
+    if not vendor.paystack_subaccount_code:
+        return Response({
+            "error": "Vendor does not have a Paystack subaccount set up."
+        }, status=400)
     
     # Get affiliate if code provided
     affiliate = None
+    affiliate_subaccount = None
     if affiliate_code:
         try:
             affiliate = CustomUser.objects.get(
                 vendor_code=affiliate_code,
-                role='affiliate'
+                role='user'
             )
+            affiliate_subaccount = affiliate.paystack_subaccount_code
         except CustomUser.DoesNotExist:
             pass
 
     # Calculate total amount
     amount = product.price * quantity
+    amount_kobo = int(amount * 100)  # Convert to kobo for Paystack
 
     # Create order with payment splits
     with transaction.atomic():
@@ -176,9 +190,8 @@ def checkout(request):
             amount=amount,
             status="pending"
         )
+        order.calculate_splits()  # Calculate and save splits
 
-        # Calculate splits (5% company, 90-95% vendor, 5% affiliate if present)
-        splits = order.calculate_splits()
 
         # Create payment split records
         PaymentSplit.objects.create(
@@ -193,7 +206,6 @@ def checkout(request):
             order=order,
             recipient_type='vendor',
             recipient=vendor,
-            recipient_phone=vendor.phone,
             amount=order.vendor_amount,
             status='pending'
         )
@@ -203,7 +215,6 @@ def checkout(request):
                 order=order,
                 recipient_type='affiliate',
                 recipient=affiliate,
-                recipient_phone=affiliate.phone,
                 amount=order.affiliate_amount,
                 status='pending'
             )
@@ -217,245 +228,134 @@ def checkout(request):
                 commission_rate=Decimal('5.00'),
                 is_approved=True
             )
-
-    # Initiate STK Push (customer pays full amount to company)
-    try:
-        stk_response = initiate_stk_push(phone, amount)
-
-        if stk_response.get("ResponseCode") != "0":
-            order.status = "failed"
-            order.save()
-            return Response({
-                "error": "STK Push failed.",
-                "details": stk_response
-            }, status=400)
-
-        # Save M-Pesa STK identifiers
-        order.checkout_request_id = stk_response.get("CheckoutRequestID")
-        order.merchant_request_id = stk_response.get("MerchantRequestID")
-        order.save()
-
-        return Response({
-            "message": stk_response.get("CustomerMessage", "STK push sent. Please enter your PIN."),
+    # build paystack payload
+    paystack_data = {
+        "email": buyer.email,
+        "amount": amount_kobo,
+        "currency": "KES",
+        "callback_url": f"{settings.FRONTEND_URL}/orders/payment-success?order_id={order.id}",
+        "metadata": {
             "order_id": order.id,
-            "merchant_request_id": stk_response.get("MerchantRequestID"),
-            "checkout_request_id": stk_response.get("CheckoutRequestID"),
-            "payment_breakdown": {
-                "total": float(amount),
-                "company_fee": float(order.company_amount),
-                "vendor_receives": float(order.vendor_amount),
-                "affiliate_commission": float(order.affiliate_amount) if affiliate else 0
-            }
-        }, status=200)
+            "product_id": product.id,
+            "buyer_id": buyer.id,
+            "affiliate_id": affiliate.id if affiliate else None
+        },
+        "split": {
+            "type": "percentage",
+            "bearer_type": "account",
+            "subaccounts": subaccounts
+        }
+    }
 
-    except Exception as e:
-        order.status = "failed"
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        "https://api.paystack.co/transaction/initialize",
+        headers=headers,
+        json=paystack_data
+    )
+
+    res_data = response.json()
+
+    if not res_data.get('status'):
+        order.status = 'failed'
         order.save()
-        return Response({"error": str(e)}, status=500)
+        return Response({
+            "error": "Failed to initialize payment.",
+            "details": res_data.get
+            }, status=500)
+    
+    #save paystack reference
+    order.payment_reference = res_data['data']['reference']
+    order.save()
 
+    return Response({
+        "payment_url": res_data['data']['authorization_url'],
+        "reference": res_data['data']['reference'],
+        "order_id": order.id,
+        "payment_breakdown": {
+            "total": float(amount),
+            "company_fee": float(order.company_amount),
+            "vendor_receives": float(order.vendor_amount),
+            "affiliate_commission": float(order.affiliate_amount) if affiliate else 0
+        }
+    }, status=200)
 
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def mpesa_callback(request):
+def paystack_order_webhook(request):
     """
-    Handle M-Pesa STK Push callback (customer payment to company)
-    When payment succeeds, automatically send splits to vendor and affiliate
+    Paystack calls this after successful payment.
+    Marks order and all splits as completed.
+    Paystack already sent the money to vendor/affiliate subaccounts automatically.
     """
-    data = request.data
+    paystack_signature = request.headers.get('X-Paystack-Signature')
+    payload = request.body
 
-    try:
-        body = data.get("Body", {})
-        stk_callback = body.get("stkCallback", {})
+    #Verify signature
+    expected_signature = hmac.new(
+        PAYSTACK_SECRET_KEY.encode('utf-8'),
+        payload, 
+        hashlib.sha512
+    ).hexdigest()
 
-        checkout_request_id = stk_callback.get("CheckoutRequestID")
-        result_code = stk_callback.get("ResultCode")
-        result_desc = stk_callback.get("ResultDesc")
+    if paystack_signature != expected_signature:
+        return JsonResponse({"error": "Invalid signature"}, status=400)
+    
+    event = json.loads(payload)
 
-        # Find the order
-        order = Order.objects.filter(checkout_request_id=checkout_request_id).first()
+    if event['event'] == 'charge.success':
+        metadata = event['data'].get('metadata', {})
+        order_id = metadata.get('order_id')
+        affiliate_id = metadata.get('affiliate_id')
+        paystack_reference = event['data'].get('reference')
 
-        if not order:
-            return JsonResponse({"error": "Order not found"}, status=404)
+        try:
+            order = Order.objects.get(id=order_id)
 
-        if result_code == 0:
-            # Payment successful - Company received money
             with transaction.atomic():
-                order.status = "processing"
+                order.status = 'completed'
                 order.company_paid = True
-                order.save()
-
-                # Mark company split as completed
-                company_split = order.splits.filter(recipient_type='company').first()
-                if company_split:
-                    company_split.status = 'completed'
-                    company_split.completed_at = timezone.now()
-                    company_split.save()
-
-                # Initiate B2C payments to vendor and affiliate
-                process_payment_splits(order)
-
-        else:
-            # Payment failed
-            order.status = "failed"
-            order.save()
-
-            # Mark all splits as failed
-            order.splits.all().update(status='failed')
-
-        return JsonResponse({
-            "ResultCode": 0,
-            "ResultDesc": "Callback processed successfully"
-        }, status=200)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-def process_payment_splits(order):
-    """Send B2C payments to vendor and affiliate"""
-    pending_splits = order.splits.filter(status='pending').exclude(recipient_type='company')
-
-    for split in pending_splits:
-        if split.recipient_type == 'vendor':
-            # Send to vendor
-            split.status = 'processing'
-            split.processed_at = timezone.now()
-            split.save()
-
-            try:
-                b2c_response = send_b2c_payment(
-                    phone=split.recipient_phone,
-                    amount=split.amount,
-                    recipient_type='vendor',
-                    order_id=order.id
-                )
-
-                if b2c_response.get('ResponseCode') == '0':
-                    split.mpesa_conversation_id = b2c_response.get('ConversationID')
-                    split.mpesa_originator_conversation_id = b2c_response.get('OriginatorConversationID')
-                    split.save()
-                else:
-                    split.status = 'failed'
-                    split.mpesa_response_description = b2c_response.get('ResponseDescription')
-                    split.save()
-
-            except Exception as e:
-                split.status = 'failed'
-                split.mpesa_response_description = str(e)
-                split.save()
-
-        elif split.recipient_type == 'affiliate':
-            # Send to affiliate
-            split.status = 'processing'
-            split.processed_at = timezone.now()
-            split.save()
-
-            try:
-                b2c_response = send_b2c_payment(
-                    phone=split.recipient_phone,
-                    amount=split.amount,
-                    recipient_type='affiliate',
-                    order_id=order.id
-                )
-
-                if b2c_response.get('ResponseCode') == '0':
-                    split.mpesa_conversation_id = b2c_response.get('ConversationID')
-                    split.mpesa_originator_conversation_id = b2c_response.get('OriginatorConversationID')
-                    split.save()
-                else:
-                    split.status = 'failed'
-                    split.mpesa_response_description = b2c_response.get('ResponseDescription')
-                    split.save()
-
-            except Exception as e:
-                split.status = 'failed'
-                split.mpesa_response_description = str(e)
-                split.save()
-
-
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def mpesa_b2c_result(request):
-    """Handle M-Pesa B2C result callback (vendor/affiliate payment confirmation)"""
-    data = request.data
-
-    try:
-        result = data.get('Result', {})
-        result_code = result.get('ResultCode')
-        conversation_id = result.get('ConversationID')
-        transaction_id = result.get('TransactionID')
-        result_desc = result.get('ResultDesc')
-
-        # Find the payment split
-        split = PaymentSplit.objects.filter(mpesa_conversation_id=conversation_id).first()
-
-        if not split:
-            return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"}, status=200)
-
-        if result_code == 0:
-            # Payment successful
-            split.status = 'completed'
-            split.completed_at = timezone.now()
-            split.mpesa_transaction_id = transaction_id
-            split.mpesa_response_code = str(result_code)
-            split.mpesa_response_description = result_desc
-            split.save()
-
-            # Update order payment flags
-            order = split.order
-            if split.recipient_type == 'vendor':
                 order.vendor_paid = True
-                
-                # Create vendor payout record
-                VendorPayout.objects.create(
-                    vendor=split.recipient,
-                    order=order,
-                    amount=split.amount,
-                    payment_split=split,
-                    is_paid=True,
-                    paid_at=timezone.now()
+                order.affiliate_paid = True if affiliate_id else False
+                order.completed_at = timezone.now()
+                order.payment_reference = paystack_reference
+                order.save()
+                order.splits.all().update(
+                    status='completed',
+                    completed_at=timezone.now()
                 )
 
-            elif split.recipient_type == 'affiliate':
-                order.affiliate_paid = True
-                
-                # Update referral as paid
-                referral = order.referral
-                referral.mark_paid(split)
+                # Mark referral as paid
+                if affiliate_id:
+                    try:
+                        referral = Referral.objects.get(order=order)
+                        affiliate_split = order.splits.filter(
+                            recipient_type='affiliate'
+                        ).first()
+                        referral.mark_paid(affiliate_split)
+                    except Referral.DoesNotExist:
+                        pass
 
-            order.save()
+                    # Create vendor payout record
+                    vendor_split = order.splits.filter(recipient_type='vendor').first()
+                    if vendor_split:
+                        VendorPayout.objects.create(
+                            vendor=order.vendor,
+                            order=order,
+                            amount=order.vendor_amount,
+                            payment_split=vendor_split,
+                            is_paid=True,
+                            paid_at=timezone.now()
+                        )
+        except Order.DoesNotExist:
+            pass
 
-            # Check if order is complete
-            order.mark_completed()
-
-        else:
-            # Payment failed
-            split.status = 'failed'
-            split.mpesa_response_code = str(result_code)
-            split.mpesa_response_description = result_desc
-            split.save()
-
-            # Retry if under max retries
-            if split.retry_count < split.max_retries:
-                split.retry_count += 1
-                split.status = 'pending'
-                split.save()
-                # TODO: Implement retry logic (e.g., Celery task)
-
-        return JsonResponse({"ResultCode": 0, "ResultDesc": "Accepted"}, status=200)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def mpesa_b2c_timeout(request):
-    """Handle M-Pesa B2C timeout"""
-    return JsonResponse({"ResultCode": 0, "ResultDesc": "Timeout received"}, status=200)
+    return JsonResponse({"status": "ok"}, status=200)
 
 
 @api_view(["GET"])
@@ -463,7 +363,7 @@ def mpesa_b2c_timeout(request):
 def check_payment_status(request, order_id):
     """Check order payment status"""
     try:
-        order = Order.objects.get(id=order_id)
+        order = Order.objects.get(id=order_id, buyer=request.user)
         
         # Get split statuses
         splits_status = []
@@ -511,14 +411,15 @@ def my_orders(request):
             "amount": float(order.amount),
             "status": order.status,
             "created_at": order.created_at,
+            "payment_url": None,
             "my_earnings": float(
                 order.vendor_amount if user.role == 'vendor' 
-                else order.affiliate_amount if user.role == 'affiliate'
+                else order.affiliate_amount if user.role == 'user'
                 else 0
             ),
             "paid": (
                 order.vendor_paid if user.role == 'vendor'
-                else order.affiliate_paid if user.role == 'affiliate'
+                else order.affiliate_paid if user.role == 'user'
                 else order.company_paid
             )
         })
