@@ -57,15 +57,5 @@ class Migration(migrations.Migration):
             name='completed_at',
             field=models.DateTimeField(blank=True, null=True),
         ),
-        migrations.AddField(
-            model_name='order',
-            name='affiliate',
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name='affiliate_orders',
-                to=settings.AUTH_USER_MODEL,
-            ),
-        ),
+        
     ]
