@@ -57,5 +57,10 @@ class Migration(migrations.Migration):
             name='completed_at',
             field=models.DateTimeField(blank=True, null=True),
         ),
+        migrations.AddField(
+            model_name='order',
+            name='updated_at',
+            field=models.DateTimeField(auto_now=True, null=True),
+        ),
         
     ]
