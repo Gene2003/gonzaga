@@ -91,7 +91,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
             cert.used_by = user
             cert.save()
 
-        send_activation_email(request, user)  # ✅ Send activation email
+        try:
+            send_activation_email(request, user)  # ✅ Send activation email
+
+        except Exception as e:
+            print(f"activation email failed: {e}")
+
         return user
 
 

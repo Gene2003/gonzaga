@@ -37,7 +37,7 @@ def send_activation_email(request, user):
     email.attach_alternative(html_message, "text/html")
 
     try:
-        email.send(fail_silently=False)
+        email.send(fail_silently=True)
         print("✅ Activation email sent to:", user.email)
     except Exception as e:
         print("Failed to send activation email:", str(e))
