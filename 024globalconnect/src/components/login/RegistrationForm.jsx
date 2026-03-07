@@ -89,26 +89,44 @@ const handleSubmit = async (e) => {
     return;
   }
 
-  try {
-    if (formData.role === "vendor") {
+  if (formData.role === "vendor") {
+    try {
       const response = await apiClient.post('/users/vendor/initiate-payment/', formData);
+      console.log("Vendor payment response:", response.data);
       if (response.data.payment_url) {
         toast.success("Redirecting to payment...");
         window.location.href = response.data.payment_url;
-      }
-    } else {
-      const result = await register(formData);
-      if (result.success) {
-        toast.success("Registration successful! Please check your email to activate your account.");
-        setTimeout(() => navigate("/login?registered=true"), 2000);
-      } else if (result.errors) {
-        Object.entries(result.errors).forEach(([field, msg]) =>
-          toast.error(`${field}: ${msg}`)
-        );
-        setErrors((prev) => ({ ...prev, ...result.errors }));
       } else {
-        toast.error("Registration failed. Please try again.");
+        toast.error("Payment URL not received. Please try again.");
       }
+    } catch (error) {
+      console.error("Vendor payment error:", error.response?.data || error.message);
+      const errData = error.response?.data;
+      if (errData?.error) {
+        toast.error(errData.error);
+      } else if (errData) {
+        Object.entries(errData).forEach(([field, msg]) => toast.error(`${field}: ${msg}`));
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+    return;
+  }
+
+  try {
+    const result = await register(formData);
+    if (result.success) {
+      toast.success("Registration successful! Please check your email to activate your account.");
+      setTimeout(() => navigate("/login?registered=true"), 2000);
+    } else if (result.errors) {
+      Object.entries(result.errors).forEach(([field, msg]) =>
+        toast.error(`${field}: ${msg}`)
+      );
+      setErrors((prev) => ({ ...prev, ...result.errors }));
+    } else {
+      toast.error("Registration failed. Please try again.");
     }
   } catch (error) {
     const errData = error.response?.data;

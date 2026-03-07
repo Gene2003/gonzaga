@@ -1,3 +1,5 @@
+import traceback
+
 from django.db.models import Sum, Q, Count
 from orders.models import Referral, Order
 from products.models import Product
@@ -301,115 +303,107 @@ def affiliate_referrals(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def initiate_vendor_payment(request):
-    """
-    Called when a vendor submits the registration form.
-    Creates an inactive user account and initializes a Paystack transaction with 50/50 split.
-    """
-    data = request.data.copy()
+    try:
+        data = request.data.copy()
 
-    #extract affiliate certificate number before passing to serializer
-    affiliate_certificate_number = data.get('affiliate_certificate_number', '').strip()
-    data = {k: v for k, v in data.items() if k != 'affiliate_certificate_number'}
+        affiliate_certificate_number = data.get('affiliate_certificate_number', '').strip()
+        data = {k: v for k, v in data.items() if k != 'affiliate_certificate_number'}
 
-    # Check for duplicate email or username
-    if User.objects.filter(email=data.get('email')).exists():
-        return Response({'error': 'Email already registered.'}, status=400)
-    if User.objects.filter(username=data.get('username')).exists():
-        return Response({'error': 'Username already taken.'}, status=400)
+        if User.objects.filter(email=data.get('email')).exists():
+            return Response({'error': 'Email already registered.'}, status=400)
+        if User.objects.filter(username=data.get('username')).exists():
+            return Response({'error': 'Username already taken.'}, status=400)
 
-    # Find affiliate by certificate number (optional)
-    affiliate = None
-    affiliate_subaccount = None
+        affiliate = None
+        affiliate_subaccount = None
 
-    if affiliate_certificate_number:
-        try:
-            cert = AffiliateCertificate.objects.get(
-                certificate_number=affiliate_certificate_number
-            )
-            affiliate = cert.used_by
-            if affiliate:
-                affiliate_subaccount = affiliate.paystack_subaccount_code
-            else:
-                return Response({'error': 'Affiliate certificate number is valid but not linked to any user.'}, status=400)
-        except AffiliateCertificate.DoesNotExist:
-            return Response({'error': 'Invalid affiliate certificate number.'}, status=400)
+        if affiliate_certificate_number:
+            try:
+                cert = AffiliateCertificate.objects.get(
+                    certificate_number=affiliate_certificate_number
+                )
+                affiliate = cert.used_by
+                if affiliate:
+                    affiliate_subaccount = affiliate.paystack_subaccount_code
+                else:
+                    return Response({'error': 'Affiliate certificate not linked to any user.'}, status=400)
+            except AffiliateCertificate.DoesNotExist:
+                return Response({'error': 'Invalid affiliate certificate number.'}, status=400)
 
-    # Validate and save user as inactive
-    serializer = RegistrationSerializer(data=data, context={'request': request})
-    if not serializer.is_valid():
-        print("SERIALIZER ERRORS:", serializer.errors)
-        return Response(serializer.errors, status=400)
+        serializer = RegistrationSerializer(data=data, context={'request': request})
+        if not serializer.is_valid():
+            print("SERIALIZER ERRORS:", serializer.errors)
+            return Response(serializer.errors, status=400)
 
-    user = serializer.save(is_active=False, registration_paid=False)
+        user = serializer.save(is_active=False, registration_paid=False)
 
-    if affiliate:
-        user.registered_by_affiliate = affiliate
-        user.save()
+        if affiliate:
+            user.registered_by_affiliate = affiliate
+            user.save()
 
-    # Create VendorRegistration record
-    vendor_reg = VendorRegistration.objects.create(
-        vendor=user,
-        affiliate=affiliate,
-        registration_fee=Decimal('200.00'),
-        payment_status='pending'
-    )
-    vendor_reg.calculate_splits()
+        vendor_reg = VendorRegistration.objects.create(
+            vendor=user,
+            affiliate=affiliate,
+            registration_fee=Decimal('200.00'),
+            payment_status='pending'
+        )
+        vendor_reg.calculate_splits()
 
-    # Build Paystack transaction payload
-    paystack_data = {
-        "email": user.email,
-        "amount": REGISTRATION_FEE,  # Amount in kobo (200 KES = 20000)
-        "currency": "KES",
-        "callback_url": f"{settings.FRONTEND_URL}/vendor/payment-success",
-        "metadata": {
-            "user_id": user.id,
-            "affiliate_id": affiliate.id if affiliate else None,
-            "vendor_registration_id": vendor_reg.id,
-        }
-    }
-
-    # Add split only if affiliate has a Paystack subaccount
-    if affiliate_subaccount:
-        paystack_data["split"] = {
-            "type": "percentage",
-            "bearer_type": "account",
-            "subaccounts": [
-                {
-                    "subaccount": affiliate_subaccount,
-                    "share": 50  # 50% to affiliate
-                }
-            ]
+        paystack_data = {
+            "email": user.email,
+            "amount": REGISTRATION_FEE,
+            "currency": "KES",
+            "callback_url": f"{settings.FRONTEND_URL}/vendor/payment-success",
+            "metadata": {
+                "user_id": user.id,
+                "affiliate_id": affiliate.id if affiliate else None,
+                "vendor_registration_id": vendor_reg.id,
+            }
         }
 
-    headers = {
-        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
-        "Content-Type": "application/json"
-    }
+        if affiliate_subaccount:
+            paystack_data["split"] = {
+                "type": "percentage",
+                "bearer_type": "account",
+                "subaccounts": [
+                    {
+                        "subaccount": affiliate_subaccount,
+                        "share": 50
+                    }
+                ]
+            }
 
-    response = requests.post(
-        "https://api.paystack.co/transaction/initialize",
-        json=paystack_data,
-        headers=headers
-    )
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
 
-    res_data = response.json()
+        response = requests.post(
+            "https://api.paystack.co/transaction/initialize",
+            json=paystack_data,
+            headers=headers
+        )
 
-    if not res_data.get('status'):
-        # Clean up the user we just created since payment init failed
-        user.delete()
-        return Response({'error': 'Failed to initialize payment.', 'detail': res_data}, status=500)
+        res_data = response.json()
+        print("PAYSTACK RESPONSE:", res_data)
 
-    # Save Paystack reference to the registration record
-    vendor_reg.paystack_reference = res_data['data']['reference']
-    vendor_reg.save()
+        if not res_data.get('status'):
+            user.delete()
+            return Response({'error': 'Failed to initialize payment.', 'detail': res_data}, status=500)
 
-    return Response({
-        'payment_url': res_data['data']['authorization_url'],
-        'reference': res_data['data']['reference'],
-        'user_id': user.id,
-    }, status=200)
+        vendor_reg.paystack_reference = res_data['data']['reference']
+        vendor_reg.save()
 
+        return Response({
+            'payment_url': res_data['data']['authorization_url'],
+            'reference': res_data['data']['reference'],
+            'user_id': user.id,
+        }, status=200)
 
+    except Exception as e:
+        print("VENDOR PAYMENT ERROR:", traceback.format_exc())
+        return Response({'error': str(e)}, status=500)
+    
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
