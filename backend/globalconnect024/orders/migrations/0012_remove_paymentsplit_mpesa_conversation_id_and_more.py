@@ -10,24 +10,29 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='paymentsplit',
-            name='paystack_reference',
-            field=models.CharField(blank=True, help_text='Paystack reference for company payment', max_length=100, null=True),
-        ),
-        migrations.AlterField(
-            model_name='order',
-            name='affiliate_paid',
-            field=models.BooleanField(default=False, help_text='Affiliate received M-Pesa payment'),
-        ),
-        migrations.AlterField(
-            model_name='order',
-            name='vendor_paid',
-            field=models.BooleanField(default=False, help_text='Vendor received M-Pesa payment'),
-        ),
-        migrations.AlterField(
-            model_name='referral',
-            name='commission_rate',
-            field=models.DecimalField(decimal_places=2, default=5.0, help_text='Commission percentage (default 5%)', max_digits=5),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AddField(
+                    model_name='paymentsplit',
+                    name='paystack_reference',
+                    field=models.CharField(blank=True, help_text='Paystack reference for company payment', max_length=100, null=True),
+                ),
+                migrations.AlterField(
+                    model_name='order',
+                    name='affiliate_paid',
+                    field=models.BooleanField(default=False, help_text='Affiliate received M-Pesa payment'),
+                ),
+                migrations.AlterField(
+                    model_name='order',
+                    name='vendor_paid',
+                    field=models.BooleanField(default=False, help_text='Vendor received M-Pesa payment'),
+                ),
+                migrations.AlterField(
+                    model_name='referral',
+                    name='commission_rate',
+                    field=models.DecimalField(decimal_places=2, default=5.0, help_text='Commission percentage (default 5%)', max_digits=5),
+                ),
+            ]
         ),
     ]
