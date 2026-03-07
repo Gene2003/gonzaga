@@ -10,26 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_conversation_id',
-        ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_originator_conversation_id',
-        ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_response_code',
-        ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_response_description',
-        ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_transaction_id',
-        ),
         migrations.AddField(
             model_name='paymentsplit',
             name='paystack_reference',
