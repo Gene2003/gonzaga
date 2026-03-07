@@ -6,7 +6,7 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0007_remove_order_updated_at'),
+        ('orders', '0007_remove_paymentsplit_mpesa_conversation_id_and_more.py'),
         ('products', '__first__'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
