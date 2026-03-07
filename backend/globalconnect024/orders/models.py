@@ -142,13 +142,7 @@ class PaymentSplit(models.Model):
     
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    
-    # M-Pesa transaction details
-    mpesa_conversation_id = models.CharField(max_length=100, blank=True, null=True)
-    mpesa_originator_conversation_id = models.CharField(max_length=100, blank=True, null=True)
-    mpesa_transaction_id = models.CharField(max_length=100, blank=True, null=True)
-    mpesa_response_code = models.CharField(max_length=10, blank=True, null=True)
-    mpesa_response_description = models.TextField(blank=True, null=True)
+    paystack_reference = models.CharField(max_length=100, blank=True, null=True, help_text="Paystack reference for company payment")
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
