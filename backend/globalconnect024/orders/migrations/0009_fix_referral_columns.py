@@ -5,8 +5,8 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0008_remove_paymentsplit_mpesa_conversation_id'),
-    ]
+    ('orders', '0008_remove_paymentsplit_mpesa_conversation_id'),
+]
 
     operations = [
         migrations.AddField(
