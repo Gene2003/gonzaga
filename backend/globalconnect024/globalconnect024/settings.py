@@ -23,7 +23,7 @@ if render_external_hostname:
     ALLOWED_HOSTS.append(render_external_hostname)
 
 INSTALLED_APPS = [
-    'Whitenoise.runserver_nostatic',
+    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
