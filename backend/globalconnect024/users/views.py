@@ -305,8 +305,14 @@ def affiliate_referrals(request):
 def initiate_vendor_payment(request):
     try:
         data = request.data.copy()
-        affiliate_certificate_number = data.pop('affiliate_certificate_number', [''])[0].strip() \
-            if hasattr(data, 'pop') else data.get('affiliate_certificate_number', '').strip()
+        cert_value = data.get('affiliate_certificate_number', '')
+        if isinstance(cert_value, list):
+            cert_value = cert_value[0] if cert_value else ''
+        affiliate_certificate_number = cert_value.strip() 
+
+        data._mutable = True
+        data.pop('affiliate_certificate_number', None)
+        data._mutable = False
 
         # 1. Validate early — before saving anything
         if User.objects.filter(email=data.get('email')).exists():
