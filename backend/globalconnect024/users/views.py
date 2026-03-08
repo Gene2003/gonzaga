@@ -310,9 +310,7 @@ def initiate_vendor_payment(request):
             cert_value = cert_value[0] if cert_value else ''
         affiliate_certificate_number = cert_value.strip() 
 
-        data._mutable = True
         data.pop('affiliate_certificate_number', None)
-        data._mutable = False
 
         # 1. Validate early — before saving anything
         if User.objects.filter(email=data.get('email')).exists():
