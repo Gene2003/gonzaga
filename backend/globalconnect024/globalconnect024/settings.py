@@ -206,6 +206,7 @@ EMAIL_TIMEOUT = env.int('EMAIL_TIMEOUT', default=60)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='')
+SENDGRID_API_KEY = env('SENDGRID_API_KEY', default='')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

@@ -305,10 +305,10 @@ def affiliate_referrals(request):
 def initiate_vendor_payment(request):
     try:
         data = request.data.copy()
+        affiliate_certificate_number = data.pop('affiliate_certificate_number', [''])[0].strip() \
+            if hasattr(data, 'pop') else data.get('affiliate_certificate_number', '').strip()
 
-        affiliate_certificate_number = data.get('affiliate_certificate_number', '').strip()
-        data = {k: v for k, v in data.items() if k != 'affiliate_certificate_number'}
-
+        # 1. Validate early — before saving anything
         if User.objects.filter(email=data.get('email')).exists():
             return Response({'error': 'Email already registered.'}, status=400)
         if User.objects.filter(username=data.get('username')).exists():
@@ -316,27 +316,58 @@ def initiate_vendor_payment(request):
 
         affiliate = None
         affiliate_subaccount = None
-
         if affiliate_certificate_number:
             try:
-                cert = AffiliateCertificate.objects.get(
-                    certificate_number=affiliate_certificate_number
-                )
+                cert = AffiliateCertificate.objects.get(certificate_number=affiliate_certificate_number)
                 affiliate = cert.used_by
-                if affiliate:
-                    affiliate_subaccount = affiliate.paystack_subaccount_code
-                else:
+                if not affiliate:
                     return Response({'error': 'Affiliate certificate not linked to any user.'}, status=400)
+                affiliate_subaccount = affiliate.paystack_subaccount_code
             except AffiliateCertificate.DoesNotExist:
                 return Response({'error': 'Invalid affiliate certificate number.'}, status=400)
 
-        serializer = RegistrationSerializer(data=data, context={'request': request})
+        clean_data = {k: v for k, v in data.items() if k != 'affiliate_certificate_number'}
+        serializer = RegistrationSerializer(data=clean_data, context={'request': request})
         if not serializer.is_valid():
-            print("SERIALIZER ERRORS:", serializer.errors)
             return Response(serializer.errors, status=400)
 
-        user = serializer.save(is_active=False, registration_paid=False)
+        # 2. Call Paystack FIRST — before saving the user
+        paystack_payload = {
+            "email": clean_data.get('email'),
+            "amount": REGISTRATION_FEE,
+            "currency": "KES",
+            "callback_url": f"{settings.FRONTEND_URL}/vendor/payment-success",
+            "metadata": {
+                "pending_registration": True,   # user not saved yet
+                "affiliate_certificate": affiliate_certificate_number,
+                "registration_data": clean_data,  # store form data in metadata
+                "affiliate_id": affiliate.id if affiliate else None,
+            }
+        }
+        if affiliate_subaccount:
+            paystack_payload["split"] = {
+                "type": "percentage",
+                "bearer_type": "account",
+                "subaccounts": [{"subaccount": affiliate_subaccount, "share": 50}]
+            }
 
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(
+            "https://api.paystack.co/transaction/initialize",
+            json=paystack_payload,
+            headers=headers,
+            timeout=10  # don't hang forever
+        )
+        res_data = response.json()
+
+        if not res_data.get('status'):
+            return Response({'error': 'Failed to initialize payment.', 'detail': res_data}, status=500)
+
+        # 3. NOW save the user — only after Paystack confirmed the transaction
+        user = serializer.save(is_active=False, registration_paid=False)
         if affiliate:
             user.registered_by_affiliate = affiliate
             user.save()
@@ -345,54 +376,10 @@ def initiate_vendor_payment(request):
             vendor=user,
             affiliate=affiliate,
             registration_fee=Decimal('200.00'),
-            payment_status='pending'
+            payment_status='pending',
+            paystack_reference=res_data['data']['reference']
         )
         vendor_reg.calculate_splits()
-
-        paystack_data = {
-            "email": user.email,
-            "amount": REGISTRATION_FEE,
-            "currency": "KES",
-            "callback_url": f"{settings.FRONTEND_URL}/vendor/payment-success",
-            "metadata": {
-                "user_id": user.id,
-                "affiliate_id": affiliate.id if affiliate else None,
-                "vendor_registration_id": vendor_reg.id,
-            }
-        }
-
-        if affiliate_subaccount:
-            paystack_data["split"] = {
-                "type": "percentage",
-                "bearer_type": "account",
-                "subaccounts": [
-                    {
-                        "subaccount": affiliate_subaccount,
-                        "share": 50
-                    }
-                ]
-            }
-
-        headers = {
-            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
-            "Content-Type": "application/json"
-        }
-
-        response = requests.post(
-            "https://api.paystack.co/transaction/initialize",
-            json=paystack_data,
-            headers=headers
-        )
-
-        res_data = response.json()
-        print("PAYSTACK RESPONSE:", res_data)
-
-        if not res_data.get('status'):
-            user.delete()
-            return Response({'error': 'Failed to initialize payment.', 'detail': res_data}, status=500)
-
-        vendor_reg.paystack_reference = res_data['data']['reference']
-        vendor_reg.save()
 
         return Response({
             'payment_url': res_data['data']['authorization_url'],
