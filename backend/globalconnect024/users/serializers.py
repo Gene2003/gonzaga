@@ -89,7 +89,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             cert = AffiliateCertificate.objects.get(certificate_number=certificate_number)
             cert.is_valid = False
             cert.used_by = user
-            cert.
+            cert.save()
 
         return user
 
