@@ -25,6 +25,9 @@ const categories = [
 ];
 
 const AddProductForm = () => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const vendorType = user?.vendor_type || '';
+
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -95,6 +98,12 @@ const AddProductForm = () => {
 
   const selectedCategory =
     categories.find((c) => c.value === form.category) || null;
+
+    const quantityPlaceholder = 
+    vendorType === "farmer" ? "Quantity (kg) - min 600" :
+    vendorType === "wholesaler" ? "Quantity (kg) - min 300" :
+    vendorType === "retailer" ? "Quantity (kg) - min 100" :
+    "Quantity in KG";
 
   return (
     <div className="max-w-xl mx-auto bg-white shadow-lg p-6 rounded-xl mt-6">
