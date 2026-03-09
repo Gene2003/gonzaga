@@ -41,7 +41,7 @@ class Product(models.Model):
             if self.quantity_kg < 300:
                 raise ValidationError("Wholesalers must sell at least 300 kg.")
 
-            max_farmer_qty = Product.objects.filter(name=self.name,vendor_vendor_type='farmer').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
+            max_farmer_qty = Product.objects.filter(name=self.name,vendor__vendor__type='farmer').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
             if max_farmer_qty and self.quantity_kg > max_farmer_qty:
                 raise ValidationError("Wholesaler quantity cannot exceed the maximum quantity sold by farmers.")
         #retailer
@@ -49,7 +49,7 @@ class Product(models.Model):
             if self.quantity_kg < 100:
                 raise ValidationError("Retailers must sell at least 100 kg.")
 
-            max_wholesaler_qty = Product.objects.filter(name=self.name,vendor_vendor_type='wholesaler').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
+            max_wholesaler_qty = Product.objects.filter(name=self.name,vendor__vendor_type='wholesaler').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
             if max_wholesaler_qty and self.quantity_kg > max_wholesaler_qty:
                 raise ValidationError("Retailer quantity cannot exceed the maximum quantity sold by wholesalers.")
 

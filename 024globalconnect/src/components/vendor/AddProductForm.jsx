@@ -28,8 +28,10 @@ const AddProductForm = () => {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    price: "",
-    stock: "",
+    farmer_price: "",
+    wholesaler_price: "",
+    retailer_price: "",
+    quantity_kg: "",
     category: "",
     product_type: "good", // ✅ DEFAULT
     image: null,
@@ -54,10 +56,13 @@ const AddProductForm = () => {
 
       formData.append("name", form.name);
       formData.append("description", form.description);
-      formData.append("price", Number(form.price));
-      formData.append("stock", Number(form.stock));
+      formData.append("quantity_kg", Number(form.quantity_kg));
       formData.append("category", form.category);
       formData.append("product_type", form.product_type);
+
+      if (form.farmer_price) formData.append("farmer_price", Number(form.farmer_price));
+      if (form.wholesaler_price) formData.append("wholesaler_price", Number(form.wholesaler_price));
+      if (form.retailer_price) formData.append("retailer_price", Number(form.retailer_price));
 
       if (form.image) {
         formData.append("image", form.image);
@@ -72,8 +77,10 @@ const AddProductForm = () => {
       setForm({
         name: "",
         description: "",
-        price: "",
-        stock: "",
+        farmer_price: "",
+        wholesaler_price: "",
+        retailer_price: "",
+        quantity_kg: "",
         category: "",
         product_type: "good",
         image: null,
@@ -131,20 +138,49 @@ const AddProductForm = () => {
 
         {/* Price & Stock */}
         <div className="grid grid-cols-2 gap-4">
+          {vendorType === "farmer" && (
+            <input
+              type="number"
+              name="farmer_price"
+              value={form.farmer_price}
+              onChange={handleChange}
+              placeholder="Farmer Price (KES)"
+              className="w-full border rounded-lg px-3 py-2"
+              required
+            />
+          )}
+          {vendorType === "wholesaler" && (
+            <input
+              type="number"
+              name="wholesaler_price"
+              value={form.wholesaler_price}
+              onChange={handleChange}
+              placeholder="Wholesaler Price (KES)"
+              className="w-full border rounded-lg px-3 py-2"
+              required
+            />
+          )}
+          {vendorType === "retailer" && (
+            <input
+              type="number"
+              name="retailer_price"
+              value={form.retailer_price}
+              onChange={handleChange}
+              placeholder="Retailer Price (KES)"
+              className="w-full border rounded-lg px-3 py-2"
+              required
+            />
+          )}
           <input
             type="number"
-            name="price"
-            value={form.price}
+            name="quantity_kg"
+            value={form.quantity_kg}
             onChange={handleChange}
-            placeholder="Price (KES)"
-            required
-          />
-          <input
-            type="number"
-            name="stock"
-            value={form.stock}
-            onChange={handleChange}
-            placeholder="Stock"
+            placeholder={
+              vendorType === "farmer" ? "Quantity (kg) - min 600":
+              vendorType === "wholesaler" ? "Quantity (kg) - min 300":
+              "Quantity in KG (MIN 100)"
+            }
             required
           />
         </div>
