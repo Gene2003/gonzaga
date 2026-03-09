@@ -14,7 +14,8 @@ const MyProducts = () => {
       setLoading(true);
       const res = await apiClient.get(`/products/my_products/`);
       console.log(" Vendor Products response:", res.data);
-      setProducts(Array.isArray(res.data) ? res.data : [res.data]);
+      const data = res.data;
+      setProducts(Array.isArray(data) ? data : (data.results || []));
     } catch (err) {
       console.error("Error fetching vendor products:", err);
       console.error("Error details:", err?.response?.data);
@@ -36,11 +37,6 @@ const MyProducts = () => {
       toast.error("Failed to update stock");
     }
   };
-
-  useEffect(() => {
-    fetchVendorProducts();
-  }, []);
-
 
   useEffect(() => {
     fetchVendorProducts();

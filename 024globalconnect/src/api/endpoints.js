@@ -24,7 +24,7 @@ export const API_ENDPOINTS = {
 
   // ✅ Vendor
   VENDOR_PRODUCTS: `/products/vendor/`,
-  ADD_PRODUCTS: `/products/`,
+  ADD_PRODUCT: `/products/`,
   VENDOR_PRODUCT_DETAIL: (id) => `/products/${id}/`,
 
   // ✅ Feedback

@@ -9,7 +9,7 @@ console.log('🔍 Base URL being used:', baseURL);
 console.log('🔍 Env var value:', import.meta.env.VITE_BACKEND_URL);
 
 const apiClient = axios.create({
-  baseURL: baseURL,
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'https://gonzaga-u98x.onrender.com/api',
   timeout: API_CONFIG.timeout,
   headers: {
     ...API_CONFIG.headers,

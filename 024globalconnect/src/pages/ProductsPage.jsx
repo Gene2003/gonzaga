@@ -1,6 +1,6 @@
 // src/pages/ProductsPage.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { data, useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
 import toast from 'react-hot-toast';
@@ -45,11 +45,12 @@ const ProductsPage = () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/products/');
-      console.log('Products fetched:', response.data); // ✅ Debug log
-      setProducts(response.data);
+      const data = response.data; // ✅ Debug log
+      setProducts(Array.isArray(data) ? data : (data.results || [])); // Handle pagination if needed
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to load products');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
