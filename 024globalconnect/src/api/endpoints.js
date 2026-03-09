@@ -24,8 +24,11 @@ export const API_ENDPOINTS = {
 
   // ✅ Vendor
   VENDOR_PRODUCTS: `/products/vendor/`,
-  ALL_PRODUCTS: `/products/`,
+  ADD_PRODUCTS: `/products/`,
   VENDOR_PRODUCT_DETAIL: (id) => `/products/${id}/`,
+
+  // ✅ Feedback
+  VENDOR_FEEDBACK: '/users/vendor-feedback/',
 
   // ✅ Services
   SERVICE: `/services/`,

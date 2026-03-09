@@ -4,6 +4,7 @@ import AddProductForm from "./AddProductForm";
 import SalesOverview from "./SalesOverview";
 import toast from "react-hot-toast";
 import apiClient from "../../api/client";
+import { API_ENDPOINTS } from "../../api/endpoints";
 
 const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState("products");
@@ -19,7 +20,7 @@ const VendorDashboard = () => {
 
   useEffect(() => {
     // Fetch existing feedbacks for this vendor
- apiClient.get("/vendor-feedback/", {
+ apiClient.get(API_ENDPOINTS.VENDOR_FEEDBACK, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -74,7 +75,7 @@ const VendorDashboard = () => {
 
 
   const handleFeedbackSubmit = () => {
-   apiClient.post("/vendor-feedback/", { rating, feedback }, {
+   apiClient.post(API_ENDPOINTS.VENDOR_FEEDBACK, { rating, feedback }, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },

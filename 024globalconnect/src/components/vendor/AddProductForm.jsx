@@ -63,7 +63,7 @@ const AddProductForm = () => {
         formData.append("image", form.image);
       }
 
-      await apiClient.post(API_ENDPOINTS.VENDOR_PRODUCTS, formData, {
+      await apiClient.post(API_ENDPOINTS.ADD_PRODUCT, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
