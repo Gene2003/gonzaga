@@ -51,7 +51,6 @@ class CustomUser(AbstractUser):
     vendor_type = models.CharField(max_length=20, choices=VENDOR_TYPE_CHOICES, blank=True, null=True)
     service_provider_type = models.CharField(max_length=20, choices=SERVICE_PROVIDER_CHOICES, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
-    mpesa_number = models.CharField(max_length=20, blank=True, null=True, help_text="Required for vendors to receive payments.")
     
     registration_paid = models.BooleanField(default=False, help_text="Indicates if the vendor has paid the registration fee.")
     registration_fee_amount = models.DecimalField(max_digits=10, decimal_places=2, default=200.00)
@@ -67,8 +66,6 @@ class CustomUser(AbstractUser):
         if self.role == "affiliate" and not self.vendor_code:
                 self.vendor_code = self.generate_unique_vendor_code()
 
-        if not self.mpesa_number and self.phone:
-                    self.mpesa_number = self.phone
         super().save(*args, **kwargs)
         
     def generate_unique_vendor_code(self):
@@ -84,9 +81,6 @@ class CustomUser(AbstractUser):
         if self.role == 'user' and not self.certificate_number:
             raise ValidationError({'certificate_number': 'Certificate Number is required for affiliates.'})
         
-        if self.role in ['vendor', 'service_provider', 'affiliate'] and not self.mpesa_number:
-            raise ValidationError({'mpesa_number': 'Mpesa Number is required for vendors, service providers, and affiliates to receive payments.'})
-
 
     def __str__(self):
         return self.username
