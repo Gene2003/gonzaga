@@ -3,7 +3,7 @@ import axios from "axios";
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: "http://127.0.0.1:8000/api", // Django backend URL
+  baseURL: import.meta.env.VITE_API_URL || "https://gonzaga-u98x.onrender.com/api", // Django backend URL
   timeout: 10000, // 10 second timeout
   headers: {
     "Content-Type": "application/json",

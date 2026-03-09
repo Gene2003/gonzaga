@@ -3,6 +3,7 @@ import MyProduct from "./MyProducts";
 import AddProductForm from "./AddProductForm";
 import SalesOverview from "./SalesOverview";
 import toast from "react-hot-toast";
+import apiClient from "../../api/client";
 
 const VendorDashboard = async () => {
   const [activeTab, setActiveTab] = useState("products");
@@ -16,14 +17,13 @@ const VendorDashboard = async () => {
 
   useEffect(() => {
     // Fetch existing feedbacks for this vendor
-    fetch("http://127.0.0.1:8000/api/vendor-feedback/", {
+ apiClient.get("/vendor-feedback/", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     })
-      .then((res) => res.json())
-      .then((data) => setFeedbacks(data))
-      .catch((err) => console.error("Error loading feedbacks:", err));
+      .then((res) => setFeedbacks(Array.isArray(res.data) ? res.data : []))
+      .catch((err) => console.error("Error fetching feedbacks:", err));
   }, []);
 
   const fetchProducts = async () => {
@@ -72,20 +72,16 @@ const VendorDashboard = async () => {
 
 
   const handleFeedbackSubmit = () => {
-    fetch("http://127.0.0.1:8000/api/vendor-feedback/", {
-      method: "POST",
+   apiClient.post("/vendor-feedback/", { rating, feedback }, {
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
-      body: JSON.stringify({ rating, feedback }),
     })
-      .then((res) => res.json())
-      .then((data) => {
+      .then((res) => {
         setSubmitted(true);
         setRating(0);
         setFeedback("");
-        setFeedbacks([data, ...feedbacks]); // add new feedback to top
+        setFeedbacks([res.data, ...feedbacks]);
       })
       .catch((err) => console.error("Error submitting feedback:", err));
   };
