@@ -89,12 +89,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             cert = AffiliateCertificate.objects.get(certificate_number=certificate_number)
             cert.is_valid = False
             cert.used_by = user
-            cert.save()
-
-        try:
-            send_activation_email(request, user)  # ✅ Send activation email
-        except Exception as e:
-            print(f"activation email failed: {e}")
+            cert.
 
         return user
 
