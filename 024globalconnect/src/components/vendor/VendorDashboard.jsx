@@ -5,13 +5,15 @@ import SalesOverview from "./SalesOverview";
 import toast from "react-hot-toast";
 import apiClient from "../../api/client";
 
-const VendorDashboard = async () => {
+const VendorDashboard = () => {
   const [activeTab, setActiveTab] = useState("products");
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
   const [deleteLoading, setDeleteLoading] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
 
 
@@ -53,7 +55,7 @@ const VendorDashboard = async () => {
         },
       );
 
-      setProducts(ProductList.filter(product => product.id !== productId));
+      setProducts(products.filter(product => product.id !== productId));
       toast.success("Product deleted successfully");
     } catch (error) {
       console.error("Error deleting product:", error);
