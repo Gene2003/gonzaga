@@ -120,3 +120,13 @@ class VendorRegistration(models.Model):
             self.company_amount = self.registration_fee
             self.affiliate_amount = Decimal('0')
         self.save()
+
+class VendorFeedback(models.Model):
+    vendor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='feedbacks')
+    rating = models.IntegerField(default=0)
+    feedback = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.vendor.username} - {self.rating}★"
+

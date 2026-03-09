@@ -36,7 +36,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import CustomUser, VendorRegistration, AffiliateCertificate
+from .models import CustomUser, VendorRegistration, AffiliateCertificate, VendorFeedback
 from .tokens import account_activation_token
 from .utils import send_activation_email
 from .serializers import RegistrationSerializer, UserSerializer
@@ -911,3 +911,33 @@ def system_logs(request):
         {"id": 3, "timestamp": "2025-07-01T15:10:00Z", "event": "Commission Approved", "user": "admin"},
     ]
     return Response(logs)
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def vendor_feedback(request):
+    if request.method == 'GET':
+        feedbacks = VendorFeedback.objects.filter(
+            vendor=request.user
+        ).order_by('-submitted_at')
+        data = [{
+            'id': f.id,
+            'rating': f.rating,
+            'feedback': f.feedback,
+            'submitted_at': f.submitted_at,
+        } for f in feedbacks]
+        return Response(data)
+
+    elif request.method == 'POST':
+        rating = request.data.get('rating', 0)
+        feedback = request.data.get('feedback', '')
+        obj = VendorFeedback.objects.create(
+            vendor=request.user,
+            rating=rating,
+            feedback=feedback
+        )
+        return Response({
+            'id': obj.id,
+            'rating': obj.rating,
+            'feedback': obj.feedback,
+            'submitted_at': obj.submitted_at,
+        }, status=201)

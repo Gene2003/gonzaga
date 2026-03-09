@@ -17,6 +17,7 @@ from .views import (
     initiate_vendor_payment,
     paystack_webhook,
     create_affiliate_subaccount,
+    vendor_feedback,
 
     # Affiliate
     affiliate_summary,
@@ -51,6 +52,7 @@ urlpatterns = [
     path( 'vendor/initiate-payment/', initiate_vendor_payment, name='initiate_vendor_payment' ),
     path( 'paystack/webhook/', paystack_webhook, name='paystack_webhook' ),
     path( 'admin/create-affiliate-subaccount/', create_affiliate_subaccount, name='create_affiliate_subaccount' ),
+    path('vendor/feedback/', vendor_feedback, name='vendor_feedback'),
     # 👤 Profile Management
     path('me/', CurrentUserView.as_view(), name='current_user'),
     path('update/', UpdateProfileView.as_view(), name='update_profile'),
