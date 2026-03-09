@@ -10,24 +10,24 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_conversation_id',
+        migrations.RunSQL(
+            "ALTER TABLE orders_paymentsplit DROP COLUMN IF EXISTS mpesa_conversation_id;",
+            reverse_sql="SELECT 1;"
         ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_originator_conversation_id',
+        migrations.RunSQL(
+            "ALTER TABLE orders_paymentsplit DROP COLUMN IF EXISTS mpesa_originator_conversation_id;",
+            reverse_sql="SELECT 1;"
         ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_response_code',
+        migrations.RunSQL(
+            "ALTER TABLE orders_paymentsplit DROP COLUMN IF EXISTS mpesa_response_code;",
+            reverse_sql="SELECT 1;"
         ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_response_description',
+        migrations.RunSQL(
+            "ALTER TABLE orders_paymentsplit DROP COLUMN IF EXISTS mpesa_response_description;",
+            reverse_sql="SELECT 1;"
         ),
-        migrations.RemoveField(
-            model_name='paymentsplit',
-            name='mpesa_transaction_id',
+        migrations.RunSQL(
+            "ALTER TABLE orders_paymentsplit DROP COLUMN IF EXISTS mpesa_transaction_id;",
+            reverse_sql="SELECT 1;"
         ),
     ]
