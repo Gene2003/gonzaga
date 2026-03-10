@@ -89,7 +89,7 @@ const AddProductForm = () => {
         image: null,
       });
     } catch (err) {
-      console.error(err);
+      console.error("Full error:", err?.response?.data);
       toast.error("❌ Failed to add product");
     } finally {
       setIsSubmitting(false);
