@@ -99,7 +99,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'email',
-            'is_active', 'date_joined', 'role', 'country', 'city', 'certificate_number', 'promotion_methods'
+            'is_active', 'date_joined', 'role', 'vendor_type', 'country', 'city', 'certificate_number', 'promotion_methods'
         ]
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
@@ -129,6 +129,7 @@ class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
                 "last_name": user.last_name,
                 "email": user.email,
                 "role": user.role,
+                "vendor_type": user.vendor_type,
                 "country": user.country,
                 "city": user.city,
                 "certificate_Number": user.certificate_number,
