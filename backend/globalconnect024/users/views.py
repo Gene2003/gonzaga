@@ -231,6 +231,7 @@ class EmailOrUsernameTokenObtainSerializer(TokenObtainPairSerializer):
             "last_name": user.last_name,
             "email": user.email,
             "role": user.role,
+            "vendor_type": user.vendor_type,
             "country": user.country,
             "city": user.city,
             "promotion_methods": user.promotion_methods,
