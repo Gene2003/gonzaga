@@ -36,6 +36,12 @@ class Order(models.Model):
         blank=True,
         related_name='affiliate_orders'
     )
+
+    # Guest checkout fields
+    guest_name = models.CharField(max_length=255, blank=True, null=True)
+    guest_email = models.EmailField(blank=True, null=True)
+    guest_phone = models.CharField(max_length=15, blank=True, null=True)
+    guest_address = models.TextField(blank=True, null=True)
     
     # Quantities and amounts
     quantity = models.PositiveIntegerField(default=1)

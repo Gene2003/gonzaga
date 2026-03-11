@@ -25,7 +25,7 @@ from rest_framework.permissions import AllowAny
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 
-PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY.encode()
+PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
 
 
 
@@ -134,7 +134,7 @@ def buy_now(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def checkout(request):
     """
     Initiate Paystack checkout with automatic split payment.
@@ -144,6 +144,11 @@ def checkout(request):
     product_id = request.data.get("product")
     quantity = int(request.data.get("quantity", 1))
     affiliate_code = request.data.get("affiliate_code")  # Affiliate code instead of ID
+    guest_name = request.data.get("guest_name")
+    guest_email = request.data.get("guest_email")
+    guest_phone = request.data.get("guest_phone")
+    guest_address = request.data.get("guest_address")
+
 
     if not product_id:
         return Response({"error": "Product is required."}, status=400)
@@ -155,6 +160,37 @@ def checkout(request):
 
     buyer = request.user
     vendor = product.vendor
+    #get affiliate if code provided
+    affiliate = None
+    affiliate_subaccount = None
+    if affiliate_code:
+        try:
+            affiliate = CustomUser.objects.get(
+                vendor_code=affiliate_code, role='user'
+            )
+            affiliate_subaccount = affiliate.paystack_subaccount_code
+        except CustomUser.DoesNotExist:
+            pass
+
+        #build subaccounts for paystack split
+    subaccounts = []
+    if vendor.paystack_subaccount_code:
+        subaccounts.append({
+            "subaccount": vendor.paystack_subaccount_code,
+            "share": 90 if affiliate else 95
+        })
+        if affiliate_subaccount:
+            subaccounts.append({
+                "subaccount": affiliate_subaccount,
+                "share": 5
+            })
+
+            #use guest email  or buyer email
+            buyer = request.user if request.user.is_authenticated else None
+            email = buyer.email if buyer else guest_email
+
+            if not email:
+                return Response({"error": "Email is required for guest checkout."}, status=400)
 
     # check vendor has a paystack subaccount
     if not vendor.paystack_subaccount_code:
@@ -188,8 +224,13 @@ def checkout(request):
             affiliate=affiliate,
             quantity=quantity,
             amount=amount,
-            status="pending"
+            status="pending",
+            guest_name=guest_name,
+            guest_email=guest_email,
+            guest_phone=guest_phone,
+            guest_address=guest_address,
         )
+        
         order.calculate_splits()  # Calculate and save splits
 
 
@@ -240,12 +281,13 @@ def checkout(request):
             "buyer_id": buyer.id,
             "affiliate_id": affiliate.id if affiliate else None
         },
-        "split": {
+    }
+    if subaccounts:
+        paystack_data["split"] = {
             "type": "percentage",
             "bearer_type": "account",
             "subaccounts": subaccounts
         }
-    }
 
     headers = {
         "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
@@ -265,7 +307,7 @@ def checkout(request):
         order.save()
         return Response({
             "error": "Failed to initialize payment.",
-            "details": res_data.get
+            "details": res_data.get('message', 'Unknown error')
             }, status=500)
     
     #save paystack reference
