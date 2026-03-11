@@ -3,7 +3,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0014_remove_paymentsplit_mpesa_conversation_id'),
+        ('orders', '0014_remove_paymentsplit_mpesa_conversation_id_and_more.py'),
     ]
 
     operations = [
