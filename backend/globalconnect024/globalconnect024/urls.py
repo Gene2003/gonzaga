@@ -36,7 +36,7 @@ urlpatterns = [
 
     # ✅ Other apps
     path('api/', include('category.urls')),
-    path("api/", include("orders.urls")),
+    path("api/orders/", include("orders.urls")),
 
     # 🌐 Redirect base URL `/` to your React frontend vendor dashboard
     path('', lambda request: HttpResponseRedirect(f"{settings.FRONTEND_URL}/")),
