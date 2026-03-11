@@ -7,7 +7,7 @@ const GuestCheckout = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [affiliateCode, setAffiliateCode] = useState(null);
-  const [isloading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
