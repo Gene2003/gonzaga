@@ -19,7 +19,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (_('Login Info'), {'fields': ('username', 'password')}),
         (_('Personal Info'), {'fields': ('first_name', 'last_name', 'email', 'role', 'country', 'city', 'promotion_methods','certificate_number')}),
-        (_('Vendor Info'), {'fields': ('vendor_type', 'service_provider_type')}),
+        (_('Vendor Info'), {'fields': ('vendor_type', 'service_provider_type', 'paystack_subaccount_code')}),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
