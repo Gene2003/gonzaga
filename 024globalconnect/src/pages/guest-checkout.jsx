@@ -65,7 +65,7 @@ const GuestCheckout = () => {
         guest_address: formData.address,
       };
 
-      const res = await apiClient.post("/orders/checkout", orderPayload);
+      const res = await apiClient.post("/orders/checkout/", orderPayload);
 
       if (res.data.payment_url) {
         window.location.href = res.data.payment_url;
