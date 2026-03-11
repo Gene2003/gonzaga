@@ -223,7 +223,7 @@ const ProductsPage = () => {
 const ProductCard = ({ product, onAddToCart, getPrice }) => {
   const navigate = useNavigate();
   const price = getPrice(product);
-  const imageUrl = product.image || 'https://placeholder.co/300x300?text=No+Image';
+  const imageUrl = product.image || 'https://placehold.co/300x300?text=No+Image';
   
   // ✅ FIX: Use quantity_kg, not stock
   const isOutOfStock = product.quantity_kg === 0;
@@ -265,7 +265,8 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
           alt={product.name}
           className="w-full h-full object-cover"
           onError={(e) => {
-            e.target.src = 'https://placeholder.co/300x300?text=No+Image';
+            e.target.onerror = null; // Prevent infinite loop if placeholder also fails
+            e.target.src = 'https://placehold.co/300x300?text=No+Image';
           }}
         />
         {isOutOfStock && (
