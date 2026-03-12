@@ -371,8 +371,8 @@ def paystack_order_webhook(request):
                         pass
 
                     # Create vendor payout record
-                    vendor_split = order.splits.filter(recipient_type='vendor').first()
-                    if vendor_split:
+            vendor_split = order.splits.filter(recipient_type='vendor').first()
+            if vendor_split:
                         VendorPayout.objects.create(
                             vendor=order.vendor,
                             order=order,
