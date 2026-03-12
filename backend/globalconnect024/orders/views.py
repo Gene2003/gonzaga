@@ -138,82 +138,76 @@ def buy_now(request):
 def checkout(request):
     """
     Initiate Paystack checkout with automatic split payment.
-    -with affiliate: 5% company, 90% vendor, 5% affiliate
-    -without affiliate: 5% company, 95% vendor
+    - with affiliate: 5% company, 90% vendor, 5% affiliate
+    - without affiliate: 5% company, 95% vendor
     """
     product_id = request.data.get("product")
     quantity = int(request.data.get("quantity", 1))
-    affiliate_code = request.data.get("affiliate_code")  # Affiliate code instead of ID
+    affiliate_code = request.data.get("affiliate_code")
     guest_name = request.data.get("guest_name")
     guest_email = request.data.get("guest_email")
     guest_phone = request.data.get("guest_phone")
     guest_address = request.data.get("guest_address")
 
-
     if not product_id:
         return Response({"error": "Product is required."}, status=400)
 
     try:
-        product = Product.objects.get(id=product_id)
+        product = Product.objects.select_related('vendor').get(id=product_id)
     except Product.DoesNotExist:
         return Response({"error": "Product not found."}, status=404)
 
-    buyer = request.user
     vendor = product.vendor
-    #get affiliate if code provided
-    affiliate = None
-    affiliate_subaccount = None
-    if affiliate_code:
-        try:
-            affiliate = CustomUser.objects.get(
-                vendor_code=affiliate_code, role='user'
-            )
-            affiliate_subaccount = affiliate.paystack_subaccount_code
-        except CustomUser.DoesNotExist:
-            pass
 
-        #build subaccounts for paystack split
-    subaccounts = []
-    if vendor.paystack_subaccount_code:
-        subaccounts.append({
-            "subaccount": vendor.paystack_subaccount_code,
-            "share": 90 if affiliate else 95
-        })
-        if affiliate_subaccount:
-            subaccounts.append({
-                "subaccount": affiliate_subaccount,
-                "share": 5
-            })
+    # ✅ FIX 1: Use correct price field based on vendor type
+    vendor_type = product.vendor.vendor_type
+    if vendor_type == 'farmer':
+        unit_price = product.farmer_price
+    elif vendor_type == 'wholesaler':
+        unit_price = product.wholesaler_price
+    else:  # retailer → consumers
+        unit_price = product.retailer_price
 
-            #use guest email  or buyer email
-            buyer = request.user if request.user.is_authenticated else None
-            email = buyer.email if buyer else guest_email
+    if not unit_price:
+        return Response({"error": "Product price is not set."}, status=400)
 
-            if not email:
-                return Response({"error": "Email is required for guest checkout."}, status=400)
+    # ✅ FIX 2: Resolve buyer and email early, once
+    buyer = request.user if request.user.is_authenticated else None
+    email = buyer.email if buyer else guest_email
+    if not email:
+        return Response({"error": "Email is required for guest checkout."}, status=400)
 
-    # check vendor has a paystack subaccount
+    # ✅ FIX 3: Check vendor subaccount before doing anything else
     if not vendor.paystack_subaccount_code:
         return Response({
             "error": "Vendor does not have a Paystack subaccount set up."
         }, status=400)
-    
-    # Get affiliate if code provided
+
+    # ✅ FIX 4: Resolve affiliate once, cleanly
     affiliate = None
     affiliate_subaccount = None
     if affiliate_code:
         try:
-            affiliate = CustomUser.objects.get(
-                vendor_code=affiliate_code,
-                role='user'
-            )
+            affiliate = CustomUser.objects.get(vendor_code=affiliate_code, role='user')
             affiliate_subaccount = affiliate.paystack_subaccount_code
         except CustomUser.DoesNotExist:
             pass
 
+    # ✅ FIX 5: Build subaccounts outside nested if blocks
+    subaccounts = []
+    subaccounts.append({
+        "subaccount": vendor.paystack_subaccount_code,
+        "share": 90 if affiliate else 95
+    })
+    if affiliate_subaccount:
+        subaccounts.append({
+            "subaccount": affiliate_subaccount,
+            "share": 5
+        })
+
     # Calculate total amount
-    amount = product.price * quantity
-    amount_kobo = int(amount * 100)  # Convert to kobo for Paystack
+    amount = unit_price * quantity
+    amount_kobo = int(amount * 100)  # Paystack uses smallest currency unit
 
     # Create order with payment splits
     with transaction.atomic():
@@ -230,11 +224,9 @@ def checkout(request):
             guest_phone=guest_phone,
             guest_address=guest_address,
         )
-        
-        order.calculate_splits()  # Calculate and save splits
 
+        order.calculate_splits()
 
-        # Create payment split records
         PaymentSplit.objects.create(
             order=order,
             recipient_type='company',
@@ -242,7 +234,6 @@ def checkout(request):
             amount=order.company_amount,
             status='pending'
         )
-
         PaymentSplit.objects.create(
             order=order,
             recipient_type='vendor',
@@ -250,7 +241,6 @@ def checkout(request):
             amount=order.vendor_amount,
             status='pending'
         )
-
         if affiliate:
             PaymentSplit.objects.create(
                 order=order,
@@ -259,8 +249,6 @@ def checkout(request):
                 amount=order.affiliate_amount,
                 status='pending'
             )
-
-            # Create referral record
             Referral.objects.create(
                 affiliate=affiliate,
                 order=order,
@@ -269,25 +257,25 @@ def checkout(request):
                 commission_rate=Decimal('5.00'),
                 is_approved=True
             )
-    # build paystack payload
+
+    # Build Paystack payload
     paystack_data = {
-        "email": buyer.email,
+        "email": email,  # ✅ FIX 6: use resolved email, not buyer.email
         "amount": amount_kobo,
         "currency": "KES",
         "callback_url": f"{settings.FRONTEND_URL}/orders/payment-success?order_id={order.id}",
         "metadata": {
             "order_id": order.id,
             "product_id": product.id,
-            "buyer_id": buyer.id,
+            "buyer_id": buyer.id if buyer else None,
             "affiliate_id": affiliate.id if affiliate else None
         },
-    }
-    if subaccounts:
-        paystack_data["split"] = {
+        "split": {
             "type": "percentage",
             "bearer_type": "account",
             "subaccounts": subaccounts
         }
+    }
 
     headers = {
         "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
@@ -308,9 +296,8 @@ def checkout(request):
         return Response({
             "error": "Failed to initialize payment.",
             "details": res_data.get('message', 'Unknown error')
-            }, status=500)
-    
-    #save paystack reference
+        }, status=500)
+
     order.payment_reference = res_data['data']['reference']
     order.save()
 

@@ -92,7 +92,7 @@ const GuestCheckout = () => {
     );
   }
 
-  const price = product.price || 0;
+  const price = product.retailer_price || product.wholesaler_price || product.farmer_price || 0;
   const total = price * formData.quantity;
 
  return (
