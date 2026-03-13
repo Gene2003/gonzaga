@@ -31,10 +31,16 @@ class Product(models.Model):
     def clean(self):
         vendor_type = self.vendor.vendor_type
 
-        #farmer
-        if vendor_type == 'farmer':
-            if self.quantity_kg <600:
-                raise ValidationError("Farmers must sell at least 600 kg.")
+        FARM_CATEGORIES = ['farm products', 'food & grocery', 'agricultural']
+
+        category_name = self.category.name.lower() if self.category else ''
+        is_farm_category = any(cat in category_name for cat in FARM_CATEGORIES)
+
+        if is_farm_category:
+            #farmer
+            if vendor_type == 'farmer':
+                if self.quantity_kg <600:
+                    raise ValidationError("Farmers must sell at least 600 kg.")
             
         #wholesaler
         elif vendor_type == 'wholesaler':
@@ -52,17 +58,28 @@ class Product(models.Model):
             max_wholesaler_qty = Product.objects.filter(name=self.name,vendor__vendor_type='wholesaler').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
             if max_wholesaler_qty and self.quantity_kg > max_wholesaler_qty:
                 raise ValidationError("Retailer quantity cannot exceed the maximum quantity sold by wholesalers.")
+            
+        else:
+            if self.stock < 1:
+                raise ValidationError("Stock must be at least 1.")
 
     
     def save (self, *args, **kwargs):
         self.full_clean()
-        #visibility based on vendor type
-        if self .vendor.vendor_type =='farmer':
-            self.visible_to ='wholesaler'
-        elif self.vendor.vendor_type =='wholesaler':
-            self.visible_to ='retailer'
-        elif self.vendor.vendor_type =='retailer':
-            self.visible_to ='consumers'
+
+        category_name = self.category.name.lower() if self.category else ''
+        FARM_CATEGORIES = ['farm products', 'food & grocery', 'agricultural']
+        is_farm_category = any(cat in category_name for cat in FARM_CATEGORIES)
+
+        if is_farm_category:
+             if self.vendor.vendor_type == 'farmer':
+                self.visible_to ='wholesaler'
+             elif self.vendor.vendor_type == 'wholesaler':
+                self.visible_to ='retailer'
+             elif self.vendor.vendor_type == 'retailer':
+                self.visible_to ='consumers'
+             else:
+                self.visible_to ='consumers'
         super().save(*args, **kwargs)
     
     # ✅ Control visibility and admin approval
