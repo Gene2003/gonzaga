@@ -20,6 +20,7 @@ import ServiceProviderDashboard from './components/service-provider/ServiceProvi
 import PrivateRoute from './components/auth/PrivateRoute';
 import ProtectedData from './pages/ProtectedData';
 import ProductsPage from './pages/ProductsPage';
+import ProductDetail from './pages/ProductDetail';
 
 import AffiliateDashboard from './components/affiliate/AffiliateDashboard';
 import VendorDashboard from './components/vendor/VendorDashboard';
@@ -71,6 +72,7 @@ function App() {
         <Route path="/affiliate-partner" element={<AffiliatePartner />} />
         <Route path="/guest-checkout" element={<GuestCheckout />} />
         <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/services" element={<ServicesPage />} />
 
         {/* ✅ Role-based redirect */}

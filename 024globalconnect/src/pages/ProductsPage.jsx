@@ -232,28 +232,30 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
 
     const params = new URLSearchParams(window.location.search);
     const affiliateCode = params.get('ref');
-    //local storage
-    localStorage.setItem("buyNowProduct", JSON.stringify({
-      id: product.id,
-      name: product.name,
-      price: price,
-      image: product.image,
-      vendor_type: product.vendor_type,
-    }));
-    
-    navigate('/guest-checkout', {
-      state: {
-        product: {
-          id: product.id,
-          name: product.name,
-          price: price,
-          image: product.image,
-          vendor_type: product.vendor_type,
-        },
-        quantity: 1,
-        affiliate_code: affiliateCode || null,
-      }
-    });
+
+    if (affiliateCode) {
+      navigate(`/products/${product.id}?ref=${affiliateCode}`);
+    } else {
+      // ✅ No affiliate code, just navigate to guest checkout
+      const productData = {
+        id: product.id,
+        name: product.name,
+        retailer_price: product.retailer_price,
+        wholesaler_price: product.wholesaler_price,
+        farmer_price: product.farmer_price,
+        price: price,
+        image: product.image,
+        vendor_type: product.vendor_type,
+      };
+
+      localStorage.setItem("buyNowProduct", JSON.stringify(productData));
+      navigate('/guest-checkout', {
+        state: {
+          product: productData,
+          affiliate_code: affiliateCode || null,
+        }
+      });
+    }
   };
 
   return (
