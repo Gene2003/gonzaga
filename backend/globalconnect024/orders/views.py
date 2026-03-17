@@ -16,6 +16,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.utils import timezone
+from django.core.mail import send_mail
 
 from products.models import Product
 from users.models import CustomUser
@@ -381,6 +382,86 @@ def paystack_order_webhook(request):
                             is_paid=True,
                             paid_at=timezone.now()
                         )
+
+            if order.vendor and order.vendor.email:
+                send_mail(
+                    subject=f'💰 Payment Received - Order #{order.id}',
+                    message=f"""
+        Hi{order.vendor.get_full_name()},
+        You have received a payment on 024Global!
+        ━━━━━━━━━━━━━━━━━━━━━
+        Order Details
+        ━━━━━━━━━━━━━━━━━━━━━
+        Order ID    : #{order.id}
+        Product     : {order.product.name}
+        Quantity    : {order.quantity}
+        Your Amount : KES {order.vendor_amount}
+        Customer    : {order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')}
+        ━━━━━━━━━━━━━━━━━━━━━
+        Your payment will be settled to your M-PESA
+        within 1-3 usiness days.
+        Thank you for selling on 024Global!
+        024Global Team
+        www.024global.com
+                    """,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.vendor.email],
+                    fail_silently=True,
+                )
+            if order.affiliate and order.affiliate.email:
+                send_mail(
+                    subject=f'💰 Commission Earned - Order #{order.id}',
+                    message=f"""
+        Hi {order.affiliate.get_full_name()},
+        Great news! You have earned a commission on 024Global!
+        ━━━━━━━━━━━━━━━━━━━━━
+        Commission Details
+        ━━━━━━━━━━━━━━━━━━━━━
+        Order ID    : #{order.id}
+        Product     : {order.product.name}
+        Sale Amount : KES {order.amount}
+        Commission  : KES {order.affiliate_amount} (5%)
+        ━━━━━━━━━━━━━━━━━━━━━
+        Your commission will be settled to your M-PESA
+        within 1-3 business days.
+        Keep sharing your referral link to earn more!
+        024Global Team
+        www.024global.com
+                    """,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[order.affiliate.email],
+                    fail_silently=True,
+                )
+            buyer_email = order.guest_email or (order.buyer.email if order.buyer else None)    
+            buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
+            if buyer_email:
+                send_mail(
+                    subject=f'✅ Payment Successful - Order #{order.id}',
+                    message=f"""
+        Hi {buyer_name},
+        Your order has been confirmed!
+        ━━━━━━━━━━━━━━━━━━━━━
+        Order Summary
+        ━━━━━━━━━━━━━━━━━━━━━
+        Order ID    : #{order.id}
+        Product     : {order.product.name}
+        Quantity    : {order.quantity}
+        Total Paid  : KES {order.amount}
+        Delivery To : {order.guest_address or 'N/A'}
+        ━━━━━━━━━━━━━━━━━━━━━
+        Your order is being processed and will be
+        delivered to your address soon.
+        For any questions, contact us at:
+        024globalconnect@gmail.com
+        Thank you for shopping on 024Global!
+        024Global Team
+        www.024global.com
+                    """,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[buyer_email],
+                    fail_silently=True,
+                )
+                            
         except Order.DoesNotExist:
             pass
 
