@@ -184,17 +184,22 @@ def checkout(request):
             "error": "Vendor does not have a Paystack subaccount set up."
         }, status=400)
 
-    # ✅ FIX 4: Resolve affiliate once, cleanly
+    # Resolve affiliate
     affiliate = None
     affiliate_subaccount = None
     if affiliate_code:
         try:
-            affiliate = CustomUser.objects.get(vendor_code=affiliate_code, role='user')
+            affiliate = CustomUser.objects.get(username=affiliate_code, role='user')
             affiliate_subaccount = affiliate.paystack_subaccount_code
+            print(f"[CHECKOUT] Affiliate found: {affiliate} | subaccount={affiliate_subaccount!r}")
+            if not affiliate_subaccount:
+                print(f"[CHECKOUT] WARNING: Affiliate {affiliate} has no Paystack subaccount — they won't appear in split")
         except CustomUser.DoesNotExist:
-            pass
+            print(f"[CHECKOUT] WARNING: affiliate_code={affiliate_code!r} not found (no user with that vendor_code and role='user')")
+    else:
+        print(f"[CHECKOUT] No affiliate_code received in request")
 
-    # ✅ FIX 5: Build subaccounts outside nested if blocks
+    # Build Paystack subaccounts list
     subaccounts = []
     subaccounts.append({
         "subaccount": vendor.paystack_subaccount_code,
@@ -205,6 +210,7 @@ def checkout(request):
             "subaccount": affiliate_subaccount,
             "share": 5
         })
+    print(f"[CHECKOUT] Paystack subaccounts: {subaccounts}")
 
     # Calculate total amount
     amount = unit_price * quantity
