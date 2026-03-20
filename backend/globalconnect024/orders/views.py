@@ -321,21 +321,21 @@ def paystack_order_webhook(request):
     """
     Paystack calls this after successful payment.
     Marks order and all splits as completed.
-    Paystack already sent the money to vendor/affiliate subaccounts automatically.
+    Sends confirmation emails to buyer, vendor, and affiliate.
     """
     paystack_signature = request.headers.get('X-Paystack-Signature')
     payload = request.body
 
-    #Verify signature
+    # Verify Paystack signature
     expected_signature = hmac.new(
         PAYSTACK_SECRET_KEY.encode('utf-8'),
-        payload, 
+        payload,
         hashlib.sha512
     ).hexdigest()
 
     if paystack_signature != expected_signature:
         return JsonResponse({"error": "Invalid signature"}, status=400)
-    
+
     event = json.loads(payload)
 
     if event['event'] == 'charge.success':
@@ -345,7 +345,9 @@ def paystack_order_webhook(request):
         paystack_reference = event['data'].get('reference')
 
         try:
-            order = Order.objects.get(id=order_id)
+            order = Order.objects.select_related(
+                'vendor', 'affiliate', 'buyer', 'product'
+            ).get(id=order_id)
 
             with transaction.atomic():
                 order.status = 'completed'
@@ -371,97 +373,106 @@ def paystack_order_webhook(request):
                     except Referral.DoesNotExist:
                         pass
 
-                    # Create vendor payout record
-            vendor_split = order.splits.filter(recipient_type='vendor').first()
-            if vendor_split:
-                        VendorPayout.objects.create(
-                            vendor=order.vendor,
-                            order=order,
-                            amount=order.vendor_amount,
-                            payment_split=vendor_split,
-                            is_paid=True,
-                            paid_at=timezone.now()
-                        )
+            # Create vendor payout record — wrapped so failures don't block emails
+            try:
+                vendor_split = order.splits.filter(recipient_type='vendor').first()
+                if vendor_split:
+                    VendorPayout.objects.create(
+                        vendor=order.vendor,
+                        order=order,
+                        amount=order.vendor_amount,
+                        payment_split=vendor_split,
+                        is_paid=True,
+                        paid_at=timezone.now()
+                    )
+            except Exception:
+                pass
 
+            # Send vendor confirmation email
             if order.vendor and order.vendor.email:
                 send_mail(
-                    subject=f'💰 Payment Received - Order #{order.id}',
-                    message=f"""
-        Hi{order.vendor.get_full_name()},
-        You have received a payment on 024Global!
-        ━━━━━━━━━━━━━━━━━━━━━
-        Order Details
-        ━━━━━━━━━━━━━━━━━━━━━
-        Order ID    : #{order.id}
-        Product     : {order.product.name}
-        Quantity    : {order.quantity}
-        Your Amount : KES {order.vendor_amount}
-        Customer    : {order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')}
-        ━━━━━━━━━━━━━━━━━━━━━
-        Your payment will be settled to your M-PESA
-        within 1-3 usiness days.
-        Thank you for selling on 024Global!
-        024Global Team
-        www.024global.com
-                    """,
+                    subject=f'Payment Received - Order #{order.id}',
+                    message=f"""Hi {order.vendor.get_full_name()},
+
+You have received a payment on 024Global!
+
+Order Details
+━━━━━━━━━━━━━━━━━━━━━
+Order ID    : #{order.id}
+Product     : {order.product.name}
+Quantity    : {order.quantity}
+Your Amount : KES {order.vendor_amount}
+Customer    : {order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')}
+━━━━━━━━━━━━━━━━━━━━━
+Your payment will be settled to your account
+within 1-3 business days.
+
+Thank you for selling on 024Global!
+024Global Team
+www.024global.com""",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[order.vendor.email],
                     fail_silently=True,
                 )
+
+            # Send affiliate commission email
             if order.affiliate and order.affiliate.email:
                 send_mail(
-                    subject=f'💰 Commission Earned - Order #{order.id}',
-                    message=f"""
-        Hi {order.affiliate.get_full_name()},
-        Great news! You have earned a commission on 024Global!
-        ━━━━━━━━━━━━━━━━━━━━━
-        Commission Details
-        ━━━━━━━━━━━━━━━━━━━━━
-        Order ID    : #{order.id}
-        Product     : {order.product.name}
-        Sale Amount : KES {order.amount}
-        Commission  : KES {order.affiliate_amount} (5%)
-        ━━━━━━━━━━━━━━━━━━━━━
-        Your commission will be settled to your M-PESA
-        within 1-3 business days.
-        Keep sharing your referral link to earn more!
-        024Global Team
-        www.024global.com
-                    """,
+                    subject=f'Commission Earned - Order #{order.id}',
+                    message=f"""Hi {order.affiliate.get_full_name()},
+
+Great news! You have earned a commission on 024Global!
+
+Commission Details
+━━━━━━━━━━━━━━━━━━━━━
+Order ID    : #{order.id}
+Product     : {order.product.name}
+Sale Amount : KES {order.amount}
+Commission  : KES {order.affiliate_amount} (5%)
+━━━━━━━━━━━━━━━━━━━━━
+Your commission will be settled to your account
+within 1-3 business days.
+
+Keep sharing your referral link to earn more!
+024Global Team
+www.024global.com""",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[order.affiliate.email],
                     fail_silently=True,
                 )
-            buyer_email = order.guest_email or (order.buyer.email if order.buyer else None)    
+
+            # Send buyer confirmation email
+            buyer_email = order.guest_email or (order.buyer.email if order.buyer else None)
             buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
             if buyer_email:
                 send_mail(
-                    subject=f'✅ Payment Successful - Order #{order.id}',
-                    message=f"""
-        Hi {buyer_name},
-        Your order has been confirmed!
-        ━━━━━━━━━━━━━━━━━━━━━
-        Order Summary
-        ━━━━━━━━━━━━━━━━━━━━━
-        Order ID    : #{order.id}
-        Product     : {order.product.name}
-        Quantity    : {order.quantity}
-        Total Paid  : KES {order.amount}
-        Delivery To : {order.guest_address or 'N/A'}
-        ━━━━━━━━━━━━━━━━━━━━━
-        Your order is being processed and will be
-        delivered to your address soon.
-        For any questions, contact us at:
-        024globalconnect@gmail.com
-        Thank you for shopping on 024Global!
-        024Global Team
-        www.024global.com
-                    """,
+                    subject=f'Payment Successful - Order #{order.id}',
+                    message=f"""Hi {buyer_name},
+
+Your order has been confirmed!
+
+Order Summary
+━━━━━━━━━━━━━━━━━━━━━
+Order ID    : #{order.id}
+Product     : {order.product.name}
+Quantity    : {order.quantity}
+Total Paid  : KES {order.amount}
+Delivery To : {order.guest_address or 'N/A'}
+━━━━━━━━━━━━━━━━━━━━━
+Your order is being processed and will be
+delivered to your address soon.
+
+For any questions, contact us at:
+024globalconnect@gmail.com
+
+Thank you for shopping on 024Global!
+024Global Team
+www.024global.com""",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[buyer_email],
                     fail_silently=True,
                 )
-                            
+
         except Order.DoesNotExist:
             pass
 
@@ -474,7 +485,7 @@ def check_payment_status(request, order_id):
     """Check order payment status"""
     try:
         order = Order.objects.get(id=order_id, buyer=request.user)
-        
+
         # Get split statuses
         splits_status = []
         for split in order.splits.all():
@@ -505,14 +516,14 @@ def check_payment_status(request, order_id):
 def my_orders(request):
     """Get user's orders based on role"""
     user = request.user
-    
+
     if user.role == 'vendor':
         orders = Order.objects.filter(vendor=user)
     elif user.role == 'affiliate':
         orders = Order.objects.filter(affiliate=user)
     else:
         orders = Order.objects.filter(buyer=user)
-    
+
     orders_data = []
     for order in orders:
         orders_data.append({
@@ -523,7 +534,7 @@ def my_orders(request):
             "created_at": order.created_at,
             "payment_url": None,
             "my_earnings": float(
-                order.vendor_amount if user.role == 'vendor' 
+                order.vendor_amount if user.role == 'vendor'
                 else order.affiliate_amount if user.role == 'user'
                 else 0
             ),
@@ -533,5 +544,5 @@ def my_orders(request):
                 else order.company_paid
             )
         })
-    
+
     return Response(orders_data)
