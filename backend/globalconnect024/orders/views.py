@@ -17,7 +17,6 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.utils import timezone
-from django.core.mail import send_mail
 
 from products.models import Product
 from users.models import CustomUser
@@ -31,22 +30,49 @@ PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
 
 
 def send_email_async(subject, message, recipient):
-    """Send a single email in a background thread so it never blocks the webhook."""
+    """
+    Send email via SendGrid HTTP API in a background thread.
+    Uses HTTPS (port 443) — works even when Render blocks outbound SMTP.
+    """
     def _send():
+        api_key = getattr(settings, 'SENDGRID_API_KEY', '')
+        if not api_key:
+            print(f"[EMAIL] SENDGRID_API_KEY not set — cannot send '{subject}' to {recipient}")
+            return
+
+        # Parse "Name <email>" format if present
+        from_raw = settings.DEFAULT_FROM_EMAIL or ''
+        if '<' in from_raw:
+            from_name = from_raw.split('<')[0].strip()
+            from_addr = from_raw.split('<')[1].rstrip('>')
+            from_field = {"email": from_addr, "name": from_name}
+        else:
+            from_field = {"email": from_raw}
+
+        payload = {
+            "personalizations": [{"to": [{"email": recipient}]}],
+            "from": from_field,
+            "subject": subject,
+            "content": [{"type": "text/plain", "value": message}],
+        }
+
         try:
-            result = send_mail(
-                subject=subject,
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[recipient],
-                fail_silently=False,  # raise exceptions so we can log the real error
+            response = requests.post(
+                "https://api.sendgrid.com/v3/mail/send",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=15,
             )
-            if result == 1:
+            if response.status_code == 202:
                 print(f"[EMAIL] Delivered '{subject}' to {recipient}")
             else:
-                print(f"[EMAIL] NOT delivered (returned 0) '{subject}' to {recipient}")
+                print(f"[EMAIL] SendGrid error {response.status_code} for '{subject}' to {recipient}: {response.text}")
         except Exception as e:
-            print(f"[EMAIL] ERROR sending '{subject}' to {recipient}: {e}")
+            print(f"[EMAIL] SendGrid request failed for '{subject}' to {recipient}: {e}")
+
     threading.Thread(target=_send, daemon=True).start()
 
 
