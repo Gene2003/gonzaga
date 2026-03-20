@@ -38,9 +38,11 @@ class ProductSerializer(serializers.ModelSerializer):
         
         vendor_type = user.vendor_type
         
-        # Map 'stock' to 'quantity_kg'
+        # Map 'stock' to both 'quantity_kg' (farm products) and 'stock' (non-farm products)
         if 'stock' in data:
-            data['quantity_kg'] = data.pop('stock')
+            stock_value = data.pop('stock')
+            data['quantity_kg'] = stock_value
+            data['stock'] = stock_value
         
         # Map 'price' to the appropriate vendor price field
         if 'price' in data:
