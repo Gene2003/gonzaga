@@ -34,16 +34,19 @@ def send_email_async(subject, message, recipient):
     """Send a single email in a background thread so it never blocks the webhook."""
     def _send():
         try:
-            send_mail(
+            result = send_mail(
                 subject=subject,
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[recipient],
-                fail_silently=True,
+                fail_silently=False,  # raise exceptions so we can log the real error
             )
-            print(f"[EMAIL] Sent '{subject}' to {recipient}")
+            if result == 1:
+                print(f"[EMAIL] Delivered '{subject}' to {recipient}")
+            else:
+                print(f"[EMAIL] NOT delivered (returned 0) '{subject}' to {recipient}")
         except Exception as e:
-            print(f"[EMAIL] Failed to send '{subject}' to {recipient}: {e}")
+            print(f"[EMAIL] ERROR sending '{subject}' to {recipient}: {e}")
     threading.Thread(target=_send, daemon=True).start()
 
 
