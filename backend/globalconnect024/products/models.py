@@ -43,21 +43,19 @@ class Product(models.Model):
                     raise ValidationError("Farmers must sell at least 600 kg.")
             
         #wholesaler
-        elif vendor_type == 'wholesaler':
-            if self.quantity_kg < 300:
-                raise ValidationError("Wholesalers must sell at least 300 kg.")
-
-            max_farmer_qty = Product.objects.filter(name=self.name,vendor__vendor__type='farmer').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
-            if max_farmer_qty and self.quantity_kg > max_farmer_qty:
-                raise ValidationError("Wholesaler quantity cannot exceed the maximum quantity sold by farmers.")
+            elif vendor_type == 'wholesaler':
+                if self.quantity_kg < 300:
+                    raise ValidationError("Wholesalers must sell at least 300 kg.")
+                max_farmer_qty = Product.objects.filter(name=self.name,vendor__vendor__type='farmer').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
+                if max_farmer_qty and self.quantity_kg > max_farmer_qty:
+                    raise ValidationError("Wholesaler quantity cannot exceed the maximum quantity sold by farmers.")
         #retailer
-        elif vendor_type == 'retailer':
-            if self.quantity_kg < 100:
-                raise ValidationError("Retailers must sell at least 100 kg.")
-
-            max_wholesaler_qty = Product.objects.filter(name=self.name,vendor__vendor_type='wholesaler').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
-            if max_wholesaler_qty and self.quantity_kg > max_wholesaler_qty:
-                raise ValidationError("Retailer quantity cannot exceed the maximum quantity sold by wholesalers.")
+            elif vendor_type == 'retailer':
+                if self.quantity_kg < 100:
+                    raise ValidationError("Retailers must sell at least 100 kg.")
+                max_wholesaler_qty = Product.objects.filter(name=self.name,vendor__vendor_type='wholesaler').aggregate(Max('quantity_kg'))['quantity_kg__max'] 
+                if max_wholesaler_qty and self.quantity_kg > max_wholesaler_qty:
+                    raise ValidationError("Retailer quantity cannot exceed the maximum quantity sold by wholesalers.")
             
         else:
             if self.stock < 1:
@@ -78,8 +76,8 @@ class Product(models.Model):
                 self.visible_to ='retailer'
              elif self.vendor.vendor_type == 'retailer':
                 self.visible_to ='consumers'
-             else:
-                self.visible_to ='consumers'
+        else:
+            self.visible_to ='consumers'
         super().save(*args, **kwargs)
     
     # ✅ Control visibility and admin approval
