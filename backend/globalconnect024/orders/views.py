@@ -389,57 +389,67 @@ def paystack_order_webhook(request):
                 pass
 
             # Send vendor confirmation email
-            if order.vendor and order.vendor.email:
-                send_mail(
-                    subject=f'Payment Received - Order #{order.id}',
-                    message=f"""Hi {order.vendor.get_full_name()},
+            vendor_email = order.vendor.email if order.vendor else None
+            print(f"[WEBHOOK] Order #{order.id} — vendor={order.vendor}, vendor_email={vendor_email!r}")
+            if vendor_email:
+                try:
+                    send_mail(
+                        subject=f'Payment Received - Order #{order.id}',
+                        message=f"""Hi {order.vendor.get_full_name()},
 
 You have received a payment on 024Global!
 
 Order Details
-━━━━━━━━━━━━━━━━━━━━━
 Order ID    : #{order.id}
 Product     : {order.product.name}
 Quantity    : {order.quantity}
 Your Amount : KES {order.vendor_amount}
 Customer    : {order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')}
-━━━━━━━━━━━━━━━━━━━━━
-Your payment will be settled to your account
-within 1-3 business days.
+
+Your payment will be settled to your account within 1-3 business days.
 
 Thank you for selling on 024Global!
 024Global Team
 www.024global.com""",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[order.vendor.email],
-                    fail_silently=True,
-                )
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[vendor_email],
+                        fail_silently=False,
+                    )
+                    print(f"[WEBHOOK] Vendor email sent to {vendor_email}")
+                except Exception as e:
+                    print(f"[WEBHOOK] Vendor email FAILED: {e}")
+            else:
+                print(f"[WEBHOOK] Skipping vendor email — vendor has no email address set")
 
             # Send affiliate commission email
-            if order.affiliate and order.affiliate.email:
-                send_mail(
-                    subject=f'Commission Earned - Order #{order.id}',
-                    message=f"""Hi {order.affiliate.get_full_name()},
+            affiliate_email = order.affiliate.email if order.affiliate else None
+            print(f"[WEBHOOK] Order #{order.id} — affiliate={order.affiliate}, affiliate_email={affiliate_email!r}")
+            if affiliate_email:
+                try:
+                    send_mail(
+                        subject=f'Commission Earned - Order #{order.id}',
+                        message=f"""Hi {order.affiliate.get_full_name()},
 
 Great news! You have earned a commission on 024Global!
 
 Commission Details
-━━━━━━━━━━━━━━━━━━━━━
 Order ID    : #{order.id}
 Product     : {order.product.name}
 Sale Amount : KES {order.amount}
 Commission  : KES {order.affiliate_amount} (5%)
-━━━━━━━━━━━━━━━━━━━━━
-Your commission will be settled to your account
-within 1-3 business days.
+
+Your commission will be settled to your account within 1-3 business days.
 
 Keep sharing your referral link to earn more!
 024Global Team
 www.024global.com""",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[order.affiliate.email],
-                    fail_silently=True,
-                )
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[affiliate_email],
+                        fail_silently=False,
+                    )
+                    print(f"[WEBHOOK] Affiliate email sent to {affiliate_email}")
+                except Exception as e:
+                    print(f"[WEBHOOK] Affiliate email FAILED: {e}")
 
             # Send buyer confirmation email
             # Use Paystack's customer email as the primary source — it's the exact email
@@ -447,23 +457,23 @@ www.024global.com""",
             paystack_customer_email = event['data'].get('customer', {}).get('email')
             buyer_email = paystack_customer_email or order.guest_email or (order.buyer.email if order.buyer else None)
             buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
+            print(f"[WEBHOOK] Order #{order.id} — buyer_email={buyer_email!r}")
             if buyer_email:
-                send_mail(
-                    subject=f'Payment Successful - Order #{order.id}',
-                    message=f"""Hi {buyer_name},
+                try:
+                    send_mail(
+                        subject=f'Payment Successful - Order #{order.id}',
+                        message=f"""Hi {buyer_name},
 
 Your order has been confirmed!
 
 Order Summary
-━━━━━━━━━━━━━━━━━━━━━
 Order ID    : #{order.id}
 Product     : {order.product.name}
 Quantity    : {order.quantity}
 Total Paid  : KES {order.amount}
 Delivery To : {order.guest_address or 'N/A'}
-━━━━━━━━━━━━━━━━━━━━━
-Your order is being processed and will be
-delivered to your address soon.
+
+Your order is being processed and will be delivered to your address soon.
 
 For any questions, contact us at:
 024globalconnect@gmail.com
@@ -471,10 +481,13 @@ For any questions, contact us at:
 Thank you for shopping on 024Global!
 024Global Team
 www.024global.com""",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[buyer_email],
-                    fail_silently=True,
-                )
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[buyer_email],
+                        fail_silently=False,
+                    )
+                    print(f"[WEBHOOK] Buyer email sent to {buyer_email}")
+                except Exception as e:
+                    print(f"[WEBHOOK] Buyer email FAILED: {e}")
 
         except Order.DoesNotExist:
             pass
