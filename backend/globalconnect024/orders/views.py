@@ -442,7 +442,10 @@ www.024global.com""",
                 )
 
             # Send buyer confirmation email
-            buyer_email = order.guest_email or (order.buyer.email if order.buyer else None)
+            # Use Paystack's customer email as the primary source — it's the exact email
+            # the buyer used during the transaction, regardless of guest/logged-in status.
+            paystack_customer_email = event['data'].get('customer', {}).get('email')
+            buyer_email = paystack_customer_email or order.guest_email or (order.buyer.email if order.buyer else None)
             buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
             if buyer_email:
                 send_mail(
