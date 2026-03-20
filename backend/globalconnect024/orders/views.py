@@ -6,6 +6,7 @@ from decimal import Decimal
 import json
 import hashlib
 import hmac
+import threading
 
 from services.views import get_nearest_transporters
 from rest_framework.decorators import api_view, permission_classes
@@ -29,6 +30,21 @@ from django.http import JsonResponse
 PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
 
 
+def send_email_async(subject, message, recipient):
+    """Send a single email in a background thread so it never blocks the webhook."""
+    def _send():
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[recipient],
+                fail_silently=True,
+            )
+            print(f"[EMAIL] Sent '{subject}' to {recipient}")
+        except Exception as e:
+            print(f"[EMAIL] Failed to send '{subject}' to {recipient}: {e}")
+    threading.Thread(target=_send, daemon=True).start()
 
 
 def get_mpesa_token():
@@ -394,14 +410,12 @@ def paystack_order_webhook(request):
             except Exception:
                 pass
 
-            # Send vendor confirmation email
+            # Send emails asynchronously so they never block the webhook response
             vendor_email = order.vendor.email if order.vendor else None
-            print(f"[WEBHOOK] Order #{order.id} — vendor={order.vendor}, vendor_email={vendor_email!r}")
             if vendor_email:
-                try:
-                    send_mail(
-                        subject=f'Payment Received - Order #{order.id}',
-                        message=f"""Hi {order.vendor.get_full_name()},
+                send_email_async(
+                    subject=f'Payment Received - Order #{order.id}',
+                    message=f"""Hi {order.vendor.get_full_name()},
 
 You have received a payment on 024Global!
 
@@ -417,24 +431,14 @@ Your payment will be settled to your account within 1-3 business days.
 Thank you for selling on 024Global!
 024Global Team
 www.024global.com""",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[vendor_email],
-                        fail_silently=False,
-                    )
-                    print(f"[WEBHOOK] Vendor email sent to {vendor_email}")
-                except Exception as e:
-                    print(f"[WEBHOOK] Vendor email FAILED: {e}")
-            else:
-                print(f"[WEBHOOK] Skipping vendor email — vendor has no email address set")
+                    recipient=vendor_email,
+                )
 
-            # Send affiliate commission email
             affiliate_email = order.affiliate.email if order.affiliate else None
-            print(f"[WEBHOOK] Order #{order.id} — affiliate={order.affiliate}, affiliate_email={affiliate_email!r}")
             if affiliate_email:
-                try:
-                    send_mail(
-                        subject=f'Commission Earned - Order #{order.id}',
-                        message=f"""Hi {order.affiliate.get_full_name()},
+                send_email_async(
+                    subject=f'Commission Earned - Order #{order.id}',
+                    message=f"""Hi {order.affiliate.get_full_name()},
 
 Great news! You have earned a commission on 024Global!
 
@@ -449,26 +453,16 @@ Your commission will be settled to your account within 1-3 business days.
 Keep sharing your referral link to earn more!
 024Global Team
 www.024global.com""",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[affiliate_email],
-                        fail_silently=False,
-                    )
-                    print(f"[WEBHOOK] Affiliate email sent to {affiliate_email}")
-                except Exception as e:
-                    print(f"[WEBHOOK] Affiliate email FAILED: {e}")
+                    recipient=affiliate_email,
+                )
 
-            # Send buyer confirmation email
-            # Use Paystack's customer email as the primary source — it's the exact email
-            # the buyer used during the transaction, regardless of guest/logged-in status.
             paystack_customer_email = event['data'].get('customer', {}).get('email')
             buyer_email = paystack_customer_email or order.guest_email or (order.buyer.email if order.buyer else None)
             buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
-            print(f"[WEBHOOK] Order #{order.id} — buyer_email={buyer_email!r}")
             if buyer_email:
-                try:
-                    send_mail(
-                        subject=f'Payment Successful - Order #{order.id}',
-                        message=f"""Hi {buyer_name},
+                send_email_async(
+                    subject=f'Payment Successful - Order #{order.id}',
+                    message=f"""Hi {buyer_name},
 
 Your order has been confirmed!
 
@@ -487,13 +481,8 @@ For any questions, contact us at:
 Thank you for shopping on 024Global!
 024Global Team
 www.024global.com""",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[buyer_email],
-                        fail_silently=False,
-                    )
-                    print(f"[WEBHOOK] Buyer email sent to {buyer_email}")
-                except Exception as e:
-                    print(f"[WEBHOOK] Buyer email FAILED: {e}")
+                    recipient=buyer_email,
+                )
 
         except Order.DoesNotExist:
             pass
