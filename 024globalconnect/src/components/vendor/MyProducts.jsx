@@ -37,11 +37,19 @@ const MyProducts = () => {
 
   if (loading) return <p className="text-gray-500 py-4">Loading your products...</p>;
 
-  const getPrice = (p) =>
-    p.farmer_price || p.wholesaler_price || p.retailer_price || 0;
+  const getPrice = (p) => {
+    if (Number(p.retailer_price) > 0) return Number(p.retailer_price);
+    if (Number(p.wholesaler_price) > 0) return Number(p.wholesaler_price);
+    if (Number(p.farmer_price) > 0) return Number(p.farmer_price);
+    return 0;
+  };
 
-  const getStock = (p) =>
-    p.is_farm_product ? p.quantity_kg : p.stock;
+  const getStock = (p) => {
+    if (p.is_farm_product) return p.quantity_kg ?? 0;
+    // non-farm: prefer stock field, fall back to quantity_kg
+    const s = p.stock ?? p.quantity_kg;
+    return s ?? 0;
+  };
 
   const getStockLabel = (p) =>
     p.is_farm_product ? `${getStock(p)} kg` : `${getStock(p)} units`;

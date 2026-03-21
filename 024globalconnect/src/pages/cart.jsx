@@ -15,6 +15,7 @@ const Cart = () => {
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
+  const [guestAddress, setGuestAddress] = useState("");
 
   useEffect(() => {
     setCart(getCart());
@@ -44,8 +45,8 @@ const Cart = () => {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = async () => {
-    if (!guestName || !guestEmail || !guestPhone) {
-      toast.error("Please fill in your name, email, and phone number.");
+    if (!guestName || !guestEmail || !guestPhone || !guestAddress) {
+      toast.error("Please fill in all required fields including delivery address.");
       return;
     }
     if (cart.length === 0) return;
@@ -62,14 +63,16 @@ const Cart = () => {
         guest_name: guestName,
         guest_email: guestEmail,
         guest_phone: guestPhone,
+        guest_address: guestAddress,
       });
 
       const { payment_urls } = res.data;
       if (payment_urls && payment_urls.length > 0) {
-        // Save remaining URLs so each redirect can chain through them
+        // Save remaining payment URLs to process after each payment completes
         localStorage.setItem("pendingCartPayments", JSON.stringify(payment_urls.slice(1)));
         localStorage.removeItem("guest_cart");
-        window.location.href = payment_urls[0];
+        // payment_urls[0] is an object — extract the actual URL string
+        window.location.href = payment_urls[0].payment_url;
       } else {
         toast.error("No payment link returned. Please try again.");
       }
@@ -177,6 +180,13 @@ const Cart = () => {
                   value={guestPhone}
                   onChange={(e) => setGuestPhone(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <textarea
+                  placeholder="Delivery Address (town, street, building, landmark...)"
+                  value={guestAddress}
+                  onChange={(e) => setGuestAddress(e.target.value)}
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
               </div>
             </div>

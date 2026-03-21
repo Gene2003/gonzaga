@@ -76,9 +76,9 @@ const ProductsPage = () => {
 
   // Get price based on vendor type
   const getPrice = (product) => {
-    if (product.retailer_price > 0) return product.retailer_price;
-    if (product.wholesaler_price > 0) return product.wholesaler_price;
-    if (product.farmer_price > 0) return product.farmer_price;
+    if (Number(product.retailer_price) > 0) return Number(product.retailer_price);
+    if (Number(product.wholesaler_price) > 0) return Number(product.wholesaler_price);
+    if (Number(product.farmer_price) > 0) return Number(product.farmer_price);
     return 0;
   };
 
@@ -244,8 +244,9 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
   const price = getPrice(product);
   const imageUrl = product.image || 'https://placehold.co/300x300?text=No+Image';
   
-  // ✅ FIX: Use quantity_kg, not stock
-  const isOutOfStock = product.quantity_kg === 0;
+  const isFarm = product.is_farm_product;
+  const stockValue = isFarm ? (product.quantity_kg ?? 0) : (product.stock ?? product.quantity_kg ?? 0);
+  const isOutOfStock = stockValue === 0;
 
   const handleBuyNow = () => {
 
@@ -324,9 +325,9 @@ const ProductCard = ({ product, onAddToCart, getPrice }) => {
             <span className="text-2xl font-bold text-green-600">
               KES {price.toLocaleString()}
             </span>
-            {product.quantity_kg > 0 && (
+            {stockValue > 0 && (
               <p className="text-xs text-gray-500">
-                {product.quantity_kg} kg available
+                {stockValue} {isFarm ? 'kg' : 'units'} available
               </p>
             )}
           </div>
