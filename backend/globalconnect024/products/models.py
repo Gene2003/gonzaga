@@ -87,5 +87,25 @@ class Product(models.Model):
     # ✅ Track when product was added
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def is_farm_product(self):
+        FARM_CATEGORIES = ['farm products', 'food & grocery', 'agricultural']
+        category_name = self.category.name.lower() if self.category else ''
+        return any(cat in category_name for cat in FARM_CATEGORIES)
+
     def __str__(self):
         return f"{self.name} ({self.vendor.vendor_type})"
+
+
+class ProductRating(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='ratings')
+    rating = models.PositiveIntegerField()  # 1–5
+    comment = models.TextField(blank=True)
+    reviewer_name = models.CharField(max_length=100, blank=True)
+    reviewer_email = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.product.name} - {self.rating}/5 by {self.reviewer_name or 'Anonymous'}"

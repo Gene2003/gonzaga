@@ -1,65 +1,73 @@
 // src/components/vendor/SalesOverview.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { authService } from "../../api/services/authService";
-import { API_ENDPOINTS } from "../../api/endpoints";
 import apiClient from "../../api/client";
+import { API_ENDPOINTS } from "../../api/endpoints";
 
 const SalesOverview = () => {
-  const [orders, setOrders] = useState([]);
+  const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSales = async () => {
       try {
-      const res = await apiClient.get('/products/my_products/');
-      const data = res.data;
-      setOrders(Array.isArray(data) ? data : (data.results || []));
+        const res = await apiClient.get(API_ENDPOINTS.VENDOR_SALES);
+        setSales(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error("Error fetching sales data:", err);
-        setOrders([]);
+        setSales([]);
       } finally {
         setLoading(false);
-
       }
     };
-
     fetchSales();
   }, []);
 
-  if (loading) return <p className="text-gray-500">Loading sales data...</p>;
+  const totalCollected = sales.reduce((sum, s) => sum + s.total_collected, 0);
+
+  if (loading) return <p className="text-gray-500 py-4">Loading sales data...</p>;
 
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">Sales Overview</h2>
 
-      {orders.length === 0 ? (
-        <p className="text-gray-500">No sales data available.</p>
+      {sales.length === 0 ? (
+        <p className="text-gray-500">No completed sales yet.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded-xl shadow">
-            <thead className="bg-blue-50 text-blue-800">
-              <tr>
-                <th className="py-2 px-4 border-b">Product</th>
-                <th className="py-2 px-4 border-b">Price (KES)</th>
-                <th className="py-2 px-4 border-b">Stock</th>
-                <th className="py-2 px-4 border-b">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((product) => (
-                <tr key={product.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-4">{product.name}</td>
-                  <td className="py-2 px-4">{product.farmer_price || product.wholesaler_price || product.retailer_price || '—'}</td>
-                  <td className="py-2 px-4">{product.quantity_kg ?? product.stock ?? 0} kg</td>
-                  <td className="py-2 px-4"> <span className={`px-2 py-1 rounded text-xs font-semibold ${product.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {product.approved ? 'Approved' : 'Pending Approval'}
-                  </span></td>
+        <>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white rounded-xl shadow text-sm">
+              <thead className="bg-blue-50 text-blue-800">
+                <tr>
+                  <th className="py-3 px-4 border-b text-left">Product</th>
+                  <th className="py-3 px-4 border-b text-right">Price (KES)</th>
+                  <th className="py-3 px-4 border-b text-right">Units Sold</th>
+                  <th className="py-3 px-4 border-b text-right">Total Collected (KES)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {sales.map((row) => (
+                  <tr key={row.product_id} className="border-b hover:bg-gray-50">
+                    <td className="py-2 px-4">{row.product_name}</td>
+                    <td className="py-2 px-4 text-right">{Number(row.price).toLocaleString()}</td>
+                    <td className="py-2 px-4 text-right">
+                      {row.units_sold}{row.is_farm_product ? ' kg' : ''}
+                    </td>
+                    <td className="py-2 px-4 text-right font-semibold text-green-700">
+                      {Number(row.total_collected).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-50 font-bold">
+                <tr>
+                  <td className="py-3 px-4" colSpan={3}>Total Earnings</td>
+                  <td className="py-3 px-4 text-right text-green-700">
+                    KES {totalCollected.toLocaleString()}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

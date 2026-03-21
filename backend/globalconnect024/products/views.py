@@ -4,8 +4,8 @@ from rest_framework.decorators import api_view, action
 from django.conf import settings
 import requests
 from rest_framework.exceptions import PermissionDenied
-from .models import Product
-from .serializers import ProductSerializer
+from .models import Product, ProductRating
+from .serializers import ProductSerializer, ProductRatingSerializer
 from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -131,6 +131,21 @@ class ProductViewSet(viewsets.ModelViewSet):
             serializer.validated_data.pop('approved', None)
 
         serializer.save()
+
+    # ✅ Ratings: list ratings or submit a new rating for a product
+    @action(detail=True, methods=['get', 'post'], permission_classes=[AllowAny])
+    def ratings(self, request, pk=None):
+        product = self.get_object()
+        if request.method == 'GET':
+            ratings = product.ratings.all()
+            serializer = ProductRatingSerializer(ratings, many=True)
+            return Response(serializer.data)
+        # POST: submit a new rating
+        serializer = ProductRatingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(product=product)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # ✅ Custom action for vendors to get only their products
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])

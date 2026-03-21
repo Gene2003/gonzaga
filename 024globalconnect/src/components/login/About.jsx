@@ -55,13 +55,13 @@ const About = () => {
       
       {/* Fixed Text Overlay - Stays the same */}
       <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 z-10">
-        <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in-up drop-shadow-2xl max-w-4xl">
+        <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in-up drop-shadow-2xl max-w-4xl">
           Transforming Agriculture Through Digital Connection
         </h1>
-        <p className="text-xl md:text-3xl text-white/95 animate-fade-in-up drop-shadow-xl max-w-3xl mb-8">
+        <p className="text-base sm:text-xl md:text-3xl text-white/95 animate-fade-in-up drop-shadow-xl max-w-3xl mb-8">
           Building Africa's Most Efficient and Profitable Agricultural Marketplace
         </p>
-        <div className="space-y-4 text-lg md:text-xl text-white/90 max-w-2xl">
+        <div className="space-y-4 text-sm sm:text-lg md:text-xl text-white/90 max-w-2xl">
           <p className="drop-shadow-lg">
             💡 Quality, Quantity, Place, and Price - The 2Qs2Ps
           </p>

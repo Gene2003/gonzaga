@@ -21,6 +21,7 @@ import PrivateRoute from './components/auth/PrivateRoute';
 import ProtectedData from './pages/ProtectedData';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetail from './pages/ProductDetail';
+import Cart from './pages/cart';
 
 import AffiliateDashboard from './components/affiliate/AffiliateDashboard';
 import VendorDashboard from './components/vendor/VendorDashboard';
@@ -33,6 +34,7 @@ import SystemLogs from './components/admin/SystemLogs';
 import AdminPanel from './components/admin/AdminPanel'; // tabbed interface
 
 import ProfileOverview from './components/affiliate/ProfileOverview';
+import TermsAndConditions from './pages/TermsAndConditions';
 import NotFound from './pages/NotFound';
 import FullScreenLoader from './components/ui/FullScreenLoader';
 import AdminLayout from './layouts/AdminLayout';
@@ -73,7 +75,9 @@ function App() {
         <Route path="/guest-checkout" element={<GuestCheckout />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/terms" element={<TermsAndConditions />} />
 
         {/* ✅ Role-based redirect */}
         <Route path="/dashboard" element={<PrivateRoute>{roleBasedRedirect()}</PrivateRoute>} />

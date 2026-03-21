@@ -26,6 +26,9 @@ export const API_ENDPOINTS = {
   VENDOR_PRODUCTS: `/products/vendor/`,
   ADD_PRODUCT: `/products/`,
   VENDOR_PRODUCT_DETAIL: (id) => `/products/${id}/`,
+  VENDOR_SALES: '/orders/vendor-sales/',
+  PRODUCT_RATINGS: (id) => `/products/${id}/ratings/`,
+  CART_CHECKOUT: '/orders/cart-checkout/',
 
   // ✅ Feedback
   VENDOR_FEEDBACK: '/users/vendor-feedback/',

@@ -413,6 +413,16 @@ def paystack_order_webhook(request):
                     completed_at=timezone.now()
                 )
 
+                # Deduct stock from product
+                product = order.product
+                if product.is_farm_product():
+                    product.quantity_kg = max(0, product.quantity_kg - order.quantity)
+                    product.stock = product.quantity_kg
+                else:
+                    product.stock = max(0, product.stock - order.quantity)
+                    product.quantity_kg = product.stock
+                product.save()
+
                 # Mark referral as paid
                 if affiliate_id:
                     try:
@@ -549,6 +559,168 @@ def check_payment_status(request, order_id):
         })
     except Order.DoesNotExist:
         return Response({"error": "Order not found."}, status=404)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def cart_checkout(request):
+    """
+    Multi-item cart checkout.
+    Accepts: items=[{product_id, quantity}], guest_name, guest_email, guest_phone, guest_address, affiliate_code
+    Creates one order per item. Returns list of payment_urls.
+    """
+    items = request.data.get('items', [])
+    guest_name = request.data.get('guest_name')
+    guest_email = request.data.get('guest_email')
+    guest_phone = request.data.get('guest_phone')
+    guest_address = request.data.get('guest_address')
+    affiliate_code = request.data.get('affiliate_code')
+
+    if not items:
+        return Response({"error": "No items in cart."}, status=400)
+    if not guest_email:
+        return Response({"error": "Email is required."}, status=400)
+
+    from products.models import Product as ProductModel
+    payment_urls = []
+
+    for item in items:
+        product_id = item.get('product_id')
+        quantity = int(item.get('quantity', 1))
+        try:
+            product = ProductModel.objects.select_related('vendor').get(id=product_id)
+        except ProductModel.DoesNotExist:
+            continue
+
+        vendor = product.vendor
+        if not vendor.paystack_subaccount_code:
+            continue
+
+        vendor_type = vendor.vendor_type
+        if vendor_type == 'farmer':
+            unit_price = product.farmer_price
+        elif vendor_type == 'wholesaler':
+            unit_price = product.wholesaler_price
+        else:
+            unit_price = product.retailer_price
+
+        if not unit_price:
+            continue
+
+        # Resolve affiliate
+        affiliate = None
+        affiliate_subaccount = None
+        if affiliate_code:
+            try:
+                affiliate = CustomUser.objects.get(username=affiliate_code, role='user')
+                affiliate_subaccount = affiliate.paystack_subaccount_code
+            except CustomUser.DoesNotExist:
+                pass
+
+        buyer = request.user if request.user.is_authenticated else None
+        amount = unit_price * quantity
+        amount_kobo = int(amount * 100)
+
+        subaccounts = [{"subaccount": vendor.paystack_subaccount_code, "share": 90 if affiliate else 95}]
+        if affiliate_subaccount:
+            subaccounts.append({"subaccount": affiliate_subaccount, "share": 5})
+
+        with transaction.atomic():
+            order = Order.objects.create(
+                product=product,
+                buyer=buyer,
+                vendor=vendor,
+                affiliate=affiliate,
+                quantity=quantity,
+                amount=amount,
+                status="pending",
+                guest_name=guest_name,
+                guest_email=guest_email,
+                guest_phone=guest_phone,
+                guest_address=guest_address,
+            )
+            order.calculate_splits()
+            PaymentSplit.objects.create(order=order, recipient_type='company', recipient=None, amount=order.company_amount, status='pending')
+            PaymentSplit.objects.create(order=order, recipient_type='vendor', recipient=vendor, amount=order.vendor_amount, status='pending')
+            if affiliate:
+                PaymentSplit.objects.create(order=order, recipient_type='affiliate', recipient=affiliate, amount=order.affiliate_amount, status='pending')
+
+        paystack_data = {
+            "email": guest_email,
+            "amount": amount_kobo,
+            "currency": "KES",
+            "callback_url": f"{settings.FRONTEND_URL}/orders/payment-success?order_id={order.id}",
+            "metadata": {"order_id": order.id, "product_id": product.id},
+            "split": {"type": "percentage", "bearer_type": "account", "subaccounts": subaccounts},
+        }
+        headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
+        res = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=paystack_data)
+        res_data = res.json()
+        if res_data.get('status'):
+            order.payment_reference = res_data['data']['reference']
+            order.save()
+            payment_urls.append({
+                "order_id": order.id,
+                "product_name": product.name,
+                "amount": float(amount),
+                "payment_url": res_data['data']['authorization_url'],
+                "reference": res_data['data']['reference'],
+            })
+        else:
+            order.status = 'failed'
+            order.save()
+
+    if not payment_urls:
+        return Response({"error": "Could not initialize payment for any items."}, status=500)
+
+    return Response({"payment_urls": payment_urls}, status=200)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def vendor_sales(request):
+    """
+    Returns a per-product sales summary for the authenticated vendor.
+    Includes: product name, price, units sold, total revenue collected.
+    """
+    if request.user.role != 'vendor':
+        return Response({"error": "Only vendors can access this endpoint."}, status=403)
+
+    from django.db.models import Sum
+
+    completed_orders = Order.objects.filter(
+        vendor=request.user,
+        status='completed'
+    ).select_related('product')
+
+    # Aggregate per product
+    product_ids = completed_orders.values_list('product_id', flat=True).distinct()
+    summary = []
+    for pid in product_ids:
+        orders_for_product = completed_orders.filter(product_id=pid)
+        first_order = orders_for_product.first()
+        product = first_order.product
+        total_qty = orders_for_product.aggregate(total=Sum('quantity'))['total'] or 0
+        total_revenue = orders_for_product.aggregate(total=Sum('vendor_amount'))['total'] or 0
+
+        vendor_type = request.user.vendor_type
+        if vendor_type == 'farmer':
+            price = float(product.farmer_price or 0)
+        elif vendor_type == 'wholesaler':
+            price = float(product.wholesaler_price or 0)
+        else:
+            price = float(product.retailer_price or 0)
+
+        summary.append({
+            'product_id': product.id,
+            'product_name': product.name,
+            'price': price,
+            'units_sold': total_qty,
+            'total_collected': float(total_revenue),
+            'is_farm_product': product.is_farm_product(),
+        })
+
+    return Response(summary)
 
 
 @api_view(["GET"])

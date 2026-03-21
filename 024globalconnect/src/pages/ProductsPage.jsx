@@ -1,24 +1,26 @@
 // src/pages/ProductsPage.jsx
 import React, { useState, useEffect } from 'react';
-import { data, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
-import { API_ENDPOINTS } from '../api/endpoints';
 import toast from 'react-hot-toast';
-import { 
-  ShoppingCart, 
-  Search, 
+import { addToCart, getCartCount } from '../api/utils/cart';
+import {
+  ShoppingCart,
+  Search,
   Filter,
   X,
   Package,
-  Store
+  Store,
 } from 'lucide-react';
 
 const ProductsPage = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedVendorType, setSelectedVendorType] = useState('All');
+  const [cartCount, setCartCount] = useState(getCartCount());
 
   const categories = [
     'All',
@@ -81,7 +83,10 @@ const ProductsPage = () => {
   };
 
   const handleAddToCart = (product) => {
-    // Add to cart logic here
+    const price = getPrice(product);
+    addToCart({ ...product, price });
+    const newCount = getCartCount();
+    setCartCount(newCount);
     toast.success(`${product.name} added to cart!`);
   };
 
@@ -215,6 +220,20 @@ const ProductsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Cart Button */}
+      {cartCount > 0 && (
+        <button
+          onClick={() => navigate('/cart')}
+          className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 hover:bg-blue-700 transition"
+        >
+          <ShoppingCart className="w-5 h-5" />
+          Go to Cart
+          <span className="bg-white text-blue-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+            {cartCount}
+          </span>
+        </button>
+      )}
     </div>
   );
 };

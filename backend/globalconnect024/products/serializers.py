@@ -1,34 +1,61 @@
 # products/serializers.py
 from rest_framework import serializers
-from .models import Product
+from django.db.models import Avg
+from .models import Product, ProductRating
+
+class ProductRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductRating
+        fields = ['id', 'rating', 'comment', 'reviewer_name', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
 
 class ProductSerializer(serializers.ModelSerializer):
     vendor_name = serializers.SerializerMethodField()
     vendor_type = serializers.SerializerMethodField()
     category = serializers.CharField(required=False, allow_null=True, write_only=True)
-    
+    category_name = serializers.SerializerMethodField()
+    is_farm_product = serializers.SerializerMethodField()
+    avg_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+
     # Accept 'price' from frontend (maps to vendor-specific price)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, write_only=True, required=False)
-    
+
     # Accept 'stock' from frontend (maps to quantity_kg in model)
     stock = serializers.IntegerField(write_only=True, required=False)
 
     class Meta:
         model = Product
         fields = [
-            'id', 'name', 'description', 
+            'id', 'name', 'description',
             'price', 'stock',  # Frontend fields
             'farmer_price', 'wholesaler_price', 'retailer_price',
-            'quantity_kg', 'image', 'approved', 
-            'vendor_name', 'vendor_type', 'category', 'visible_to'
+            'quantity_kg', 'image', 'approved',
+            'vendor_name', 'vendor_type', 'category', 'category_name',
+            'visible_to', 'is_farm_product', 'avg_rating', 'rating_count',
         ]
-        read_only_fields = ['id', 'vendor', 'approved', 'vendor_name', 'vendor_type', 'visible_to']
+        read_only_fields = ['id', 'vendor', 'approved', 'vendor_name', 'vendor_type', 'visible_to',
+                            'category_name', 'is_farm_product', 'avg_rating', 'rating_count']
 
     def get_vendor_name(self, obj):
         return obj.vendor.first_name or obj.vendor.username if obj.vendor else None
-    
+
     def get_vendor_type(self, obj):
         return obj.vendor.vendor_type if obj.vendor else None
+
+    def get_category_name(self, obj):
+        return obj.category.name if obj.category else None
+
+    def get_is_farm_product(self, obj):
+        return obj.is_farm_product()
+
+    def get_avg_rating(self, obj):
+        result = obj.ratings.aggregate(avg=Avg('rating'))['avg']
+        return round(result, 1) if result else None
+
+    def get_rating_count(self, obj):
+        return obj.ratings.count()
 
     def validate(self, data):
         user = self.context['request'].user

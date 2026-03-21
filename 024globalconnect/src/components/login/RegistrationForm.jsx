@@ -1,6 +1,6 @@
 // src/components/auth/RegistrationForm.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import toast, { Toaster } from "react-hot-toast";
 import logoImage from "../../assets/024global_logo_200x200.png";
@@ -147,17 +147,17 @@ const handleSubmit = async (e) => {
     <div className="min-h-screen pt-28 flex items-center justify-center bg-blue-light p-4">
       <Toaster position="top-right" />
       <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl overflow-hidden">
-        <div className="bg-blue-night text-white p-6 flex flex-col md:flex-row items-center gap-6">
+        <div className="bg-blue-night text-white p-4 sm:p-6 flex flex-col md:flex-row items-center gap-4 sm:gap-6">
           <img src={logoImage} alt="Logo" className="w-24 h-24 rounded-full shadow-md bg-white p-1" />
           <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold">Welcome to 024GLOBALCONNECT!</h1>
-            <p className="text-lg mt-2 opacity-90">
+            <h1 className="text-xl sm:text-3xl font-bold">Welcome to 024GLOBALCONNECT!</h1>
+            <p className="text-sm sm:text-lg mt-2 opacity-90">
               Unlock your potential — grow, connect, and succeed. 🚀
             </p>
           </div>
         </div>
 
-        <form className="p-8 space-y-5" onSubmit={handleSubmit}>
+        <form className="p-4 sm:p-8 space-y-5" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField label="First Name" name="first_name" value={formData.first_name} onChange={handleChange} />
             <InputField label="Last Name" name="last_name" value={formData.last_name} onChange={handleChange} />
@@ -312,7 +312,7 @@ const handleSubmit = async (e) => {
                 className="mt-1"
               />
               <label htmlFor="termsAccepted" className="ml-2 text-sm text-blue-night">
-                I agree to the <a href="#" className="text-blue-marine hover:underline">terms and policies</a>
+                I agree to the <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-blue-marine hover:underline">terms and policies</Link>
               </label>
             {errors.termsAccepted && (
               <p className="text-red-500 text-sm mt-1 ml-2">{errors.termsAccepted}</p>

@@ -86,10 +86,10 @@ const AboutUs = () => {
   </div>
   
   <div className="relative max-w-6xl mx-auto text-center z-10">
-    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent drop-shadow-2xl">
+    <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent drop-shadow-2xl">
       024GlobalConnect
     </h1>
-    <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto drop-shadow-lg">
+    <p className="text-base sm:text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto drop-shadow-lg">
       Empowering African Communities through Smart Digital Linkages.
     </p>
     <div className="flex flex-wrap justify-center gap-4">
@@ -132,7 +132,7 @@ const AboutUs = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
+              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
                   024 GLOBAL CONNECT is a pan african agritech company dedicated to building an EFFICIENT,PROFITABLE AND AGRICULTURAL MARKETPLACE.We connect producers, services providers,traders,input suppliers,processors, and logistics partners through a tech-enabled ecosystem that enhances trust,transparency, and business growth.</p>
@@ -183,7 +183,7 @@ const AboutUs = () => {
 
       <section className="py-20 px-6 bg-gray-50">
   <div className="max-w-6xl mx-auto">
-    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">
       Our Core Values
     </h2>
 
@@ -252,7 +252,7 @@ const AboutUs = () => {
 {/* What We Do Section */}
 <section className="py-20 px-4 bg-gray-50">
   <div className="max-w-6xl mx-auto">
-    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
+    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">
       What We Do
     </h2>
 
@@ -371,7 +371,7 @@ const AboutUs = () => {
 {/*features and Goals Section */}
 <section className="py-20 px-4 bg-gray-50">
   <div className="max-w-6xl mx-auto">
-    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">System Features
+    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">System Features
       & Goals
     </h2>
     <p className="text-center text-gray-700 mb-16 max-w-3xl mx-auto">
@@ -440,7 +440,7 @@ const AboutUs = () => {
 {/*GOALS SECTION*/}
 <section className="py-20 px-4">
   <div className="max-w-6xl mx-auto">
-    <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Our Goals</h2>
+    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">Our Goals</h2>
 
 
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -536,7 +536,7 @@ const AboutUs = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to Join 024GlobalConnect?</h2>
+          <h2 className="text-2xl sm:text-4xl font-bold mb-6">Ready to Join 024GlobalConnect?</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
            ARE YOU A FARMER ,TRADER TRANSPORTER ,INPUT SUPPLIER ,PROCESSOR OR YOUTH LOOKING FOR OPPORTUNITIES IN AGRIBUSINESS? 024GLOBALCONNECT IS YOUR GROWTH PARTNER.
           </p>

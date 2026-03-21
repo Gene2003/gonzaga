@@ -25,16 +25,16 @@ const HeroWithCTA = () => {
         />
 
         {/* Overlay Content */}
-        <div className="relative z-10 h-full w-full flex flex-col justify-center items-center text-center px-6 bg-black/50 backdrop-blur-sm pt-36">
-          <h1 className="text-3xl md:text-4xl lg:text-5x1 font-bold mb-6 animate-fade-in-up max-w-2xl drop-shadow-md">
+        <div className="relative z-10 h-full w-full flex flex-col justify-center items-center text-center px-4 sm:px-6 bg-black/50 backdrop-blur-sm pt-20 sm:pt-28">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 animate-fade-in-up max-w-2xl drop-shadow-md">
             BUILDING AFRICA'S MOST EFFICIENT AND PROFITABLE AGRICULTURAL MARKETPLACE.
           </h1>
           <div className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-buttons">
             <a
               href="#"
-              className="border border-white text-white px-6 py-3 rounded-lg hover:bg-white hover:text-blue-700 hover:shadow-lg transition"
+              className="border border-white text-white px-4 sm:px-6 py-3 rounded-lg hover:bg-white hover:text-blue-700 hover:shadow-lg transition text-sm sm:text-base"
             >
-             💡  WE'RE NOT JUST BUILDING A PLATFORM.WE'RE BUILDING OPPOTUNITIES.
+             💡 WE'RE NOT JUST BUILDING A PLATFORM. WE'RE BUILDING OPPORTUNITIES.
             </a>
           </div>
         </div>
