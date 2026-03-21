@@ -205,14 +205,13 @@ def checkout(request):
 
     vendor = product.vendor
 
-    # ✅ FIX 1: Use correct price field based on vendor type
-    vendor_type = product.vendor.vendor_type
-    if vendor_type == 'farmer':
-        unit_price = product.farmer_price
-    elif vendor_type == 'wholesaler':
-        unit_price = product.wholesaler_price
-    else:  # retailer → consumers
-        unit_price = product.retailer_price
+    # Use same price priority as frontend: retailer → wholesaler → farmer
+    unit_price = (
+        product.retailer_price if product.retailer_price and Decimal(str(product.retailer_price)) > 0
+        else product.wholesaler_price if product.wholesaler_price and Decimal(str(product.wholesaler_price)) > 0
+        else product.farmer_price if product.farmer_price and Decimal(str(product.farmer_price)) > 0
+        else None
+    )
 
     if not unit_price:
         return Response({"error": "Product price is not set."}, status=400)
@@ -587,6 +586,9 @@ def cart_checkout(request):
     for item in items:
         product_id = item.get('product_id')
         quantity = int(item.get('quantity', 1))
+        # Unit price sent by cart — this is what was displayed to the buyer
+        frontend_price = item.get('unit_price')
+
         try:
             product = ProductModel.objects.select_related('vendor').get(id=product_id)
         except ProductModel.DoesNotExist:
@@ -596,13 +598,17 @@ def cart_checkout(request):
         if not vendor.paystack_subaccount_code:
             continue
 
-        vendor_type = vendor.vendor_type
-        if vendor_type == 'farmer':
-            unit_price = product.farmer_price
-        elif vendor_type == 'wholesaler':
-            unit_price = product.wholesaler_price
+        # Prefer the price the buyer saw in their cart; fall back to first non-zero DB price
+        if frontend_price and Decimal(str(frontend_price)) > 0:
+            unit_price = Decimal(str(frontend_price))
         else:
-            unit_price = product.retailer_price
+            # Same priority order as frontend getPrice: retailer → wholesaler → farmer
+            unit_price = (
+                product.retailer_price if product.retailer_price and Decimal(str(product.retailer_price)) > 0
+                else product.wholesaler_price if product.wholesaler_price and Decimal(str(product.wholesaler_price)) > 0
+                else product.farmer_price if product.farmer_price and Decimal(str(product.farmer_price)) > 0
+                else None
+            )
 
         if not unit_price:
             continue
@@ -619,7 +625,8 @@ def cart_checkout(request):
 
         buyer = request.user if request.user.is_authenticated else None
         amount = unit_price * quantity
-        amount_kobo = int(amount * 100)
+        # Paystack uses smallest currency unit: 1 KES = 100 cents → multiply by 100
+        amount_kobo = int(Decimal(str(amount)) * 100)
 
         subaccounts = [{"subaccount": vendor.paystack_subaccount_code, "share": 90 if affiliate else 95}]
         if affiliate_subaccount:

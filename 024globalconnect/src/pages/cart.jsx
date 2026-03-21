@@ -56,6 +56,7 @@ const Cart = () => {
       const items = cart.map((item) => ({
         product_id: item.id,
         quantity: item.quantity,
+        unit_price: item.price,  // send cart price so Paystack amount matches exactly
       }));
 
       const res = await apiClient.post(API_ENDPOINTS.CART_CHECKOUT, {
