@@ -412,15 +412,19 @@ def paystack_order_webhook(request):
                     completed_at=timezone.now()
                 )
 
-                # Deduct stock from product
+                # Deduct stock from product — use .update() to bypass full_clean()
+                # which raises "Stock must be at least 1" validation on save()
                 product = order.product
                 if product.is_farm_product():
-                    product.quantity_kg = max(0, product.quantity_kg - order.quantity)
-                    product.stock = product.quantity_kg
+                    new_qty = max(0, product.quantity_kg - order.quantity)
+                    Product.objects.filter(id=product.id).update(
+                        quantity_kg=new_qty, stock=new_qty
+                    )
                 else:
-                    product.stock = max(0, product.stock - order.quantity)
-                    product.quantity_kg = product.stock
-                product.save()
+                    new_stock = max(0, product.stock - order.quantity)
+                    Product.objects.filter(id=product.id).update(
+                        stock=new_stock, quantity_kg=new_stock
+                    )
 
                 # Mark referral as paid
                 if affiliate_id:

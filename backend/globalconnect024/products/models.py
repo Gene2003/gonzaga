@@ -58,8 +58,8 @@ class Product(models.Model):
                     raise ValidationError("Retailer quantity cannot exceed the maximum quantity sold by wholesalers.")
             
         else:
-            if self.stock < 1:
-                raise ValidationError("Stock must be at least 1.")
+            if self.stock < 0:
+                raise ValidationError("Stock cannot be negative.")
 
     
     def save (self, *args, **kwargs):
