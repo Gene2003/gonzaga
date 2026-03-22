@@ -43,10 +43,10 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """
-        - List/Retrieve: Anyone can view (AllowAny)
-        - Create/Update/Delete: Only authenticated users
+        - List/Retrieve/Ratings: Anyone can view (AllowAny)
+        - Create/Update/Delete/my_products: Only authenticated users
         """
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'ratings']:
             return [AllowAny()]
         return [IsAuthenticated()]
 
