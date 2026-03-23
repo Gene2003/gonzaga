@@ -1,7 +1,20 @@
-from django.contrib import admin 
+from django.contrib import admin
+from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
-from .models import CustomUser , AffiliateCertificate
+from .models import CustomUser, AffiliateCertificate
+
+
+def activate_users(modeladmin, request, queryset):
+    updated = queryset.update(is_active=True)
+    messages.success(request, f"{updated} user(s) activated successfully.")
+activate_users.short_description = "Activate selected users"
+
+
+def deactivate_users(modeladmin, request, queryset):
+    updated = queryset.update(is_active=False)
+    messages.success(request, f"{updated} user(s) deactivated successfully.")
+deactivate_users.short_description = "Deactivate selected users"
 
 @admin.register(AffiliateCertificate)
 class AffiliateCertificateAdmin(admin.ModelAdmin):
@@ -12,9 +25,10 @@ class AffiliateCertificateAdmin(admin.ModelAdmin):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ('username', 'email', 'first_name', 'last_name', 'role','vendor_type','service_provider_type','is_staff')
+    list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'vendor_type', 'service_provider_type', 'is_active', 'is_staff')
     search_fields = ('username', 'email', 'first_name', 'last_name')
-    list_filter = ('role', 'vendor_type','service_provider_type','is_staff', 'is_superuser', 'is_active', 'groups')
+    list_filter = ('role', 'vendor_type', 'service_provider_type', 'is_staff', 'is_superuser', 'is_active', 'groups')
+    actions = [activate_users, deactivate_users]
 
     fieldsets = (
         (_('Login Info'), {'fields': ('username', 'password')}),

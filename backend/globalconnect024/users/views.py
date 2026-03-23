@@ -3,9 +3,6 @@ import traceback
 from django.db.models import Sum, Q, Count
 from orders.models import Referral, Order
 from products.models import Product
-import random
-
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import generics, status, serializers
 from rest_framework.response import Response
@@ -27,10 +24,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from django.utils.dateparse import parse_date
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.core.mail import send_mail, BadHeaderError
-from django.template.loader import render_to_string, TemplateDoesNotExist
+from django.utils.http import urlsafe_base64_decode
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.shortcuts import redirect
 from django.conf import settings
 from django.utils.decorators import method_decorator
@@ -62,45 +58,25 @@ class RegisterView(generics.CreateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         user = serializer.save(is_active=False)
-        print("user created:", user)
 
-        if user.role == "vendor":
-            unique_code = str(random.randint(10000, 99999))
-            user.vendor_login_code = unique_code
-            user.save()
-
-            try:
-                send_mail(
-                    subject="Your Vendor Login Code",
-                    message=f"Welcome {user.first_name}! Your unique login code is: {unique_code}",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
-            except BadHeaderError:
-                return Response({"error": "Invalid header found."}, status=500)
-
-        # Create activation email
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = account_activation_token.make_token(user)
-        activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
-
-        subject = 'Activate Your 024GlobalConnect Account'
-        try:
-            message = render_to_string('activation_email.html', {
-                'user': user,
-                'activation_link': activation_link
-            })
-        except TemplateDoesNotExist:
-            return Response({"error": "Email template not found."}, status=500)
-
-        try:
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
-        except BadHeaderError:
-            return Response({"error": "Invalid header found."}, status=500)
+        # Send "pending admin approval" email — admin must activate the account
+        send_mail(
+            subject="Registration Received — Pending Admin Approval",
+            message=(
+                f"Hi {user.first_name or user.username},\n\n"
+                f"Thank you for registering with 024GlobalConnect!\n\n"
+                f"Your registration has been received successfully.\n"
+                f"Your account is currently pending approval by our admin team.\n\n"
+                f"You will receive another email once your account is activated and you can log in.\n\n"
+                f"Thank you for joining 024GlobalConnect!"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
 
         return Response({
-            "message": "Account created successfully. Please check your email to activate your account."
+            "message": "Registration received. Your account is pending admin approval. You will be notified by email once activated."
         }, status=201)
 
 
@@ -420,44 +396,40 @@ def paystack_webhook(request):
     event = json.loads(payload)
 
     if event.get('event') == 'charge.success':
-        metadata = event['data'].get('metadata', {})
-        user_id = metadata.get('user_id')
-        vendor_registration_id = metadata.get('vendor_registration_id')
+        reference = event['data'].get('reference')
         paystack_transaction_id = event['data'].get('id')
 
+        # Look up vendor registration by Paystack reference
         try:
-            user = User.objects.get(id=user_id)
-            user.is_active = True
-            user.registration_paid = True
-            user.save()
+            vendor_reg = VendorRegistration.objects.get(paystack_reference=reference)
+        except VendorRegistration.DoesNotExist:
+            return Response({'status': 'ok'}, status=200)
 
-            # Update VendorRegistration record
-            if vendor_registration_id:
-                try:
-                    vendor_reg = VendorRegistration.objects.get(id=vendor_registration_id)
-                    vendor_reg.payment_status = 'completed'
-                    vendor_reg.paystack_transaction_id = str(paystack_transaction_id)
-                    vendor_reg.paid_at = timezone.now()
-                    vendor_reg.save()
-                except VendorRegistration.DoesNotExist:
-                    pass
+        user = vendor_reg.vendor
+        # Mark payment as received — do NOT activate; admin must do that
+        user.registration_paid = True
+        user.save()
 
-            # Send welcome email to vendor
-            send_mail(
-                subject="Welcome to 024GlobalConnect — Account Activated!",
-                message=(
-                    f"Hi {user.first_name},\n\n"
-                    f"Your vendor account has been activated after successful payment of KES 200.\n"
-                    f"You can now log in and start uploading your products.\n\n"
-                    f"Welcome aboard!"
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=True,
-            )
+        vendor_reg.payment_status = 'completed'
+        vendor_reg.paystack_transaction_id = str(paystack_transaction_id)
+        vendor_reg.paid_at = timezone.now()
+        vendor_reg.save()
 
-        except User.DoesNotExist:
-            pass
+        # Send "payment received, pending admin activation" email
+        send_mail(
+            subject="Payment Received — Account Pending Admin Activation",
+            message=(
+                f"Hi {user.first_name or user.username},\n\n"
+                f"Thank you for your registration payment of KES 200.\n"
+                f"Your payment has been received successfully.\n\n"
+                f"Your vendor account is currently pending activation by our admin team.\n"
+                f"You will receive another email once your account is activated and you can start listing products.\n\n"
+                f"Thank you for joining 024GlobalConnect!"
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
 
     return Response({'status': 'ok'}, status=200)
 
@@ -751,6 +723,21 @@ def update_user_status(request, user_id):
 
         return Response({'error': 'is_active field required'}, status=400)
 
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated, IsCustomAdmin])
+def admin_update_user(request, user_id):
+    """Admin updates user's personal info: first_name, last_name, email, phone"""
+    try:
+        user = CustomUser.objects.get(id=user_id)
+        for field in ['first_name', 'last_name', 'email', 'phone']:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        user.save()
+        return Response({'message': 'User updated successfully'})
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
 

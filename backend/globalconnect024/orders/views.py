@@ -76,6 +76,61 @@ def send_email_async(subject, message, recipient):
     threading.Thread(target=_send, daemon=True).start()
 
 
+def send_sms_async(message, recipients):
+    """
+    Send SMS via Africa's Talking HTTP API in a background thread.
+    recipients: list of phone numbers in international format e.g. ['+254712345678']
+    """
+    def _send():
+        api_key = getattr(settings, 'AT_API_KEY', '')
+        username = getattr(settings, 'AT_USERNAME', 'sandbox')
+        if not api_key:
+            print(f"[SMS] AT_API_KEY not set — cannot send SMS")
+            return
+
+        # Format phone numbers to international format (+254...)
+        formatted = []
+        for phone in recipients:
+            if not phone:
+                continue
+            p = str(phone).strip().replace(' ', '').replace('-', '')
+            if p.startswith('0'):
+                p = '+254' + p[1:]
+            elif p.startswith('254') and not p.startswith('+'):
+                p = '+' + p
+            elif not p.startswith('+'):
+                p = '+254' + p
+            formatted.append(p)
+
+        if not formatted:
+            return
+
+        try:
+            response = requests.post(
+                'https://api.africastalking.com/version1/messaging',
+                headers={
+                    'apiKey': api_key,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
+                },
+                data={
+                    'username': username,
+                    'to': ','.join(formatted),
+                    'message': message,
+                    'from': '024Global',
+                },
+                timeout=15,
+            )
+            result = response.json()
+            recipients_info = result.get('SMSMessageData', {}).get('Recipients', [])
+            for r in recipients_info:
+                print(f"[SMS] {r.get('status')} to {r.get('number')}: {r.get('statusCode')}")
+        except Exception as e:
+            print(f"[SMS] Africa's Talking request failed: {e}")
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 def get_mpesa_token():
     """Get M-Pesa OAuth token"""
     url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
@@ -524,6 +579,27 @@ Thank you for shopping on 024Global!
 024Global Team
 www.024global.com""",
                     recipient=buyer_email,
+                )
+
+            # Send SMS notifications
+            buyer_phone = order.guest_phone or (order.buyer.phone_number if order.buyer and hasattr(order.buyer, 'phone_number') else None)
+            vendor_phone = order.vendor.phone_number if order.vendor and hasattr(order.vendor, 'phone_number') else None
+            affiliate_phone = order.affiliate.phone_number if order.affiliate and hasattr(order.affiliate, 'phone_number') else None
+
+            if buyer_phone:
+                send_sms_async(
+                    message=f"024Global: Payment confirmed! Order #{order.id} for {order.product.name} x{order.quantity}. Total: KES {order.amount}. Delivery to: {order.guest_address or 'your address'}. Thank you!",
+                    recipients=[buyer_phone],
+                )
+            if vendor_phone:
+                send_sms_async(
+                    message=f"024Global: New sale! Order #{order.id} - {order.product.name} x{order.quantity}. You receive: KES {order.vendor_amount}. Customer: {order.guest_name or buyer_name}.",
+                    recipients=[vendor_phone],
+                )
+            if affiliate_phone:
+                send_sms_async(
+                    message=f"024Global: Commission earned! Order #{order.id} - {order.product.name}. Your commission: KES {order.affiliate_amount}. Keep sharing your referral link!",
+                    recipients=[affiliate_phone],
                 )
 
         except Order.DoesNotExist:

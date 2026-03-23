@@ -24,7 +24,7 @@ from .views import (
     affiliate_referrals,
 
     # Admin
-    admin_user_list,
+    admin_update_user,
     toggle_user_status,
     admin_product_list,
     toggle_product_visibility,
@@ -66,25 +66,23 @@ urlpatterns = [
     path('affiliate/referrals/', affiliate_referrals, name='affiliate_referrals'),
 
     # 🛠️ Admin Endpoints
-    path('admin/users/', admin_user_list, name='admin_user_list'),
+    path('admin/users/', get_all_users, name='get_all_users'),
+    path('admin/users/create/', AdminCreateUser.as_view()),
+    path('admin/users/list/', AdminUserList.as_view()),
+    path('admin/affiliates/', get_affiliates, name='get_affiliates'),
+    path('admin/vendors/', get_vendors, name='get_vendors'),
+    path('admin/dashboard-stats/', get_dashboard_stats, name='get_dashboard_stats'),
+    path('admin/users/<int:user_id>/update-status/', update_user_status, name='update_user_status'),
+    path('admin/users/<int:user_id>/update/', admin_update_user, name='admin_update_user'),
+    path('admin/users/<int:user_id>/delete/', delete_user, name='delete_user'),
     path('admin/users/<int:user_id>/status/', toggle_user_status, name='toggle_user_status'),
+    path('admin/users/<int:pk>/update-role/', AdminUpdateUserRole.as_view()),
+    path('admin/users/<int:pk>/reset-password/', AdminResetPassword.as_view()),
     path('admin/products/', admin_product_list, name='admin_product_list'),
     path('admin/products/<int:product_id>/toggle/', toggle_product_visibility, name='toggle_product_visibility'),
     path('admin/commissions/', admin_commission_logs, name='admin_commission_logs'),
     path('admin/commissions/<int:referral_id>/approve/', approve_commission, name='approve_commission'),
     path('admin/commissions/<int:referral_id>/payout/', mark_commission_paid, name='payout_commission'),
     path('admin/system-logs/', system_logs, name='system_logs'),
-    # 🛡️ Admin User Management
-    path('admin/users/list/', AdminUserList.as_view()), 
-    path('admin/users/create/', AdminCreateUser.as_view()),
-    path('admin/users/<int:pk>/delete/', AdminDeleteUser.as_view()), 
-    path('admin/users/<int:pk>/update-role/', AdminUpdateUserRole.as_view()),
-    path("admin/users/<int:pk>/reset-password/", AdminResetPassword.as_view()),
-    path('admin/users/', get_all_users, name='get_all_users'),
-    path('admin/affiliates/', get_affiliates, name='get_affiliates'),
-    path('admin/vendors/', get_vendors, name='get_vendors'),
-    path('admin/dashboard-stats/', get_dashboard_stats, name='get_dashboard_stats'),
-    path('admin/users/<int:user_id>/update-status/', update_user_status, name='update_user_status'),
-    path('admin/users/<int:user_id>/delete/', delete_user, name='delete_user'),
 
 ]

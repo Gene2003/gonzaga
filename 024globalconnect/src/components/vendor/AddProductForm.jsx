@@ -38,7 +38,6 @@ const AddProductForm = () => {
     stock: "",
     category: "",
     product_type: "good",
-    image: null,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,11 +53,49 @@ const AddProductForm = () => {
     100;
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const getAutoImage = () => {
+    const name = form.name.toLowerCase();
+    const cat = (selectedCategoryObj?.value || '').toLowerCase();
+
+    const keywords = {
+      laptop: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
+      phone: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
+      tv: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=400',
+      shirt: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
+      shoe: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
+      maize: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400',
+      corn: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400',
+      rice: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',
+      milk: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400',
+      tomato: 'https://images.unsplash.com/photo-1546470427-e26264be0b0d?w=400',
+      potato: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400',
+      chicken: 'https://images.unsplash.com/photo-1560717845-968823efbee1?w=400',
+      beef: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=400',
+      book: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400',
+      sofa: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400',
+      car: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400',
+    };
+    for (const [kw, url] of Object.entries(keywords)) {
+      if (name.includes(kw)) return url;
+    }
+
+    const catMap = {
+      farm_products: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400',
+      food: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
+      electronics: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400',
+      fashion: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400',
+      health_beauty: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
+      home_kitchen: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400',
+      books: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400',
+      toys: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400',
+      sports: 'https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?w=400',
+      automotive: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400',
+    };
+    return catMap[cat] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400';
   };
 
   const handleSubmit = async (e) => {
@@ -101,8 +138,6 @@ const AddProductForm = () => {
       if (form.wholesaler_price) formData.append("wholesaler_price", Number(form.wholesaler_price));
       if (form.retailer_price) formData.append("retailer_price", Number(form.retailer_price));
 
-      if (form.image) formData.append("image", form.image);
-
       await apiClient.post(API_ENDPOINTS.ADD_PRODUCT, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -119,7 +154,6 @@ const AddProductForm = () => {
         stock: "",
         category: "",
         product_type: "good",
-        image: null,
       });
     } catch (err) {
       console.error("Full error:", err?.response?.data);
@@ -310,17 +344,22 @@ const AddProductForm = () => {
           </div>
         )}
 
-        {/* Image */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Product Image</label>
-          <input
-            type="file"
-            name="image"
-            accept="image/*"
-            onChange={handleChange}
-            className="w-full"
-          />
-        </div>
+        {/* Auto-generated image preview */}
+        {(form.name || form.category) && (
+          <div>
+            <label className="block text-sm font-medium mb-1 text-gray-600">
+              Auto-generated product image
+            </label>
+            <img
+              src={getAutoImage()}
+              alt="Auto preview"
+              className="w-full h-40 object-cover rounded-lg border border-gray-200"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Image is assigned automatically based on your product name and category.
+            </p>
+          </div>
+        )}
 
         <button
           type="submit"
