@@ -1,46 +1,74 @@
 import React, { useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import landingVideo from '../../assets/landing.mp4';
 
 const HeroWithCTA = () => {
   const videoRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.playbackRate = 0.5; // 🎬 slower speed (0.5x)
+      videoRef.current.playbackRate = 0.5;
     }
   }, []);
 
   return (
-    <>
-      <section className="relative h-screen w-full overflow-hidden text-white">
-        {/* Background Video */}
-        <video
-          ref={videoRef}
-          className="absolute top-0 left-0 w-full h-full object-cover z-0"
-          src={landingVideo}
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
+    <section className="relative h-screen w-full overflow-hidden text-white">
+      {/* Background Video */}
+      <video
+        ref={videoRef}
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
+        src={landingVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+      />
 
-        {/* Overlay Content */}
-        <div className="relative z-10 h-full w-full flex flex-col justify-center items-center text-center px-4 sm:px-6 bg-black/50 backdrop-blur-sm pt-20 sm:pt-28">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 animate-fade-in-up max-w-2xl drop-shadow-md">
-            BUILDING AFRICA'S MOST EFFICIENT AND PROFITABLE AGRICULTURAL MARKETPLACE.
-          </h1>
-          <div className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-buttons">
-            <a
-              href="#"
-              className="border border-white text-white px-4 sm:px-6 py-3 rounded-lg hover:bg-white hover:text-blue-700 hover:shadow-lg transition text-sm sm:text-base"
-            >
-             💡 WE'RE NOT JUST BUILDING A PLATFORM. WE'RE BUILDING OPPORTUNITIES.
-            </a>
-          </div>
+      {/* Dark gradient overlay */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 sm:px-8 pt-20">
+        {/* Eyebrow */}
+        <span className="inline-block bg-green-600 text-white text-xs sm:text-sm font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
+          Africa's Agricultural Marketplace
+        </span>
+
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6 max-w-4xl drop-shadow-lg">
+          Connecting Farmers, Vendors &amp; Buyers Across Africa
+        </h1>
+
+        <p className="text-base sm:text-xl text-white/85 max-w-2xl mb-10 leading-relaxed">
+          Buy fresh produce directly from farmers. Sell your products to thousands of buyers.
+          Earn commissions as an affiliate. One platform — endless opportunity.
+        </p>
+
+        {/* CTAs */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={() => navigate('/products')}
+            className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:shadow-green-900/40 hover:scale-105"
+          >
+            Browse Marketplace
+          </button>
+          <button
+            onClick={() => navigate('/register')}
+            className="px-8 py-4 bg-white/10 border-2 border-white text-white hover:bg-white hover:text-green-800 font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:scale-105"
+          >
+            Join as Vendor
+          </button>
         </div>
-      </section>
 
-    </>
+        {/* Scroll cue */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce opacity-70">
+          <span className="text-xs uppercase tracking-widest">Scroll</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+    </section>
   );
 };
 
