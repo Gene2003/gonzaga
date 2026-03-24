@@ -39,28 +39,27 @@ const AboutUs = () => {
   const teamMembers = [
     {
       name: 'Jimmy Murigi',
-      role: 'CEO & CoFounder',
-      image: '',
-      bio: '10+ years in digital marketing and affiliate networks'
+      role: 'CEO & Co-Founder',
+      image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop&crop=face',
+      bio: '10+ years in digital marketing and agricultural value chain development.'
     },
-
     {
       name: 'Gonzaga Shyachi',
       role: 'Software Maintenance Assistant',
-      image: '',
-      bio: 'software developer'
+      image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=300&h=300&fit=crop&crop=face',
+      bio: 'Full-stack software developer building the platform infrastructure.'
     },
     {
-      name: 'John ',
-      role: 'IT and System Manager',
-      image: '',
-      bio: ''
+      name: 'John',
+      role: 'IT & System Manager',
+      image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&crop=face',
+      bio: 'Overseeing system reliability, security, and technical operations.'
     },
     {
-      name: 'Scovian',  
+      name: 'Scovian',
       role: 'Agribusiness Manager',
-      image: '',
-      bio: ''
+      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face',
+      bio: 'Driving agribusiness strategy and farmer partnerships across the network.'
     },
   ];
 
@@ -180,316 +179,211 @@ const AboutUs = () => {
       </section>
 
       {/* Values Section */}
-
       <section className="py-20 px-6 bg-gray-50">
-  <div className="max-w-6xl mx-auto">
-    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">
-      Our Core Values
-    </h2>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">What Guides Us</span>
+            <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mt-2">Our Core Values</h2>
+          </div>
 
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                num: 1, title: "People-Centred",
+                desc: "We place people at the heart of every innovation.",
+                img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&h=280&fit=crop",
+              },
+              {
+                num: 2, title: "Technology-Driven",
+                desc: "We embrace solutions that enhance efficiency and transparency.",
+                img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=280&fit=crop",
+              },
+              {
+                num: 3, title: "Customer Satisfaction",
+                desc: "We listen, improve, and deliver value.",
+                img: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=280&fit=crop",
+              },
+              {
+                num: 4, title: "Integrity & Trust",
+                desc: "We keep our word and build lasting relationships.",
+                img: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=280&fit=crop",
+              },
+            ].map((v) => (
+              <div key={v.num} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
+                <div className="h-44 overflow-hidden">
+                  <img src={v.img} alt={v.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="p-6">
+                  <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-10 h-10 rounded-xl flex items-center justify-center mb-4">
+                    <span className="text-white text-sm font-bold">{v.num}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{v.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{v.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
 
-      {/* People-Centred */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">1</span>
+          {/* Environmental Care — full width */}
+          <div className="mt-8 bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group">
+            <div className="grid md:grid-cols-2">
+              <div className="h-56 md:h-auto overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=400&fit=crop"
+                  alt="Environmental Care"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="p-8 flex flex-col justify-center">
+                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-10 h-10 rounded-xl flex items-center justify-center mb-4">
+                  <span className="text-white text-sm font-bold">5</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Environmental Care</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  We work towards a responsible and sustainable agricultural future — protecting land, water, and communities for generations to come.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">People-Centred</h3>
-        <p className="text-gray-600 leading-relaxed">
-          We place people at the heart of every innovation.
-        </p>
-      </div>
-
-      {/* Technology-Driven */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">2</span>
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Technology-Driven</h3>
-        <p className="text-gray-600 leading-relaxed">
-          We embrace solutions that enhance efficiency and transparency.
-        </p>
-      </div>
-
-      {/* Customer Satisfaction */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">3</span>
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Customer Satisfaction</h3>
-        <p className="text-gray-600 leading-relaxed">
-          We listen, improve, and deliver value.
-        </p>
-      </div>
-
-      {/* Integrity & Trust */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">4</span>
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Integrity & Trust</h3>
-        <p className="text-gray-600 leading-relaxed">
-          We keep our word and build lasting relationships.
-        </p>
-      </div>
-
-      {/* Environmental Care */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 md:col-span-2 lg:col-span-4">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">5</span>
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Environmental Care</h3>
-        <p className="text-gray-600 leading-relaxed">
-          We work towards a responsible and sustainable agricultural future.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
+      </section>
 
 
 {/* What We Do Section */}
-<section className="py-20 px-4 bg-gray-50">
+<section className="py-20 px-4 bg-white">
   <div className="max-w-6xl mx-auto">
-    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">
-      What We Do
-    </h2>
-
+    <div className="text-center mb-14">
+      <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">Our Services</span>
+      <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mt-2">What We Do</h2>
+    </div>
     <div className="grid md:grid-cols-2 gap-8">
-      {/* Service Items */}
       {[
         {
-          icon: '🌱',
-          title: 'Digital Agricultural Marketplace',
-          description: (
-            <>
-              We onboard and connect all key actors across the agricultural ecosystem, including:
-              <ul className="list-disc ml-5 mt-2">
-                <li>Input providers</li>
-                <li>Service providers</li>
-                <li>Producers</li>
-                <li>Aggregators</li>
-                <li>Processors</li>
-                <li>Wholesalers & retailers</li>
-                <li>Logistics and transport service providers</li>
-              </ul>
-              Our platform ensures seamless, efficient, and profitable interactions.
-            </>
-          )
+          icon: '🌱', title: 'Digital Agricultural Marketplace',
+          img: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&h=260&fit=crop',
+          bullets: ['Input providers', 'Service providers', 'Producers & Aggregators', 'Wholesalers & retailers', 'Logistics & transport'],
+          summary: 'Our platform ensures seamless, efficient, and profitable interactions across the full value chain.',
         },
         {
-          icon: '📊',
-          title: 'Real-Time Market Information',
-          description: (
-            <>
-              We provide reliable access to:
-              <ul className="list-disc ml-5 mt-2">
-                <li>Market prices</li>
-                <li>Weather updates</li>
-                <li>Local and regional trends</li>
-                <li>Demand and supply insights</li>
-              </ul>
-              This empowers actors to make informed decisions that reduce risks and increase profits.
-            </>
-          )
+          icon: '📊', title: 'Real-Time Market Information',
+          img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=260&fit=crop',
+          bullets: ['Live market prices', 'Weather updates', 'Local & regional trends', 'Demand and supply insights'],
+          summary: 'Empowering actors to make informed decisions that reduce risks and increase profits.',
         },
         {
-          icon: '📉',
-          title: 'Reducing Post-Harvest Losses',
-          description: (
-            <>
-              Our model is engineered to bring post-harvest losses down to 5% or less through:
-              <ul className="list-disc ml-5 mt-2">
-                <li>Structured supply chains</li>
-                <li>Timely market linkages</li>
-                <li>Efficient logistics</li>
-                <li>Better handling practices</li>
-              </ul>
-            </>
-          )
+          icon: '📉', title: 'Reducing Post-Harvest Losses',
+          img: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=600&h=260&fit=crop',
+          bullets: ['Structured supply chains', 'Timely market linkages', 'Efficient logistics', 'Better handling practices'],
+          summary: 'Engineered to bring post-harvest losses down to 5% or less.',
         },
         {
-          icon: '📚',
-          title: 'Upskilling, Mentorship & Capacity Building',
-          description: (
-            <>
-              We partner with development agencies, training institutions, and private sector actors to offer:
-              <ul className="list-disc ml-5 mt-2">
-                <li>Agribusiness training</li>
-                <li>Digital marketing skills</li>
-                <li>Financial literacy</li>
-                <li>Technical mentorship</li>
-                <li>Value chain coaching</li>
-              </ul>
-              This empowers youth, women, and SMEs to grow strong, resilient agribusinesses.
-            </>
-          )
+          icon: '📚', title: 'Upskilling & Capacity Building',
+          img: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&h=260&fit=crop',
+          bullets: ['Agribusiness training', 'Digital marketing skills', 'Financial literacy', 'Value chain coaching'],
+          summary: 'Empowering youth, women, and SMEs to grow strong, resilient agribusinesses.',
         },
         {
-          icon: '💸',
-          title: 'Linkage to Affordable Finance',
-          description: (
-            <>
-              We collaborate with financial service providers to help actors access:
-              <ul className="list-disc ml-5 mt-2">
-                <li>Tailor-made financing</li>
-                <li>Credit for inputs and operations</li>
-                <li>Asset financing</li>
-                <li>Working capital facilities</li>
-              </ul>
-              Our goal is to unlock growth for agricultural entrepreneurs.
-            </>
-          )
+          icon: '💸', title: 'Linkage to Affordable Finance',
+          img: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&h=260&fit=crop',
+          bullets: ['Tailor-made financing', 'Credit for inputs & operations', 'Asset financing', 'Working capital facilities'],
+          summary: 'Unlocking growth capital for agricultural entrepreneurs across Africa.',
         },
         {
-          icon: '🤝',
-          title: 'Affiliate Program',
-          description: (
-            <>
-              Our affiliate system allows youth, producers, and digital marketers to earn from:
-              <ul className="list-disc ml-5 mt-2">
-                <li>Referrals</li>
-                <li>Linking buyers and sellers</li>
-                <li>Promoting agricultural products and services</li>
-              </ul>
-              This program creates a new earning frontier in agriculture through digital participation.
-            </>
-          )
-        }
+          icon: '🤝', title: 'Affiliate Program',
+          img: 'https://images.unsplash.com/photo-1553484771-047a44eee27a?w=600&h=260&fit=crop',
+          bullets: ['Referral commissions', 'Linking buyers and sellers', 'Promoting agri products & services'],
+          summary: 'A new earning frontier in agriculture through digital participation.',
+        },
       ].map((service, index) => (
-        <div key={index} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-          <div className="text-4xl mb-4">{service.icon}</div>
-          <h3 className="text-2xl font-bold mb-3 text-gray-900">{service.title}</h3>
-          <p className="text-gray-700">{service.description}</p>
+        <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group border border-gray-100">
+          <div className="h-48 overflow-hidden">
+            <img src={service.img} alt={service.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          </div>
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">{service.icon}</span>
+              <h3 className="text-xl font-bold text-gray-900">{service.title}</h3>
+            </div>
+            <ul className="space-y-1 mb-3">
+              {service.bullets.map((b) => (
+                <li key={b} className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
+                  {b}
+                </li>
+              ))}
+            </ul>
+            <p className="text-gray-500 text-sm italic">{service.summary}</p>
+          </div>
         </div>
       ))}
     </div>
   </div>
 </section>
 
-{/*features and Goals Section */}
+{/* System Features Section */}
 <section className="py-20 px-4 bg-gray-50">
   <div className="max-w-6xl mx-auto">
-    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">System Features
-      & Goals
-    </h2>
-    <p className="text-center text-gray-700 mb-16 max-w-3xl mx-auto">
-      our platform is designed to support aan end to end agricultural ecosystem with features such as:
-    </p>
-
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-
-    {/* Features*/}
-    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">1</span>
+    <div className="text-center mb-14">
+      <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">Platform Capabilities</span>
+      <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mt-2">System Features</h2>
+      <p className="text-gray-600 mt-3 max-w-2xl mx-auto">
+        Our platform supports an end-to-end agricultural ecosystem with powerful tools built for Africa.
+      </p>
+    </div>
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {[
+        { num: 1, title: 'Seamless Onboarding', text: 'All value chain actors can register and get verified quickly.', img: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=600&h=240&fit=crop' },
+        { num: 2, title: 'Real-Time Transactions', text: 'Instant payments and confirmations via M-Pesa and Paystack.', img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=240&fit=crop' },
+        { num: 3, title: 'Data & Analytics', text: 'Live dashboards with sales trends, stock levels, and market insights.', img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=240&fit=crop' },
+        { num: 4, title: 'Affiliate Dashboard', text: 'Track referrals, commissions earned, and payout status in one place.', img: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&h=240&fit=crop' },
+        { num: 5, title: 'Product & Service Marketplace', text: 'List farm produce, goods, and agri-services for buyers across Africa.', img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&h=240&fit=crop' },
+        { num: 6, title: 'Logistics Integration', text: 'Connect with verified transporters for last-mile delivery solutions.', img: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=600&h=240&fit=crop' },
+      ].map((f) => (
+        <div key={f.num} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+          <div className="h-44 overflow-hidden">
+            <img src={f.img} alt={f.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          </div>
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs font-bold w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0">{f.num}</span>
+              <h3 className="font-bold text-gray-900">{f.title}</h3>
+            </div>
+            <p className="text-gray-500 text-sm leading-relaxed">{f.text}</p>
+          </div>
         </div>
-        <p className="text-gray-600 leading-relaxed">
-         SEAMLESS ONBOARDING OF ALL THE VALUE CHAIN ACTORS.
-        </p>
-      </div>
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">2</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          SEAMLESS REALTIME TRANSACTIONS.
-        </p>
-      </div>
-
-       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">3</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          REAL-TIME DATA AND ANALYTICS.
-        </p>
-      </div>
-
-       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">4</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          AFFILIATE EARNING DASHBOARD.
-        </p>
-      </div>
-
-       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">5</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          PRODUCT LISTING & SERVICE MARKETPLACE.
-        </p>
-      </div>
-
-       <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">6</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          VERIFIED LOGISTICS & DELIVERY INTERGRATION.
-        </p>
-      </div>
+      ))}
     </div>
   </div>
 </section>
 
-{/*GOALS SECTION*/}
-<section className="py-20 px-4">
+{/* Goals Section */}
+<section className="py-20 px-4 bg-white">
   <div className="max-w-6xl mx-auto">
-    <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-900 mb-12">Our Goals</h2>
-
-
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-
-      {/* Goal Items */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">1</span>
+    <div className="text-center mb-14">
+      <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">Where We're Headed</span>
+      <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mt-2">Our Goals</h2>
+    </div>
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {[
+        { num: 1, title: 'Pan-African Network', text: 'Establish a predictable, profitable agricultural marketplace network powered by technology across Africa.', img: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&h=240&fit=crop' },
+        { num: 2, title: 'Accurate Market Data', text: 'Provide farmers and traders with accurate market information and real-time pricing insights.', img: 'https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?w=600&h=240&fit=crop' },
+        { num: 3, title: 'Reduce Post-Harvest Losses', text: 'Cut post-harvest losses to 5% or less through smart logistics and timely market linkages.', img: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=240&fit=crop' },
+        { num: 4, title: 'Capacity Building', text: 'Enhance the capacity of value chain actors through hands-on training and mentorship programs.', img: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=240&fit=crop' },
+        { num: 5, title: 'Financial Inclusion', text: 'Create accessible linkages to affordable financial services for every agricultural entrepreneur.', img: 'https://images.unsplash.com/photo-1579621970795-87facc2f976d?w=600&h=240&fit=crop' },
+      ].map((g) => (
+        <div key={g.num} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group border border-gray-100 hover:-translate-y-1">
+          <div className="h-44 overflow-hidden">
+            <img src={g.img} alt={g.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          </div>
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="bg-gradient-to-br from-green-500 to-green-700 text-white text-xs font-bold w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0">{g.num}</span>
+              <h3 className="font-bold text-gray-900">{g.title}</h3>
+            </div>
+            <p className="text-gray-500 text-sm leading-relaxed">{g.text}</p>
+          </div>
         </div>
-        <p className="text-gray-600 leading-relaxed">
-         ESTABLISHING A PREDICTABLE,PROFITABLE AND EFFICIENT MARKETPLACE SYSTEM LEADING TO A PAN-AFRICAN AGRICULTURAL NETWORK POWERED BY TECHNOLOGY.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">2</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          PROVIDIND ACCURATE MARKET INFORMATION AND REAL-TIME INSIGHTS.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">3</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          REDUCING POST HERVEST LOSSES TO 5%.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">4</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          ENHANCING THE CAPACTY OF VALUE CHAIN ACTORS THROUGH TRAINING AND MENTORSHIP.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2">
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-          <span className="text-white text-2xl font-bold">5</span>
-        </div>
-        <p className="text-gray-600 leading-relaxed">
-          CREATING LINKAGES TO AFFORDABLE FINANCIAL SERVICES.
-        </p>
-      </div>
+      ))}
     </div>
   </div>
 </section>
@@ -504,28 +398,21 @@ const AboutUs = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {teamMembers.map((member, index) => (
-              <div key={index} className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 text-center group hover:-translate-y-2">
-                <div className="relative mb-6">
-                  {member.image ? (
-                    <img
-                      src={member.image}
-                      alt={member.name || 'Team member'}
-                      className="w-24 h-24 rounded-full mx-auto object-cover ring-4 ring-blue-100 group-hover:ring-blue-200 transition-all"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 rounded-full mx-auto bg-gray-200 flex items-center justify-center ring-4 ring-blue-100 group-hover:ring-blue-200 text-gray-500">
-                      N/A
-                    </div>
-                  )}
-                  <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-blue-500 to-indigo-600 w-8 h-8 rounded-full flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
-                  </div>
+              <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 text-center">
+                <div className="h-56 overflow-hidden">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name || 'Unnamed'}</h3>
-                <p className="text-blue-600 font-semibold mb-4">{member.role || 'Unknown Role'}</p>
-                <p className="text-gray-600 text-sm leading-relaxed">{member.bio}</p>
+                <div className="p-5">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
+                  <p className="text-green-600 text-sm font-semibold mb-3">{member.role}</p>
+                  <p className="text-gray-500 text-sm leading-relaxed">{member.bio}</p>
+                </div>
               </div>
             ))}
           </div>
