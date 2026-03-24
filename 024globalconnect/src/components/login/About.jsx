@@ -73,34 +73,22 @@ const About = () => {
       num: "01",
       title: "Register",
       body: "Sign up as a farmer, wholesaler, retailer, or affiliate in minutes.",
-      icon: (
-        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
+      img: img4,
+      imgAlt: "Person registering on phone",
     },
     {
       num: "02",
       title: "List or Browse",
-      body: "Vendors list products. Buyers browse fresh farm produce and goods.",
-      icon: (
-        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m4-9l2 9" />
-        </svg>
-      ),
+      body: "Vendors list products with photos and prices. Buyers browse fresh farm produce and goods.",
+      img: img6,
+      imgAlt: "Vendor listing products",
     },
     {
       num: "03",
       title: "Pay & Earn",
       body: "Buyers pay securely via M-Pesa. Vendors earn. Affiliates get commissions.",
-      icon: (
-        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      img: img9,
+      imgAlt: "Buyer receiving order",
     },
   ];
 
@@ -138,13 +126,20 @@ const About = () => {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
-              <div key={s.num} className="flex flex-col items-start p-8 rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-lg transition-all">
-                <div className="w-14 h-14 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-5">
-                  {s.icon}
+              <div key={s.num} className="flex flex-col rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-xl transition-all overflow-hidden">
+                {/* Photo */}
+                <div className="relative h-52 overflow-hidden">
+                  <img src={s.img} alt={s.imgAlt} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                  {/* Step badge */}
+                  <span className="absolute top-4 left-4 bg-green-600 text-white text-xs font-bold tracking-widest px-3 py-1 rounded-full">
+                    STEP {s.num}
+                  </span>
                 </div>
-                <span className="text-green-600 font-bold text-xs tracking-widest mb-1">{s.num}</span>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{s.title}</h3>
-                <p className="text-gray-500 leading-relaxed">{s.body}</p>
+                {/* Text */}
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{s.title}</h3>
+                  <p className="text-gray-500 leading-relaxed">{s.body}</p>
+                </div>
               </div>
             ))}
           </div>
