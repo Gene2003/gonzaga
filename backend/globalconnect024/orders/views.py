@@ -376,7 +376,7 @@ def checkout(request):
         "email": email,  # ✅ FIX 6: use resolved email, not buyer.email
         "amount": amount_kobo,
         "currency": "KES",
-        "callback_url": f"{settings.FRONTEND_URL}/orders/payment-success?order_id={order.id}",
+        "callback_url": f"{settings.FRONTEND_URL}/contact-vendor?order_id={order.id}",
         "metadata": {
             "order_id": order.id,
             "product_id": product.id,
