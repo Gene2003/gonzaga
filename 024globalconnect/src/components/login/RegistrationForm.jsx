@@ -34,6 +34,7 @@ const RegistrationForm = () => {
     role: "user", // default to affiliate
     vendor_type: "",
     phone: "",
+    service_provider_type: "",
     social_media_handles: "",
     affiliate_certificate_number: "",
   });
@@ -90,10 +91,12 @@ const handleSubmit = async (e) => {
     return;
   }
 
-  if (formData.role === "vendor") {
+  if (formData.role === "vendor" || formData.role === "service_provider") {
+    const endpoint = formData.role === "vendor"
+      ? '/users/vendor/initiate-payment/'
+      : '/users/service-provider/initiate-payment/';
     try {
-      const response = await apiClient.post('/users/vendor/initiate-payment/', formData);
-      console.log("Vendor payment response:", response.data);
+      const response = await apiClient.post(endpoint, formData);
       if (response.data.payment_url) {
         toast.success("Redirecting to payment...");
         window.location.href = response.data.payment_url;
@@ -101,7 +104,6 @@ const handleSubmit = async (e) => {
         toast.error("Payment URL not received. Please try again.");
       }
     } catch (error) {
-      console.error("Vendor payment error:", error.response?.data || error.message);
       const errData = error.response?.data;
       if (errData?.error) {
         toast.error(errData.error);
@@ -304,7 +306,7 @@ const handleSubmit = async (e) => {
               </div>
             )}
 
-              {/* Service Provider Type - show only if role is service_provider */}
+              {/* Service Provider fields */}
               {formData.role === "service_provider" && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-blue-night mb-1">Service Provider Type</label>
@@ -312,8 +314,40 @@ const handleSubmit = async (e) => {
                     <option value="">Select Service Provider Type</option>
                     <option value="veterinary">Veterinary Services</option>
                     <option value="transport">Transporter</option>
-                    <option value="storage">Storage provider</option>
+                    <option value="storage">Storage Provider</option>
                   </select>
+                </div>
+              )}
+
+              {formData.role === "service_provider" && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-blue-night mb-1">
+                    Phone Number <span className="text-gray-400 text-xs">(for client contact)</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="e.g. 0712345678"
+                  />
+                </div>
+              )}
+
+              {formData.role === "service_provider" && (
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-blue-night mb-1">
+                    Affiliate Certificate Number <span className="text-gray-400 text-xs">(optional — if referred by affiliate)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="affiliate_certificate_number"
+                    value={formData.affiliate_certificate_number}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                    placeholder="Enter affiliate certificate number"
+                  />
                 </div>
               )}
               
@@ -345,7 +379,7 @@ const handleSubmit = async (e) => {
                   isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-deep text-white hover:bg-blue-bright"
                 }`}
               >
-                {isLoading ? "Processing..." : formData.role === "vendor" ? "Pay Registration Fee" : "Register Now"}
+                {isLoading ? "Processing..." : (formData.role === "vendor" || formData.role === "service_provider") ? "Pay Registration Fee (KES 200)" : "Register Now"}
               </button>
             </div>
           </div>

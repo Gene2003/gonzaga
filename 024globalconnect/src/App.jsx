@@ -23,6 +23,10 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/cart';
 import ContactVendor from './pages/ContactVendor';
+import Transporter from './pages/Transporter';
+import ContactServiceProvider from './pages/ContactServiceProvider';
+import VendorPaymentSuccess from './pages/VendorPaymentSuccess';
+import ServiceProviderPaymentSuccess from './pages/ServiceProviderPaymentSuccess';
 
 import AffiliateDashboard from './components/affiliate/AffiliateDashboard';
 import VendorDashboard from './components/vendor/VendorDashboard';
@@ -79,6 +83,10 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/contact-vendor" element={<ContactVendor />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/transporter" element={<Transporter />} />
+        <Route path="/contact-service-provider" element={<ContactServiceProvider />} />
+        <Route path="/vendor/payment-success" element={<VendorPaymentSuccess />} />
+        <Route path="/service-provider/payment-success" element={<ServiceProviderPaymentSuccess />} />
         <Route path="/terms" element={<TermsAndConditions />} />
 
         {/* ✅ Role-based redirect */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Phone, ShoppingBag, Home, Loader2 } from 'lucide-react';
+import { Phone, ShoppingBag, Home, Loader2, Truck, CheckCircle } from 'lucide-react';
 import apiClient from '../api/client';
 
 const ContactVendor = () => {
@@ -11,6 +11,7 @@ const ContactVendor = () => {
   const [vendorInfo, setVendorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [transportChoice, setTransportChoice] = useState(null); // null | 'own' | 'need'
 
   useEffect(() => {
     if (!orderId) {
@@ -82,11 +83,43 @@ const ContactVendor = () => {
         {formattedPhone && (
           <a
             href={`tel:${formattedPhone}`}
-            className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl text-lg transition mb-4"
+            className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl text-lg transition mb-6"
           >
             <Phone className="w-5 h-5" />
             Call Vendor
           </a>
+        )}
+
+        {/* Transport section */}
+        {transportChoice === null && (
+          <div className="border-t pt-6 mb-6">
+            <p className="text-gray-700 font-semibold mb-4">Do you need a transporter for delivery?</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setTransportChoice('own')}
+                className="flex-1 flex items-center justify-center gap-2 border-2 border-gray-200 hover:border-blue-400 text-gray-700 hover:text-blue-700 font-medium py-3 rounded-xl transition"
+              >
+                <CheckCircle className="w-5 h-5" />
+                I'll arrange my own transport
+              </button>
+              <button
+                onClick={() => navigate('/transporter')}
+                className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition"
+              >
+                <Truck className="w-5 h-5" />
+                I need a transporter
+              </button>
+            </div>
+          </div>
+        )}
+
+        {transportChoice === 'own' && (
+          <div className="border-t pt-4 mb-6">
+            <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              You will arrange your own transport. Contact the vendor above to confirm pickup.
+            </p>
+          </div>
         )}
 
         <button

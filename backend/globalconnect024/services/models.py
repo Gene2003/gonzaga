@@ -137,7 +137,7 @@ class Service(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     image = models.ImageField(upload_to='services/', blank=True, null=True)
     duration = models.CharField(max_length=100, blank=True, null=True)
     category = models.CharField(max_length=100, blank=True, null=True)

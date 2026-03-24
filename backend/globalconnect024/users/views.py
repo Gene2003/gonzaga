@@ -378,6 +378,102 @@ def initiate_vendor_payment(request):
         print("VENDOR PAYMENT ERROR:", traceback.format_exc())
         return Response({'error': str(e)}, status=500)
     
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def initiate_service_provider_payment(request):
+    """
+    Same flow as vendor payment but for service_provider role.
+    Collects registration fee (KES 200), creates user, waits for admin activation.
+    """
+    try:
+        data = request.data.copy()
+        cert_value = data.get('affiliate_certificate_number', '')
+        if isinstance(cert_value, list):
+            cert_value = cert_value[0] if cert_value else ''
+        affiliate_certificate_number = cert_value.strip()
+        data.pop('affiliate_certificate_number', None)
+
+        if User.objects.filter(email=data.get('email')).exists():
+            return Response({'error': 'Email already registered.'}, status=400)
+        if User.objects.filter(username=data.get('username')).exists():
+            return Response({'error': 'Username already taken.'}, status=400)
+
+        affiliate = None
+        affiliate_subaccount = None
+        if affiliate_certificate_number:
+            try:
+                cert = AffiliateCertificate.objects.get(certificate_number=affiliate_certificate_number)
+                affiliate = cert.used_by
+                if not affiliate:
+                    return Response({'error': 'Affiliate certificate not linked to any user.'}, status=400)
+                affiliate_subaccount = affiliate.paystack_subaccount_code
+            except AffiliateCertificate.DoesNotExist:
+                return Response({'error': 'Invalid affiliate certificate number.'}, status=400)
+
+        # Force role to service_provider
+        data = data.copy()
+        data['role'] = 'service_provider'
+
+        clean_data = {k: v for k, v in data.items() if k != 'affiliate_certificate_number'}
+        serializer = RegistrationSerializer(data=clean_data, context={'request': request})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        paystack_payload = {
+            "email": clean_data.get('email'),
+            "amount": REGISTRATION_FEE,
+            "currency": "KES",
+            "callback_url": f"{settings.FRONTEND_URL}/service-provider/payment-success",
+            "metadata": {
+                "pending_registration": True,
+                "role": "service_provider",
+                "affiliate_certificate": affiliate_certificate_number,
+                "registration_data": clean_data,
+                "affiliate_id": affiliate.id if affiliate else None,
+            }
+        }
+        if affiliate_subaccount:
+            paystack_payload["split"] = {
+                "type": "percentage",
+                "bearer_type": "account",
+                "subaccounts": [{"subaccount": affiliate_subaccount, "share": 50}]
+            }
+
+        headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
+        response = requests.post(
+            "https://api.paystack.co/transaction/initialize",
+            json=paystack_payload, headers=headers, timeout=10
+        )
+        res_data = response.json()
+
+        if not res_data.get('status'):
+            return Response({'error': 'Failed to initialize payment.', 'detail': res_data}, status=500)
+
+        user = serializer.save(is_active=False, registration_paid=False)
+        if affiliate:
+            user.registered_by_affiliate = affiliate
+            user.save()
+
+        vendor_reg = VendorRegistration.objects.create(
+            vendor=user,
+            affiliate=affiliate,
+            registration_fee=Decimal('200.00'),
+            payment_status='pending',
+            paystack_reference=res_data['data']['reference']
+        )
+        vendor_reg.calculate_splits()
+
+        return Response({
+            'payment_url': res_data['data']['authorization_url'],
+            'reference': res_data['data']['reference'],
+            'user_id': user.id,
+        }, status=200)
+
+    except Exception as e:
+        print("SERVICE PROVIDER PAYMENT ERROR:", traceback.format_exc())
+        return Response({'error': str(e)}, status=500)
+
+
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -421,21 +517,27 @@ def paystack_webhook(request):
         vendor_reg.paid_at = timezone.now()
         vendor_reg.save()
 
-        # Send "payment received, pending admin activation" email
-        send_mail(
-            subject="Payment Received — Account Pending Admin Activation",
-            message=(
-                f"Hi {user.first_name or user.username},\n\n"
-                f"Thank you for your registration payment of KES 200.\n"
-                f"Your payment has been received successfully.\n\n"
-                f"Your vendor account is currently pending activation by our admin team.\n"
-                f"You will receive another email once your account is activated and you can start listing products.\n\n"
-                f"Thank you for joining 024GlobalConnect!"
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        # Send confirmation email in background thread — never block the webhook
+        role_label = 'vendor' if user.role == 'vendor' else 'service provider'
+        def _send_payment_confirmed_email():
+            try:
+                send_mail(
+                    subject="Payment Received — Account Pending Admin Activation",
+                    message=(
+                        f"Hi {user.first_name or user.username},\n\n"
+                        f"Thank you for your registration payment of KES 200.\n"
+                        f"Your payment has been received successfully.\n\n"
+                        f"Your {role_label} account is currently pending activation by our admin team.\n"
+                        f"You will receive another email once your account is activated.\n\n"
+                        f"Thank you for joining 024GlobalConnect!"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
+        threading.Thread(target=_send_payment_confirmed_email, daemon=True).start()
 
     return Response({'status': 'ok'}, status=200)
 

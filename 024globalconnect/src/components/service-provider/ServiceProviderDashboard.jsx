@@ -11,11 +11,10 @@ const ServiceProviderDashboard = () => {
   const [newService, setNewService] = useState({
     title: '',
     description: '',
-    price: '',
     service_type: 'veterinary',
-    duration: '',
     image: null,
   });
+  const [editingService, setEditingService] = useState(null);
 
   // ✅ Fetch services from backend on component mount
   useEffect(() => {
@@ -60,28 +59,18 @@ const ServiceProviderDashboard = () => {
       const formData = new FormData();
       formData.append('title', newService.title);
       formData.append('description', newService.description);
-      formData.append('price', parseFloat(newService.price));
       formData.append('service_type', newService.service_type);
-      
-      if (newService.image) {
-        formData.append('image', newService.image);
-      }
+      if (newService.image) formData.append('image', newService.image);
 
-      // ✅ POST to backend
-      const response = await apiClient.post('/services/', formData, {
+      await apiClient.post('/services/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-      console.log('✅ Service created:', response.data);
       toast.success('Service added successfully!');
 
-      // Reset form
       setNewService({
         title: '',
         description: '',
-        price: '',
         service_type: 'veterinary',
-        duration: '',
         image: null,
       });
       
@@ -111,6 +100,30 @@ const ServiceProviderDashboard = () => {
     } catch (error) {
       console.error('❌ Error deleting service:', error);
       toast.error('Failed to delete service');
+    }
+  };
+
+  // ✅ Save edited service
+  const handleEditService = async (e) => {
+    e.preventDefault();
+    if (!editingService) return;
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('title', editingService.title);
+      formData.append('description', editingService.description);
+      formData.append('service_type', editingService.service_type);
+      if (editingService.newImage) formData.append('image', editingService.newImage);
+      await apiClient.patch(`/services/${editingService.id}/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.success('Service updated!');
+      setEditingService(null);
+      fetchServices();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update service');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -315,59 +328,26 @@ const ServiceProviderDashboard = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Service Name
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Type
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Price
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {services.map((service) => (
                           <tr key={service.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{service.title}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{service.service_type}</td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{service.title}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">{service.service_type}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">KES {service.price}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  service.is_active
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}
-                              >
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${service.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                 {service.is_active ? 'Active' : 'Inactive'}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button
-                                onClick={() => toggleAvailability(service.id, service.is_active)}
-                                className="text-blue-600 hover:text-blue-900 mr-3"
-                              >
-                                Toggle
-                              </button>
-                              <button
-                                onClick={() => handleDeleteService(service.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-3">
+                              <button onClick={() => setEditingService({ ...service, newImage: null })} className="text-blue-600 hover:text-blue-900">Edit</button>
+                              <button onClick={() => toggleAvailability(service.id, service.is_active)} className="text-yellow-600 hover:text-yellow-900">Toggle</button>
+                              <button onClick={() => handleDeleteService(service.id)} className="text-red-600 hover:text-red-900">Delete</button>
                             </td>
                           </tr>
                         ))}
@@ -438,38 +418,18 @@ const ServiceProviderDashboard = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price (KES) *
-                      </label>
-                      <input
-                        type="number"
-                        required
-                        min="0"
-                        step="0.01"
-                        value={newService.price}
-                        onChange={(e) => setNewService({ ...newService, price: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="1000.00"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Service Type *
-                      </label>
-                      <select
-                        required
-                        value={newService.service_type}
-                        onChange={(e) => setNewService({ ...newService, service_type: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="veterinary">Veterinary</option>
-                        <option value="transport">Transport</option>
-                        <option value="storage">Storage</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Service Type *</label>
+                    <select
+                      required
+                      value={newService.service_type}
+                      onChange={(e) => setNewService({ ...newService, service_type: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="veterinary">Veterinary</option>
+                      <option value="transport">Transport</option>
+                      <option value="storage">Storage</option>
+                    </select>
                   </div>
 
                   <div>
@@ -498,6 +458,67 @@ const ServiceProviderDashboard = () => {
                     onClick={() => setShowAddServiceModal(false)}
                     className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 font-medium"
                   >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Service Modal */}
+      {editingService && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Edit Service</h2>
+                <button onClick={() => setEditingService(null)} className="text-gray-400 hover:text-gray-600 text-2xl">×</button>
+              </div>
+              <form onSubmit={handleEditService} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Service Title *</label>
+                  <input
+                    type="text" required
+                    value={editingService.title}
+                    onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                  <textarea
+                    required rows="4"
+                    value={editingService.description}
+                    onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Service Type *</label>
+                  <select
+                    required value={editingService.service_type}
+                    onChange={(e) => setEditingService({ ...editingService, service_type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="veterinary">Veterinary</option>
+                    <option value="transport">Transport</option>
+                    <option value="storage">Storage</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Replace Image (optional)</label>
+                  <input type="file" accept="image/*"
+                    onChange={(e) => setEditingService({ ...editingService, newImage: e.target.files[0] })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <button type="submit" disabled={loading} className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-medium disabled:bg-gray-400">
+                    {loading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                  <button type="button" onClick={() => setEditingService(null)} className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 font-medium">
                     Cancel
                   </button>
                 </div>
