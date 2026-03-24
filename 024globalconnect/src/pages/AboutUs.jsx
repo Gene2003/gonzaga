@@ -411,10 +411,10 @@ const AboutUs = () => {
                     />
                   </div>
                 ) : (
-                  <div className="h-64 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                      <span className="text-white text-3xl font-bold">{member.name.trim().charAt(0)}</span>
-                    </div>
+                  <div className="h-64 bg-gray-50 flex items-center justify-center">
+                    <span className="text-7xl font-extrabold text-gray-200 select-none">
+                      {member.name.trim().split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                    </span>
                   </div>
                 )}
                 <div className="p-5">
