@@ -1,32 +1,20 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import landingVideo from '../../assets/landing.mp4';
 
 const HeroWithCTA = () => {
-  const videoRef = useRef(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = 0.5;
-    }
-  }, []);
 
   return (
     <section className="relative h-screen w-full overflow-hidden text-white">
-      {/* Background Video */}
-      <video
-        ref={videoRef}
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-        src={landingVideo}
-        autoPlay
-        loop
-        muted
-        playsInline
+      {/* Background — vast banana plantation */}
+      <img
+        src="https://images.unsplash.com/photo-1528825871115-3581a5387919?w=1600&h=900&fit=crop"
+        alt="Vast banana plantation"
+        className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
       {/* Dark gradient overlay */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/55 via-black/45 to-black/65" />
 
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 sm:px-8 pt-20">
