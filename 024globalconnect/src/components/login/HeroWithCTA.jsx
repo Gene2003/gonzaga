@@ -1,15 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import bananaBg from '../../assets/banana-plantation.jpg';
 
 const HeroWithCTA = () => {
   const navigate = useNavigate();
 
   return (
     <section className="relative h-screen w-full overflow-hidden text-white">
-      {/* Background — rows of young banana trees on plantation */}
+      {/* Background — banana plantation */}
       <img
-        src="https://images.unsplash.com/photo-jkc0nhK04BI?w=1600&h=900&fit=crop&crop=center"
-        alt="Rows of banana trees on plantation"
+        src={bananaBg}
+        alt="Banana plantation"
         className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
