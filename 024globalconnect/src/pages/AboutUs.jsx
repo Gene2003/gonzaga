@@ -41,7 +41,7 @@ const AboutUs = () => {
     {
       name: 'Jimmy Murigi',
       role: 'CEO & Co-Founder',
-      image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop&crop=face',
+      image: '',
       bio: '10+ years in digital marketing and agricultural value chain development.'
     },
     {
@@ -53,13 +53,13 @@ const AboutUs = () => {
     {
       name: 'John',
       role: 'IT & System Manager',
-      image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop&crop=face',
+      image: '',
       bio: 'Overseeing system reliability, security, and technical operations.'
     },
     {
       name: 'Scovian',
       role: 'Agribusiness Manager',
-      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face',
+      image: '',
       bio: 'Driving agribusiness strategy and farmer partnerships across the network.'
     },
   ];

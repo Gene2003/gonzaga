@@ -252,8 +252,8 @@ const About = () => {
           alt="Farmers together"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-green-900/80" />
+        {/* Light overlay — just enough to keep text readable */}
+        <div className="absolute inset-0 bg-black/40" />
         <div className="relative max-w-3xl mx-auto px-4">
           <h2 className="text-3xl sm:text-5xl font-extrabold mb-5 leading-tight">
             Ready to Transform Your Business?
