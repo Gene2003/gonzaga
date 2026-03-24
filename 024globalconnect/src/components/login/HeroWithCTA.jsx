@@ -6,11 +6,11 @@ const HeroWithCTA = () => {
 
   return (
     <section className="relative h-screen w-full overflow-hidden text-white">
-      {/* Background — vast banana plantation */}
+      {/* Background — rows of young banana trees on plantation */}
       <img
-        src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1600&h=900&fit=crop"
-        alt="Vast banana plantation"
-        className="absolute inset-0 w-full h-full object-cover z-0 scale-105"
+        src="https://images.unsplash.com/photo-jkc0nhK04BI?w=1600&h=900&fit=crop&crop=center"
+        alt="Rows of banana trees on plantation"
+        className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
       {/* Dark gradient overlay */}
