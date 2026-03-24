@@ -31,7 +31,7 @@ const HeroWithCTA = () => {
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 sm:px-8 pt-20">
         {/* Eyebrow */}
-        <span className="inline-block bg-green-600 text-white text-xs sm:text-sm font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
+        <span className="inline-block bg-blue-600 text-white text-xs sm:text-sm font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
           Africa's Agricultural Marketplace
         </span>
 
@@ -48,13 +48,13 @@ const HeroWithCTA = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={() => navigate('/products')}
-            className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:shadow-green-900/40 hover:scale-105"
+            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:shadow-blue-900/40 hover:scale-105"
           >
             Browse Marketplace
           </button>
           <button
             onClick={() => navigate('/register')}
-            className="px-8 py-4 bg-white/10 border-2 border-white text-white hover:bg-white hover:text-green-800 font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:scale-105"
+            className="px-8 py-4 bg-white/10 border-2 border-white text-white hover:bg-white hover:text-blue-800 font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:scale-105"
           >
             Join as Vendor
           </button>

@@ -44,7 +44,7 @@ function Stat({ value, suffix = "", label }) {
       <p className="text-4xl sm:text-5xl font-extrabold text-white">
         {count.toLocaleString()}{suffix}
       </p>
-      <p className="mt-2 text-green-100 text-sm sm:text-base font-medium">{label}</p>
+      <p className="mt-2 text-blue-100 text-sm sm:text-base font-medium">{label}</p>
     </div>
   );
 }
@@ -58,7 +58,7 @@ function StoryCard({ img, name, role, quote }) {
         <p className="text-gray-700 italic text-sm leading-relaxed">"{quote}"</p>
         <div>
           <p className="font-bold text-gray-900">{name}</p>
-          <p className="text-green-600 text-xs font-medium uppercase tracking-wide">{role}</p>
+          <p className="text-blue-600 text-xs font-medium uppercase tracking-wide">{role}</p>
         </div>
       </div>
     </div>
@@ -108,8 +108,8 @@ const About = () => {
   return (
     <>
       {/* ── STATS BAR ── */}
-      <section className="bg-green-700 py-14">
-        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-green-600">
+      <section className="bg-blue-700 py-14">
+        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-blue-600">
           <Stat value={5000} suffix="+" label="Farmers Connected" />
           <Stat value={200} suffix="+" label="Active Vendors" />
           <Stat value={50000} suffix="+" label="Products Listed" />
@@ -121,17 +121,17 @@ const About = () => {
       <section id="mission" className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-14">
-            <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">Simple &amp; Fast</span>
+            <span className="text-blue-600 font-semibold text-sm uppercase tracking-widest">Simple &amp; Fast</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-2">How It Works</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
-              <div key={s.num} className="flex flex-col rounded-2xl border border-gray-100 hover:border-green-200 hover:shadow-xl transition-all overflow-hidden">
+              <div key={s.num} className="flex flex-col rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all overflow-hidden">
                 {/* Photo */}
                 <div className="relative h-52 overflow-hidden">
                   <img src={s.img} alt={s.imgAlt} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                   {/* Step badge */}
-                  <span className="absolute top-4 left-4 bg-green-600 text-white text-xs font-bold tracking-widest px-3 py-1 rounded-full">
+                  <span className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold tracking-widest px-3 py-1 rounded-full">
                     STEP {s.num}
                   </span>
                 </div>
@@ -150,7 +150,7 @@ const About = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-14">
-            <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">Who We Serve</span>
+            <span className="text-blue-600 font-semibold text-sm uppercase tracking-widest">Who We Serve</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-2">Built for Everyone in the Value Chain</h2>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -173,7 +173,7 @@ const About = () => {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-14">
-            <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">Real People. Real Impact.</span>
+            <span className="text-blue-600 font-semibold text-sm uppercase tracking-widest">Real People. Real Impact.</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-2">Success Stories</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -197,7 +197,7 @@ const About = () => {
             </p>
             <button
               onClick={() => navigate('/register')}
-              className="px-7 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition"
+              className="px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition"
             >
               Start Selling Today
             </button>
@@ -206,10 +206,10 @@ const About = () => {
       </section>
 
       {/* ── DIGITAL AGRI FEATURE ── */}
-      <section className="py-20 bg-green-50">
+      <section className="py-20 bg-blue-50">
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="text-green-600 font-semibold text-sm uppercase tracking-widest">Technology + Agriculture</span>
+            <span className="text-blue-600 font-semibold text-sm uppercase tracking-widest">Technology + Agriculture</span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-3 mb-5">
               A Phone Is All You Need to Grow Your Business
             </h2>
@@ -225,7 +225,7 @@ const About = () => {
                 "Earn affiliate commissions by referring vendors",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
-                  <span className="mt-0.5 w-5 h-5 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="mt-0.5 w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
@@ -258,19 +258,19 @@ const About = () => {
           <h2 className="text-3xl sm:text-5xl font-extrabold mb-5 leading-tight">
             Ready to Transform Your Business?
           </h2>
-          <p className="text-green-100 text-base sm:text-lg mb-10">
+          <p className="text-blue-100 text-base sm:text-lg mb-10">
             Join thousands of farmers, vendors, and buyers already using 024 Global Connect to grow their income.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => navigate('/products')}
-              className="px-8 py-4 bg-white text-green-800 font-bold rounded-lg hover:bg-green-50 transition text-lg"
+              className="px-8 py-4 bg-white text-blue-800 font-bold rounded-lg hover:bg-blue-50 transition text-lg"
             >
               Browse Marketplace
             </button>
             <button
               onClick={() => navigate('/register')}
-              className="px-8 py-4 bg-green-600 border-2 border-green-500 text-white font-bold rounded-lg hover:bg-green-700 transition text-lg"
+              className="px-8 py-4 bg-blue-600 border-2 border-blue-500 text-white font-bold rounded-lg hover:bg-blue-700 transition text-lg"
             >
               Join Free
             </button>
