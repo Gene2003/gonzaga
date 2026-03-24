@@ -1,4 +1,5 @@
 import React from 'react';
+import gonzagaPhoto from '../assets/gonzaga.jpeg';
 import { Link } from 'react-router-dom';
 import { Globe, Users, TrendingUp, Shield, Award, Target, ArrowRight, Check, Sliders } from 'lucide-react';
 import Slider from "react-slick";
@@ -46,7 +47,7 @@ const AboutUs = () => {
     {
       name: 'Gonzaga Shyachi',
       role: 'Software Maintenance Assistant',
-      image: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=300&h=300&fit=crop&crop=face',
+      image: gonzagaPhoto,
       bio: 'Full-stack software developer building the platform infrastructure.'
     },
     {
@@ -401,17 +402,25 @@ const AboutUs = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {teamMembers.map((member, index) => (
               <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 text-center">
-                <div className="h-56 overflow-hidden">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
+                {member.image ? (
+                  <div className="h-64 overflow-hidden">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-64 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                      <span className="text-white text-3xl font-bold">{member.name.trim().charAt(0)}</span>
+                    </div>
+                  </div>
+                )}
                 <div className="p-5">
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{member.name}</h3>
                   <p className="text-green-600 text-sm font-semibold mb-3">{member.role}</p>
-                  <p className="text-gray-500 text-sm leading-relaxed">{member.bio}</p>
+                  {member.bio && <p className="text-gray-500 text-sm leading-relaxed">{member.bio}</p>}
                 </div>
               </div>
             ))}
