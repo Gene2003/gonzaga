@@ -1,4 +1,5 @@
 import traceback
+import threading
 
 from django.db.models import Sum, Q, Count
 from orders.models import Referral, Order
@@ -59,21 +60,26 @@ class RegisterView(generics.CreateAPIView):
 
         user = serializer.save(is_active=False)
 
-        # Send "pending admin approval" email — admin must activate the account
-        send_mail(
-            subject="Registration Received — Pending Admin Approval",
-            message=(
-                f"Hi {user.first_name or user.username},\n\n"
-                f"Thank you for registering with 024GlobalConnect!\n\n"
-                f"Your registration has been received successfully.\n"
-                f"Your account is currently pending approval by our admin team.\n\n"
-                f"You will receive another email once your account is activated and you can log in.\n\n"
-                f"Thank you for joining 024GlobalConnect!"
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        # Send "pending admin approval" email in background thread so it never blocks the response
+        def _send_registration_email():
+            try:
+                send_mail(
+                    subject="Registration Received — Pending Admin Approval",
+                    message=(
+                        f"Hi {user.first_name or user.username},\n\n"
+                        f"Thank you for registering with 024GlobalConnect!\n\n"
+                        f"Your registration has been received successfully.\n"
+                        f"Your account is currently pending approval by our admin team.\n\n"
+                        f"You will receive another email once your account is activated and you can log in.\n\n"
+                        f"Thank you for joining 024GlobalConnect!"
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
+        threading.Thread(target=_send_registration_email, daemon=True).start()
 
         return Response({
             "message": "Registration received. Your account is pending admin approval. You will be notified by email once activated."
