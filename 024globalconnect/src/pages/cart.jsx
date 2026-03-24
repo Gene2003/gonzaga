@@ -16,6 +16,7 @@ const Cart = () => {
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestAddress, setGuestAddress] = useState("");
+  const [goodsDescription, setGoodsDescription] = useState("");
 
   useEffect(() => {
     setCart(getCart());
@@ -59,12 +60,14 @@ const Cart = () => {
         unit_price: item.price,  // send cart price so Paystack amount matches exactly
       }));
 
+      const hasFarmProduct = cart.some((item) => item.is_farm_product);
       const res = await apiClient.post(API_ENDPOINTS.CART_CHECKOUT, {
         items,
         guest_name: guestName,
         guest_email: guestEmail,
         guest_phone: guestPhone,
         guest_address: guestAddress,
+        goods_description: hasFarmProduct ? goodsDescription : '',
       });
 
       const { payment_urls } = res.data;
@@ -189,6 +192,20 @@ const Cart = () => {
                   rows={3}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 />
+                {cart.some((item) => item.is_farm_product) && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description of Goods <span className="text-gray-400 font-normal">(optional)</span>
+                    </label>
+                    <textarea
+                      placeholder="Describe exactly what you want, e.g. I want big potatoes for making fries"
+                      value={goodsDescription}
+                      onChange={(e) => setGoodsDescription(e.target.value)}
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

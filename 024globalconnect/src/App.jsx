@@ -22,6 +22,7 @@ import ProtectedData from './pages/ProtectedData';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/cart';
+import ContactVendor from './pages/ContactVendor';
 
 import AffiliateDashboard from './components/affiliate/AffiliateDashboard';
 import VendorDashboard from './components/vendor/VendorDashboard';
@@ -76,6 +77,7 @@ function App() {
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/contact-vendor" element={<ContactVendor />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/terms" element={<TermsAndConditions />} />
 

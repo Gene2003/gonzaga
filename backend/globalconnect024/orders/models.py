@@ -42,6 +42,7 @@ class Order(models.Model):
     guest_email = models.EmailField(blank=True, null=True)
     guest_phone = models.CharField(max_length=15, blank=True, null=True)
     guest_address = models.TextField(blank=True, null=True)
+    goods_description = models.TextField(blank=True, null=True, help_text="Buyer's description of goods (farm products only)")
     
     # Quantities and amounts
     quantity = models.PositiveIntegerField(default=1)

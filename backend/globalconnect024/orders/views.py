@@ -29,10 +29,11 @@ from django.http import JsonResponse
 PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
 
 
-def send_email_async(subject, message, recipient):
+def send_email_async(subject, message, recipient, html=None):
     """
     Send email via SendGrid HTTP API in a background thread.
     Uses HTTPS (port 443) — works even when Render blocks outbound SMTP.
+    If html is provided, sends HTML email; otherwise sends plain text.
     """
     def _send():
         api_key = getattr(settings, 'SENDGRID_API_KEY', '')
@@ -49,11 +50,17 @@ def send_email_async(subject, message, recipient):
         else:
             from_field = {"email": from_raw}
 
+        content = []
+        if html:
+            content.append({"type": "text/html", "value": html})
+        else:
+            content.append({"type": "text/plain", "value": message})
+
         payload = {
             "personalizations": [{"to": [{"email": recipient}]}],
             "from": from_field,
             "subject": subject,
-            "content": [{"type": "text/plain", "value": message}],
+            "content": content,
         }
 
         try:
@@ -510,9 +517,15 @@ def paystack_order_webhook(request):
             # Send emails asynchronously so they never block the webhook response
             vendor_email = order.vendor.email if order.vendor else None
             if vendor_email:
-                send_email_async(
-                    subject=f'Payment Received - Order #{order.id}',
-                    message=f"""Hi {order.vendor.get_full_name()},
+                is_farm = order.product.is_farm_product()
+                buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')
+                buyer_phone_display = order.guest_phone or (order.buyer.phone_number if order.buyer and hasattr(order.buyer, 'phone_number') else 'N/A')
+                buyer_location = order.guest_address or 'N/A'
+                farm_section = ''
+                if is_farm and order.goods_description:
+                    farm_section = f"""
+Goods Description : {order.goods_description}"""
+                vendor_msg = f"""Hi {order.vendor.get_full_name()},
 
 You have received a payment on 024Global!
 
@@ -521,13 +534,18 @@ Order ID    : #{order.id}
 Product     : {order.product.name}
 Quantity    : {order.quantity}
 Your Amount : KES {order.vendor_amount}
-Customer    : {order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')}
+Customer    : {buyer_name}
+Phone       : {buyer_phone_display}
+Location    : {buyer_location}{farm_section}
 
 Your payment will be settled to your account within 1-3 business days.
 
 Thank you for selling on 024Global!
 024Global Team
-www.024global.com""",
+www.024global.com"""
+                send_email_async(
+                    subject=f'Payment Received - Order #{order.id}',
+                    message=vendor_msg,
                     recipient=vendor_email,
                 )
 
@@ -556,29 +574,47 @@ www.024global.com""",
             paystack_customer_email = event['data'].get('customer', {}).get('email')
             buyer_email = paystack_customer_email or order.guest_email or (order.buyer.email if order.buyer else None)
             buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://www.024global.com')
+            contact_vendor_url = f"{frontend_url}/contact-vendor?order_id={order.id}"
             if buyer_email:
+                vendor_name_display = order.vendor.get_full_name() or order.vendor.username if order.vendor else 'your vendor'
+                buyer_html = f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:0 auto;padding:20px;">
+  <h2 style="color:#1d4ed8;">Payment Successful - Order #{order.id}</h2>
+  <p>Hi {buyer_name},</p>
+  <p>Thank you for your purchase on <strong>024 Global Connect</strong>! Your payment was successful.</p>
+
+  <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+    <tr><td style="padding:6px 0;color:#555;">Order ID</td><td style="padding:6px 0;font-weight:bold;">#{order.id}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Product</td><td style="padding:6px 0;">{order.product.name}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Quantity</td><td style="padding:6px 0;">{order.quantity}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Total Paid</td><td style="padding:6px 0;font-weight:bold;color:#16a34a;">KES {order.amount}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Delivery Address</td><td style="padding:6px 0;">{order.guest_address or 'N/A'}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Vendor</td><td style="padding:6px 0;">{vendor_name_display}</td></tr>
+  </table>
+
+  <p style="margin-top:24px;">Your order is being processed. Please contact the vendor to arrange delivery.</p>
+
+  <p style="margin-top:24px;font-weight:bold;">Have you contacted the vendor yet?</p>
+  <div style="margin:16px 0;">
+    <a href="{frontend_url}?contacted=true" style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin-right:12px;">
+      Yes, I contacted the vendor
+    </a>
+    <a href="{contact_vendor_url}" style="display:inline-block;background:#1d4ed8;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
+      No, show me vendor contact
+    </a>
+  </div>
+
+  <p style="margin-top:24px;color:#888;font-size:13px;">For any questions, email us at 024globalconnect@gmail.com</p>
+  <p style="color:#888;font-size:13px;">024Global Team &bull; www.024global.com</p>
+</body>
+</html>"""
                 send_email_async(
                     subject=f'Payment Successful - Order #{order.id}',
-                    message=f"""Hi {buyer_name},
-
-Your order has been confirmed!
-
-Order Summary
-Order ID    : #{order.id}
-Product     : {order.product.name}
-Quantity    : {order.quantity}
-Total Paid  : KES {order.amount}
-Delivery To : {order.guest_address or 'N/A'}
-
-Your order is being processed and will be delivered to your address soon.
-
-For any questions, contact us at:
-024globalconnect@gmail.com
-
-Thank you for shopping on 024Global!
-024Global Team
-www.024global.com""",
+                    message=f"Hi {buyer_name}, your order #{order.id} for {order.product.name} has been confirmed. Total: KES {order.amount}.",
                     recipient=buyer_email,
+                    html=buyer_html,
                 )
 
             # Send SMS notifications
@@ -653,6 +689,7 @@ def cart_checkout(request):
     guest_email = request.data.get('guest_email')
     guest_phone = request.data.get('guest_phone')
     guest_address = request.data.get('guest_address')
+    goods_description = request.data.get('goods_description', '')
     affiliate_code = request.data.get('affiliate_code')
 
     if not items:
@@ -725,6 +762,7 @@ def cart_checkout(request):
                 guest_email=guest_email,
                 guest_phone=guest_phone,
                 guest_address=guest_address,
+                goods_description=goods_description if product.is_farm_product() else '',
             )
             order.calculate_splits()
             PaymentSplit.objects.create(order=order, recipient_type='company', recipient=None, amount=order.company_amount, status='pending')
@@ -736,7 +774,7 @@ def cart_checkout(request):
             "email": guest_email,
             "amount": amount_kobo,
             "currency": "KES",
-            "callback_url": f"{settings.FRONTEND_URL}/orders/payment-success?order_id={order.id}",
+            "callback_url": f"{settings.FRONTEND_URL}/contact-vendor?order_id={order.id}",
             "metadata": {"order_id": order.id, "product_id": product.id},
             "split": {"type": "percentage", "bearer_type": "account", "subaccounts": subaccounts},
         }
@@ -761,6 +799,34 @@ def cart_checkout(request):
         return Response({"error": "Could not initialize payment for any items."}, status=500)
 
     return Response({"payment_urls": payment_urls}, status=200)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def vendor_contact(request):
+    """
+    Returns vendor name and phone for a given order_id.
+    Used by the ContactVendor page after successful payment.
+    """
+    order_id = request.query_params.get('order_id')
+    if not order_id:
+        return Response({"error": "order_id is required."}, status=400)
+    try:
+        order = Order.objects.select_related('vendor').get(id=order_id)
+    except Order.DoesNotExist:
+        return Response({"error": "Order not found."}, status=404)
+
+    vendor = order.vendor
+    if not vendor:
+        return Response({"error": "Vendor not found for this order."}, status=404)
+
+    vendor_phone = getattr(vendor, 'phone_number', None) or ''
+    return Response({
+        "vendor_name": vendor.get_full_name() or vendor.username,
+        "vendor_phone": vendor_phone,
+        "product_name": order.product.name,
+        "order_id": order.id,
+    })
 
 
 @api_view(["GET"])
