@@ -33,6 +33,7 @@ const RegistrationForm = () => {
     promotion_methods: [],
     role: "user", // default to affiliate
     vendor_type: "",
+    phone: "",
     social_media_handles: "",
     affiliate_certificate_number: "",
   });
@@ -268,6 +269,22 @@ const handleSubmit = async (e) => {
                   <option value="wholesaler">Wholesaler</option>
                   <option value="retailer">Retailer</option>
                 </select>
+              </div>
+            )}
+
+            {formData.role === "vendor" && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-blue-night mb-1">
+                  Phone Number <span className="text-gray-400 text-xs">(for buyer contact)</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="e.g. 0712345678"
+                />
               </div>
             )}
 

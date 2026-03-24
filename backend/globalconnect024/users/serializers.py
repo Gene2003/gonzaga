@@ -33,7 +33,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = [
             'first_name', 'last_name', 'username', 'email',
             'password', 'confirm_password', 'certificate_number',
-            'country', 'city', 'promotion_methods', 'role', 'vendor_type'
+            'country', 'city', 'promotion_methods', 'role', 'vendor_type', 'phone'
         ]
 
     def validate(self, attrs):
@@ -81,6 +81,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
             promotion_methods=validated_data.get('promotion_methods', []),
             role=validated_data.get('role', 'user'),
             vendor_type=validated_data.get('vendor_type', ''),
+            phone=validated_data.get('phone', ''),
             is_active=False  # 🔒 Require email activation
         )
 

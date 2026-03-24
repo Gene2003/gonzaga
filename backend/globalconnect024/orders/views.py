@@ -519,7 +519,7 @@ def paystack_order_webhook(request):
             if vendor_email:
                 is_farm = order.product.is_farm_product()
                 buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')
-                buyer_phone_display = order.guest_phone or (order.buyer.phone_number if order.buyer and hasattr(order.buyer, 'phone_number') else 'N/A')
+                buyer_phone_display = order.guest_phone or (order.buyer.phone if order.buyer and hasattr(order.buyer, 'phone') else 'N/A')
                 buyer_location = order.guest_address or 'N/A'
                 farm_section = ''
                 if is_farm and order.goods_description:
@@ -618,9 +618,9 @@ www.024global.com""",
                 )
 
             # Send SMS notifications
-            buyer_phone = order.guest_phone or (order.buyer.phone_number if order.buyer and hasattr(order.buyer, 'phone_number') else None)
-            vendor_phone = order.vendor.phone_number if order.vendor and hasattr(order.vendor, 'phone_number') else None
-            affiliate_phone = order.affiliate.phone_number if order.affiliate and hasattr(order.affiliate, 'phone_number') else None
+            buyer_phone = order.guest_phone or (order.buyer.phone if order.buyer and hasattr(order.buyer, 'phone') else None)
+            vendor_phone = order.vendor.phone if order.vendor and hasattr(order.vendor, 'phone') else None
+            affiliate_phone = order.affiliate.phone if order.affiliate and hasattr(order.affiliate, 'phone') else None
 
             if buyer_phone:
                 send_sms_async(
@@ -820,7 +820,7 @@ def vendor_contact(request):
     if not vendor:
         return Response({"error": "Vendor not found for this order."}, status=404)
 
-    vendor_phone = getattr(vendor, 'phone_number', None) or ''
+    vendor_phone = getattr(vendor, 'phone', None) or ''
     return Response({
         "vendor_name": vendor.get_full_name() or vendor.username,
         "vendor_phone": vendor_phone,
