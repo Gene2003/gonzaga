@@ -245,8 +245,16 @@ const About = () => {
       </section>
 
       {/* ── JOIN CTA ── */}
-      <section className="bg-green-800 py-20 text-center text-white">
-        <div className="max-w-3xl mx-auto px-4">
+      <section className="relative py-20 text-center text-white overflow-hidden">
+        {/* Background image */}
+        <img
+          src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=1400&h=600&fit=crop"
+          alt="Farmers together"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-green-900/80" />
+        <div className="relative max-w-3xl mx-auto px-4">
           <h2 className="text-3xl sm:text-5xl font-extrabold mb-5 leading-tight">
             Ready to Transform Your Business?
           </h2>
