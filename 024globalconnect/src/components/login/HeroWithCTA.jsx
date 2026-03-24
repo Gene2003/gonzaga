@@ -8,9 +8,9 @@ const HeroWithCTA = () => {
     <section className="relative h-screen w-full overflow-hidden text-white">
       {/* Background — vast banana plantation */}
       <img
-        src="https://images.unsplash.com/photo-1528825871115-3581a5387919?w=1600&h=900&fit=crop"
+        src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=1600&h=900&fit=crop"
         alt="Vast banana plantation"
-        className="absolute inset-0 w-full h-full object-cover z-0"
+        className="absolute inset-0 w-full h-full object-cover z-0 scale-105"
       />
 
       {/* Dark gradient overlay */}
