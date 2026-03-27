@@ -1,5 +1,8 @@
 # globalconnect024/users/utils.py
 
+import threading
+import requests as http_requests
+from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -7,6 +10,39 @@ from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
 from .tokens import account_activation_token
+
+
+def send_sms(phone, message):
+    """Send an SMS via Africa's Talking in a background thread (non-blocking)."""
+    def _send():
+        try:
+            api_key = getattr(settings, 'AFRICASTALKING_API_KEY', '')
+            username = getattr(settings, 'AFRICASTALKING_USERNAME', 'sandbox')
+            if not api_key or not phone:
+                return
+            # Normalize phone to +254 format
+            normalized = phone.strip().replace(' ', '')
+            if normalized.startswith('0'):
+                normalized = '+254' + normalized[1:]
+            elif not normalized.startswith('+'):
+                normalized = '+254' + normalized
+            http_requests.post(
+                'https://api.africastalking.com/version1/messaging',
+                headers={
+                    'apiKey': api_key,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
+                },
+                data={
+                    'username': username,
+                    'to': normalized,
+                    'message': message,
+                },
+                timeout=10,
+            )
+        except Exception:
+            pass
+    threading.Thread(target=_send, daemon=True).start()
 
 
 def send_activation_email(request, user):

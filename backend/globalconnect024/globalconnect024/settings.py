@@ -231,3 +231,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 PAYSTACK_SECRET_KEY = env('PAYSTACK_SECRET_KEY', default='')
 PAYSTACK_PUBLIC_KEY = env('PAYSTACK_PUBLIC_KEY', default='')
 PAYSTACK_CALLBACK_URL = env('PAYSTACK_CALLBACK_URL', default='http://localhost:5173/payment-success')
+
+# Africa's Talking SMS
+AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')
+AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='sandbox')

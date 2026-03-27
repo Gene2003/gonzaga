@@ -1,5 +1,6 @@
 import traceback
 import threading
+from users.utils import send_sms
 
 from django.db.models import Sum, Q, Count
 from orders.models import Referral, Order
@@ -538,6 +539,15 @@ def paystack_webhook(request):
             except Exception:
                 pass
         threading.Thread(target=_send_payment_confirmed_email, daemon=True).start()
+
+        # SMS confirmation to user's phone
+        user_phone = getattr(user, 'phone', None)
+        if user_phone:
+            send_sms(
+                user_phone,
+                f"Hi {user.first_name or user.username}, your 024Global registration payment of KES 200 was received. "
+                f"Your {role_label} account is pending admin activation. We will notify you once activated. - 024Global"
+            )
 
     return Response({'status': 'ok'}, status=200)
 

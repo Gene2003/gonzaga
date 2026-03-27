@@ -27,6 +27,7 @@ from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 
 PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
+from users.utils import send_sms
 
 
 def send_email_async(subject, message, recipient, html=None):
@@ -618,24 +619,30 @@ www.024global.com""",
                 )
 
             # Send SMS notifications
-            buyer_phone = order.guest_phone or (order.buyer.phone if order.buyer and hasattr(order.buyer, 'phone') else None)
-            vendor_phone = order.vendor.phone if order.vendor and hasattr(order.vendor, 'phone') else None
-            affiliate_phone = order.affiliate.phone if order.affiliate and hasattr(order.affiliate, 'phone') else None
+            buyer_sms_phone = order.guest_phone or (getattr(order.buyer, 'phone', None) if order.buyer else None)
+            vendor_sms_phone = getattr(order.vendor, 'phone', None) if order.vendor else None
+            affiliate_sms_phone = getattr(order.affiliate, 'phone', None) if order.affiliate else None
 
-            if buyer_phone:
-                send_sms_async(
-                    message=f"024Global: Payment confirmed! Order #{order.id} for {order.product.name} x{order.quantity}. Total: KES {order.amount}. Delivery to: {order.guest_address or 'your address'}. Thank you!",
-                    recipients=[buyer_phone],
+            if vendor_sms_phone:
+                send_sms(
+                    vendor_sms_phone,
+                    f"024Global: New order #{order.id}!\n"
+                    f"Product: {order.product.name}\n"
+                    f"Qty: {order.quantity}\n"
+                    f"Your amount: KES {order.vendor_amount}\n"
+                    f"Buyer: {buyer_name} | {buyer_phone_display}"
                 )
-            if vendor_phone:
-                send_sms_async(
-                    message=f"024Global: New sale! Order #{order.id} - {order.product.name} x{order.quantity}. You receive: KES {order.vendor_amount}. Customer: {order.guest_name or buyer_name}.",
-                    recipients=[vendor_phone],
+            if buyer_sms_phone:
+                send_sms(
+                    buyer_sms_phone,
+                    f"024Global: Payment confirmed! Order #{order.id} for {order.product.name}. "
+                    f"Total: KES {order.amount}. Contact your vendor to arrange delivery. - 024Global"
                 )
-            if affiliate_phone:
-                send_sms_async(
-                    message=f"024Global: Commission earned! Order #{order.id} - {order.product.name}. Your commission: KES {order.affiliate_amount}. Keep sharing your referral link!",
-                    recipients=[affiliate_phone],
+            if affiliate_sms_phone:
+                send_sms(
+                    affiliate_sms_phone,
+                    f"024Global: Commission earned! Order #{order.id} - {order.product.name}. "
+                    f"Your commission: KES {order.affiliate_amount}. - 024Global"
                 )
 
         except Order.DoesNotExist:
