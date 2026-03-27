@@ -18,7 +18,11 @@ def send_sms(phone, message):
         try:
             api_key = getattr(settings, 'AFRICASTALKING_API_KEY', '')
             username = getattr(settings, 'AFRICASTALKING_USERNAME', 'sandbox')
-            if not api_key or not phone:
+            if not api_key:
+                print('[SMS] AFRICASTALKING_API_KEY not set — skipping SMS')
+                return
+            if not phone:
+                print('[SMS] No phone number provided — skipping SMS')
                 return
             # Normalize phone to +254 format
             normalized = phone.strip().replace(' ', '')
@@ -26,7 +30,8 @@ def send_sms(phone, message):
                 normalized = '+254' + normalized[1:]
             elif not normalized.startswith('+'):
                 normalized = '+254' + normalized
-            http_requests.post(
+            print(f'[SMS] Sending to {normalized} via username={username}')
+            resp = http_requests.post(
                 'https://api.africastalking.com/version1/messaging',
                 headers={
                     'apiKey': api_key,
@@ -40,8 +45,9 @@ def send_sms(phone, message):
                 },
                 timeout=10,
             )
-        except Exception:
-            pass
+            print(f'[SMS] Response {resp.status_code}: {resp.text}')
+        except Exception as e:
+            print(f'[SMS] Error: {e}')
     threading.Thread(target=_send, daemon=True).start()
 
 
