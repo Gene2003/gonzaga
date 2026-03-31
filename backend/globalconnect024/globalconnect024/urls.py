@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.http import HttpResponseRedirect, JsonResponse
 
 from rest_framework.routers import DefaultRouter
-from services.views import ServiceViewSet, ServiceBookingViewSet
+from services.views import ServiceViewSet, ServiceBookingViewSet, transport_near_vendor
 
 
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -25,7 +25,8 @@ urlpatterns = [
     path('health/', health_check, name='health_check'),  # ✅ Health check endpoint
     # ✅ Guest checkout endpoint
     path('api/guest-checkout/', guest_checkout, name='guest_checkout'),
-    path('api/', include('products.urls')), 
+    path('api/', include('products.urls')),
+    path('api/services/transport-near-vendor/', transport_near_vendor, name='transport_near_vendor'),
 
     # ✅ Auth
     path('api/token/', EmailOrUsernameTokenObtainPairView.as_view(), name='token_obtain_pair'),

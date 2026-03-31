@@ -1,8 +1,10 @@
 from warnings import filters
 from services.utils import auto_match_service_provider
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated      
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import permission_classes
+from django.db import models
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
@@ -144,6 +146,47 @@ def get_nearest_transporters(vendor):
 
     scored.sort(key=lambda x: x[0])
     return [t for _, t in scored[:5]]  # top 5
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def transport_near_vendor(request):
+    """
+    Returns transport services near the vendor for a given order.
+    Matches by vendor's city against: service county OR provider's city.
+    Falls back to all transport services if no location match found.
+    """
+    from orders.models import Order
+    order_id = request.query_params.get('order_id')
+
+    # Base queryset: all active transport services
+    transport_qs = Service.objects.filter(service_type='transport', is_active=True)
+
+    vendor_city = None
+    if order_id:
+        try:
+            order = Order.objects.select_related('vendor').get(id=order_id)
+            vendor_city = getattr(order.vendor, 'city', None)
+        except Order.DoesNotExist:
+            pass
+
+    if vendor_city:
+        city_lower = vendor_city.strip().lower()
+        # Match by service county OR provider city (case-insensitive)
+        nearby = transport_qs.filter(
+            models.Q(county__icontains=city_lower) |
+            models.Q(provider__city__icontains=city_lower)
+        )
+        # If we found nearby ones, use them; otherwise fall back to all
+        if nearby.exists():
+            transport_qs = nearby
+
+    from .serializers import ServiceSerializer
+    serializer = ServiceSerializer(transport_qs, many=True, context={'request': request})
+    return Response({
+        'vendor_city': vendor_city or '',
+        'results': serializer.data,
+    })
 
 
 class ServiceViewSet(ModelViewSet):

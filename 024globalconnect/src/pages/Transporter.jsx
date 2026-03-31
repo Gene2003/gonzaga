@@ -1,24 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../api/client';
 import toast from 'react-hot-toast';
-import { Search, Truck, X } from 'lucide-react';
+import { Search, Truck, X, MapPin } from 'lucide-react';
 
 const Transporter = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [vendorCity, setVendorCity] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get('order_id');
 
   useEffect(() => {
-    apiClient.get('/services/?service_type=transport')
-      .then((res) => {
-        const data = Array.isArray(res.data) ? res.data : res.data.results || [];
-        setServices(data.filter((s) => s.service_type === 'transport'));
-      })
-      .catch(() => toast.error('Failed to load transport services'))
-      .finally(() => setLoading(false));
-  }, []);
+    if (orderId) {
+      // Fetch transporters near the vendor
+      apiClient.get(`/services/transport-near-vendor/?order_id=${orderId}`)
+        .then((res) => {
+          setServices(res.data.results || []);
+          setVendorCity(res.data.vendor_city || '');
+        })
+        .catch(() => toast.error('Failed to load transport services'))
+        .finally(() => setLoading(false));
+    } else {
+      // No order — fetch all transport services
+      apiClient.get('/services/?service_type=transport')
+        .then((res) => {
+          const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+          setServices(data.filter((s) => s.service_type === 'transport'));
+        })
+        .catch(() => toast.error('Failed to load transport services'))
+        .finally(() => setLoading(false));
+    }
+  }, [orderId]);
 
   const filtered = services.filter((s) =>
     s.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -38,7 +53,14 @@ const Transporter = () => {
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Transport Services</h1>
-          <p className="text-gray-600">Find verified transporters for your goods</p>
+          {vendorCity ? (
+            <div className="flex items-center gap-2 text-blue-700 font-medium">
+              <MapPin className="w-4 h-4" />
+              <span>Showing transporters near <strong>{vendorCity}</strong> (vendor location)</span>
+            </div>
+          ) : (
+            <p className="text-gray-600">Find verified transporters for your goods</p>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -71,7 +93,7 @@ const Transporter = () => {
             <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">No transporters found</h3>
             <p className="text-gray-500">
-              {services.length === 0 ? 'No transport services available yet.' : 'Try adjusting your search.'}
+              {services.length === 0 ? 'No transport services available in this area yet.' : 'Try adjusting your search.'}
             </p>
           </div>
         ) : (
@@ -114,7 +136,13 @@ const TransporterCard = ({ service, onClick }) => {
 
       <div className="p-5">
         <h3 className="font-bold text-xl text-gray-900 mb-2">{service.title}</h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{service.description}</p>
+        <p className="text-gray-600 text-sm mb-3 line-clamp-3">{service.description}</p>
+        {(service.county || service.provider_city) && (
+          <div className="flex items-center gap-1 text-sm text-gray-500 mb-3">
+            <MapPin className="w-4 h-4 text-blue-500" />
+            <span>{service.county || service.provider_city}</span>
+          </div>
+        )}
         <div className="mb-4 pb-4 border-b">
           <p className="text-sm text-gray-500">
             Provider: <span className="font-medium text-gray-700">{service.provider_name}</span>

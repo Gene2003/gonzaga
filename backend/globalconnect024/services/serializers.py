@@ -7,14 +7,17 @@ class ServiceSerializer(serializers.ModelSerializer):
     provider_phone = serializers.SerializerMethodField(read_only=True)
     provider_type = serializers.SerializerMethodField(read_only=True)
 
+    provider_city = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Service
         fields = [
-            'id', 'title', 'description', 'service_type',
+            'id', 'title', 'description', 'service_type', 'county',
             'availability', 'provider', 'image',
-            'provider_name', 'provider_phone', 'provider_type', 'is_active', 'created_at'
+            'provider_name', 'provider_phone', 'provider_type',
+            'provider_city', 'is_active', 'created_at'
         ]
-        read_only_fields = ['id', 'provider', 'provider_name', 'provider_phone', 'provider_type', 'created_at']
+        read_only_fields = ['id', 'provider', 'provider_name', 'provider_phone', 'provider_type', 'provider_city', 'created_at']
 
     def get_provider_name(self, obj):
         return obj.provider.get_full_name() or obj.provider.username
@@ -24,6 +27,9 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     def get_provider_type(self, obj):
         return obj.provider.service_provider_type if hasattr(obj.provider, 'service_provider_type') else None
+
+    def get_provider_city(self, obj):
+        return getattr(obj.provider, 'city', '') or ''
 
     def validate(self, data):
         user = self.context['request'].user

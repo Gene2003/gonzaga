@@ -377,7 +377,7 @@ def checkout(request):
         "email": email,  # ✅ FIX 6: use resolved email, not buyer.email
         "amount": amount_kobo,
         "currency": "KES",
-        "callback_url": f"{settings.FRONTEND_URL}/contact-vendor?order_id={order.id}",
+        "callback_url": f"{settings.FRONTEND_URL}/transporter?order_id={order.id}",
         "metadata": {
             "order_id": order.id,
             "product_id": product.id,
@@ -781,7 +781,7 @@ def cart_checkout(request):
             "email": guest_email,
             "amount": amount_kobo,
             "currency": "KES",
-            "callback_url": f"{settings.FRONTEND_URL}/contact-vendor?order_id={order.id}",
+            "callback_url": f"{settings.FRONTEND_URL}/transporter?order_id={order.id}",
             "metadata": {"order_id": order.id, "product_id": product.id},
             "split": {"type": "percentage", "bearer_type": "account", "subaccounts": subaccounts},
         }
