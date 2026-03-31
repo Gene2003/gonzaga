@@ -377,7 +377,7 @@ def checkout(request):
         "email": email,  # ✅ FIX 6: use resolved email, not buyer.email
         "amount": amount_kobo,
         "currency": "KES",
-        "callback_url": f"{settings.FRONTEND_URL}/transporter?order_id={order.id}",
+        "callback_url": f"{settings.FRONTEND_URL}/order-success?order_id={order.id}",
         "metadata": {
             "order_id": order.id,
             "product_id": product.id,
@@ -515,129 +515,165 @@ def paystack_order_webhook(request):
             except Exception:
                 pass
 
-            # Send emails asynchronously so they never block the webhook response
+            # Resolve shared values used across all notifications
+            buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
+            buyer_phone_display = order.guest_phone or (getattr(order.buyer, 'phone', 'N/A') if order.buyer else 'N/A')
+            buyer_location = order.guest_address or 'N/A'
+            buyer_email_addr = event['data'].get('customer', {}).get('email') or order.guest_email or (order.buyer.email if order.buyer else None)
+            buyer_sms_phone = order.guest_phone or (getattr(order.buyer, 'phone', None) if order.buyer else None)
+            is_farm = order.product.is_farm_product()
+            goods_section = f"\nGoods Description : {order.goods_description}" if is_farm and order.goods_description else ''
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://www.024global.com')
+            company_email = getattr(settings, 'COMPANY_EMAIL', '024globalconnect@gmail.com')
+            company_phone = getattr(settings, 'COMPANY_PHONE', '')
+
+            # ── 1. COMPANY notification (full order details + buyer contact) ──
+            company_msg_html = f"""<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:0 auto;padding:20px;">
+  <h2 style="color:#1d4ed8;">New Order Received - #{order.id}</h2>
+  <p>A new order has been placed on 024 Global Connect. Please contact the buyer to confirm and arrange delivery.</p>
+
+  <h3 style="color:#374151;margin-top:24px;">Buyer Details</h3>
+  <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;">
+    <tr><td style="padding:6px 0;color:#555;width:40%;">Name</td><td style="padding:6px 0;font-weight:bold;">{buyer_name}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Phone</td><td style="padding:6px 0;font-weight:bold;color:#1d4ed8;">{buyer_phone_display}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Email</td><td style="padding:6px 0;">{buyer_email_addr or 'N/A'}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Delivery Location</td><td style="padding:6px 0;">{buyer_location}</td></tr>
+  </table>
+
+  <h3 style="color:#374151;">Order Details</h3>
+  <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;">
+    <tr><td style="padding:6px 0;color:#555;width:40%;">Order ID</td><td style="padding:6px 0;font-weight:bold;">#{order.id}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Product</td><td style="padding:6px 0;">{order.product.name}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Quantity</td><td style="padding:6px 0;">{order.quantity}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Total Paid</td><td style="padding:6px 0;font-weight:bold;color:#16a34a;">KES {order.amount}</td></tr>
+    {f'<tr><td style="padding:6px 0;color:#555;">Goods Description</td><td style="padding:6px 0;">{order.goods_description}</td></tr>' if is_farm and order.goods_description else ''}
+  </table>
+
+  <h3 style="color:#374151;">Vendor Details</h3>
+  <table style="width:100%;border-collapse:collapse;margin:8px 0 16px;">
+    <tr><td style="padding:6px 0;color:#555;width:40%;">Vendor</td><td style="padding:6px 0;">{order.vendor.get_full_name() if order.vendor else 'N/A'}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Vendor Phone</td><td style="padding:6px 0;">{getattr(order.vendor, 'phone', 'N/A') if order.vendor else 'N/A'}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Vendor City</td><td style="padding:6px 0;">{getattr(order.vendor, 'city', 'N/A') if order.vendor else 'N/A'}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Vendor Amount</td><td style="padding:6px 0;">KES {order.vendor_amount}</td></tr>
+  </table>
+
+  <p style="margin-top:24px;color:#888;font-size:13px;">024Global Admin &bull; www.024global.com</p>
+</body>
+</html>"""
+            send_email_async(
+                subject=f'NEW ORDER #{order.id} — {buyer_name} | {buyer_phone_display}',
+                message=f"New order #{order.id}. Buyer: {buyer_name}, Phone: {buyer_phone_display}, Product: {order.product.name}, Total: KES {order.amount}.",
+                recipient=company_email,
+                html=company_msg_html,
+            )
+            if company_phone:
+                send_sms(
+                    company_phone,
+                    f"024Global NEW ORDER #{order.id}!\n"
+                    f"Buyer: {buyer_name}\n"
+                    f"Phone: {buyer_phone_display}\n"
+                    f"Product: {order.product.name} x{order.quantity}\n"
+                    f"Total: KES {order.amount}\n"
+                    f"Location: {buyer_location}"
+                )
+
+            # ── 2. VENDOR notification (prepare goods — no buyer contact info) ──
             vendor_email = order.vendor.email if order.vendor else None
             if vendor_email:
-                is_farm = order.product.is_farm_product()
-                buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'N/A')
-                buyer_phone_display = order.guest_phone or (order.buyer.phone if order.buyer and hasattr(order.buyer, 'phone') else 'N/A')
-                buyer_location = order.guest_address or 'N/A'
-                farm_section = ''
-                if is_farm and order.goods_description:
-                    farm_section = f"""
-Goods Description : {order.goods_description}"""
-                vendor_msg = f"""Hi {order.vendor.get_full_name()},
+                send_email_async(
+                    subject=f'Prepare Order #{order.id} - {order.product.name}',
+                    message=f"""Hi {order.vendor.get_full_name()},
 
-You have received a payment on 024Global!
+A new order has been placed for your product on 024Global!
 
 Order Details
 Order ID    : #{order.id}
 Product     : {order.product.name}
 Quantity    : {order.quantity}
-Your Amount : KES {order.vendor_amount}
-Customer    : {buyer_name}
-Phone       : {buyer_phone_display}
-Location    : {buyer_location}{farm_section}
+Your Amount : KES {order.vendor_amount}{goods_section}
 
-Your payment will be settled to your account within 1-3 business days.
+Please prepare the goods. Our team will arrange collection and delivery.
+
+Your payment will be settled within 1-3 business days.
 
 Thank you for selling on 024Global!
 024Global Team
-www.024global.com"""
-                send_email_async(
-                    subject=f'Payment Received - Order #{order.id}',
-                    message=vendor_msg,
+www.024global.com""",
                     recipient=vendor_email,
                 )
-
-            affiliate_email = order.affiliate.email if order.affiliate else None
-            if affiliate_email:
-                send_email_async(
-                    subject=f'Commission Earned - Order #{order.id}',
-                    message=f"""Hi {order.affiliate.get_full_name()},
-
-Great news! You have earned a commission on 024Global!
-
-Commission Details
-Order ID    : #{order.id}
-Product     : {order.product.name}
-Sale Amount : KES {order.amount}
-Commission  : KES {order.affiliate_amount} (5%)
-
-Your commission will be settled to your account within 1-3 business days.
-
-Keep sharing your referral link to earn more!
-024Global Team
-www.024global.com""",
-                    recipient=affiliate_email,
+            vendor_sms_phone = getattr(order.vendor, 'phone', None) if order.vendor else None
+            if vendor_sms_phone:
+                send_sms(
+                    vendor_sms_phone,
+                    f"024Global: New order #{order.id}! "
+                    f"Product: {order.product.name} x{order.quantity}. "
+                    f"Your amount: KES {order.vendor_amount}. "
+                    f"Please prepare goods — our team will arrange collection."
                 )
 
-            paystack_customer_email = event['data'].get('customer', {}).get('email')
-            buyer_email = paystack_customer_email or order.guest_email or (order.buyer.email if order.buyer else None)
-            buyer_name = order.guest_name or (order.buyer.get_full_name() if order.buyer else 'Customer')
-            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://www.024global.com')
-            contact_vendor_url = f"{frontend_url}/contact-vendor?order_id={order.id}"
-            if buyer_email:
-                vendor_name_display = order.vendor.get_full_name() or order.vendor.username if order.vendor else 'your vendor'
+            # ── 3. BUYER confirmation (no vendor contact, company will call) ──
+            if buyer_email_addr:
                 buyer_html = f"""<!DOCTYPE html>
 <html>
 <body style="font-family:Arial,sans-serif;color:#333;max-width:600px;margin:0 auto;padding:20px;">
-  <h2 style="color:#1d4ed8;">Payment Successful - Order #{order.id}</h2>
+  <h2 style="color:#16a34a;">Order Confirmed! ✓</h2>
   <p>Hi {buyer_name},</p>
-  <p>Thank you for your purchase on <strong>024 Global Connect</strong>! Your payment was successful.</p>
+  <p>Thank you for your purchase on <strong>024 Global Connect</strong>! Your payment was successful and your order has been received.</p>
 
   <table style="width:100%;border-collapse:collapse;margin:16px 0;">
     <tr><td style="padding:6px 0;color:#555;">Order ID</td><td style="padding:6px 0;font-weight:bold;">#{order.id}</td></tr>
     <tr><td style="padding:6px 0;color:#555;">Product</td><td style="padding:6px 0;">{order.product.name}</td></tr>
     <tr><td style="padding:6px 0;color:#555;">Quantity</td><td style="padding:6px 0;">{order.quantity}</td></tr>
     <tr><td style="padding:6px 0;color:#555;">Total Paid</td><td style="padding:6px 0;font-weight:bold;color:#16a34a;">KES {order.amount}</td></tr>
-    <tr><td style="padding:6px 0;color:#555;">Delivery Address</td><td style="padding:6px 0;">{order.guest_address or 'N/A'}</td></tr>
-    <tr><td style="padding:6px 0;color:#555;">Vendor</td><td style="padding:6px 0;">{vendor_name_display}</td></tr>
+    <tr><td style="padding:6px 0;color:#555;">Delivery Address</td><td style="padding:6px 0;">{buyer_location}</td></tr>
   </table>
 
-  <p style="margin-top:24px;">Your order is being processed. Please contact the vendor to arrange delivery.</p>
-
-  <p style="margin-top:24px;font-weight:bold;">Have you contacted the vendor yet?</p>
-  <div style="margin:16px 0;">
-    <a href="{frontend_url}?contacted=true" style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin-right:12px;">
-      Yes, I contacted the vendor
-    </a>
-    <a href="{contact_vendor_url}" style="display:inline-block;background:#1d4ed8;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
-      No, show me vendor contact
-    </a>
+  <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:16px;border-radius:8px;margin:24px 0;">
+    <p style="margin:0;font-weight:bold;color:#166534;">What happens next?</p>
+    <p style="margin:8px 0 0;color:#166534;">Our team will call you shortly on <strong>{buyer_phone_display}</strong> to confirm your order and arrange delivery.</p>
   </div>
 
-  <p style="margin-top:24px;color:#888;font-size:13px;">For any questions, email us at 024globalconnect@gmail.com</p>
+  <p style="color:#888;font-size:13px;">For any questions, contact us at 024globalconnect@gmail.com</p>
   <p style="color:#888;font-size:13px;">024Global Team &bull; www.024global.com</p>
 </body>
 </html>"""
                 send_email_async(
-                    subject=f'Payment Successful - Order #{order.id}',
-                    message=f"Hi {buyer_name}, your order #{order.id} for {order.product.name} has been confirmed. Total: KES {order.amount}.",
-                    recipient=buyer_email,
+                    subject=f'Order #{order.id} Confirmed — We will call you shortly',
+                    message=f"Hi {buyer_name}, your order #{order.id} for {order.product.name} is confirmed. Total: KES {order.amount}. Our team will call you on {buyer_phone_display} to arrange delivery.",
+                    recipient=buyer_email_addr,
                     html=buyer_html,
-                )
-
-            # Send SMS notifications
-            buyer_sms_phone = order.guest_phone or (getattr(order.buyer, 'phone', None) if order.buyer else None)
-            vendor_sms_phone = getattr(order.vendor, 'phone', None) if order.vendor else None
-            affiliate_sms_phone = getattr(order.affiliate, 'phone', None) if order.affiliate else None
-
-            if vendor_sms_phone:
-                send_sms(
-                    vendor_sms_phone,
-                    f"024Global: New order #{order.id}!\n"
-                    f"Product: {order.product.name}\n"
-                    f"Qty: {order.quantity}\n"
-                    f"Your amount: KES {order.vendor_amount}\n"
-                    f"Buyer: {buyer_name} | {buyer_phone_display}"
                 )
             if buyer_sms_phone:
                 send_sms(
                     buyer_sms_phone,
-                    f"024Global: Payment confirmed! Order #{order.id} for {order.product.name}. "
-                    f"Total: KES {order.amount}. Contact your vendor to arrange delivery. - 024Global"
+                    f"024Global: Order #{order.id} confirmed! "
+                    f"Product: {order.product.name}. Total: KES {order.amount}. "
+                    f"Our team will call you shortly to arrange delivery. Thank you!"
                 )
+
+            # ── 4. AFFILIATE commission notification ──
+            affiliate_email = order.affiliate.email if order.affiliate else None
+            if affiliate_email:
+                send_email_async(
+                    subject=f'Commission Earned - Order #{order.id}',
+                    message=f"""Hi {order.affiliate.get_full_name()},
+
+You have earned a commission on 024Global!
+
+Order ID    : #{order.id}
+Product     : {order.product.name}
+Sale Amount : KES {order.amount}
+Commission  : KES {order.affiliate_amount} (5%)
+
+Your commission will be settled within 1-3 business days.
+
+024Global Team
+www.024global.com""",
+                    recipient=affiliate_email,
+                )
+            affiliate_sms_phone = getattr(order.affiliate, 'phone', None) if order.affiliate else None
             if affiliate_sms_phone:
                 send_sms(
                     affiliate_sms_phone,
@@ -781,7 +817,7 @@ def cart_checkout(request):
             "email": guest_email,
             "amount": amount_kobo,
             "currency": "KES",
-            "callback_url": f"{settings.FRONTEND_URL}/transporter?order_id={order.id}",
+            "callback_url": f"{settings.FRONTEND_URL}/order-success?order_id={order.id}",
             "metadata": {"order_id": order.id, "product_id": product.id},
             "split": {"type": "percentage", "bearer_type": "account", "subaccounts": subaccounts},
         }

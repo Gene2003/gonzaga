@@ -24,6 +24,7 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/cart';
 import ContactVendor from './pages/ContactVendor';
 import Transporter from './pages/Transporter';
+import OrderSuccess from './pages/OrderSuccess';
 import ContactServiceProvider from './pages/ContactServiceProvider';
 import VendorPaymentSuccess from './pages/VendorPaymentSuccess';
 import ServiceProviderPaymentSuccess from './pages/ServiceProviderPaymentSuccess';
@@ -82,6 +83,7 @@ function App() {
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/contact-vendor" element={<ContactVendor />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/transporter" element={<Transporter />} />
         <Route path="/contact-service-provider" element={<ContactServiceProvider />} />

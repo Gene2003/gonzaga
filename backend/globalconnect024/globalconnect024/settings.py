@@ -232,6 +232,10 @@ PAYSTACK_SECRET_KEY = env('PAYSTACK_SECRET_KEY', default='')
 PAYSTACK_PUBLIC_KEY = env('PAYSTACK_PUBLIC_KEY', default='')
 PAYSTACK_CALLBACK_URL = env('PAYSTACK_CALLBACK_URL', default='http://localhost:5173/payment-success')
 
+# Company contact (receives all order notifications)
+COMPANY_EMAIL = env('COMPANY_EMAIL', default='024globalconnect@gmail.com')
+COMPANY_PHONE = env('COMPANY_PHONE', default='')
+
 # Africa's Talking SMS
 AFRICASTALKING_API_KEY = env('AFRICASTALKING_API_KEY', default='')
 AFRICASTALKING_USERNAME = env('AFRICASTALKING_USERNAME', default='sandbox')
