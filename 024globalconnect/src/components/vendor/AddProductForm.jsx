@@ -10,6 +10,29 @@ import {
 } from "lucide-react";
 import { API_ENDPOINTS } from "../../api/endpoints";
 
+// ✅ Preset farm products with local images
+const PRESET_PRODUCTS = [
+  { name: "Watermelon",           image: "/products/watermelon.jpg",   category: "farm_products" },
+  { name: "Tomatoes",             image: "/products/tomato.jpg",        category: "farm_products" },
+  { name: "Ginger",               image: "/products/ginger.jpg",        category: "farm_products" },
+  { name: "Terere (Amaranth)",    image: "/products/terere.jpg",        category: "farm_products" },
+  { name: "Beans",                image: "/products/beans.jpg",         category: "farm_products" },
+  { name: "Kunde (Cowpeas)",      image: "/products/kunde.jpg",         category: "farm_products" },
+  { name: "Sweet Potatoes",       image: "/products/sweetpotato.jpg",   category: "farm_products" },
+  { name: "Sukuma Wiki (Kales)",  image: "/products/sukumawiki.jpg",    category: "farm_products" },
+  { name: "Managu",               image: "/products/managu.jpg",        category: "farm_products" },
+  { name: "Pumpkin",              image: "/products/pumpkin.jpg",       category: "farm_products" },
+  { name: "Rosemary",             image: "/products/rosemary.jpg",      category: "farm_products" },
+  { name: "Garlic",               image: "/products/garlic.jpg",        category: "farm_products" },
+  { name: "Strawberries",         image: "/products/strawberry.jpg",    category: "farm_products" },
+  { name: "Coriander (Dania)",    image: "/products/dania.jpg",         category: "farm_products" },
+  { name: "Mrenda",               image: "/products/mrenda.jpg",        category: "farm_products" },
+  { name: "Carrots",              image: "/products/carrots.jpg",       category: "farm_products" },
+  { name: "Irish Potatoes",       image: "/products/potato.jpg",        category: "farm_products" },
+  { name: "Green Chilli",         image: "/products/green-chilli.jpg",  category: "farm_products" },
+  { name: "Green Capsicum (Pilipili Hoho)", image: "/products/capsicum.jpg", category: "farm_products" },
+];
+
 const categories = [
   { label: "Farm Products", value: "farm_products", icon: Wheat, isFarm: true },
   { label: "Food & Grocery", value: "food", icon: UtensilsCrossed, isFarm: true },
@@ -41,6 +64,19 @@ const AddProductForm = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState(null);
+
+  // ✅ Select a preset product — auto-fills name, category, and image
+  const selectPreset = (preset) => {
+    setSelectedPreset(preset);
+    setForm((prev) => ({
+      ...prev,
+      name: preset.name,
+      category: preset.category,
+      quantity_kg: "",
+      stock: "",
+    }));
+  };
 
   // ✅ Check if selected category is a farm category
   const selectedCategoryObj = categories.find((c) => c.value === form.category) || null;
@@ -58,6 +94,8 @@ const AddProductForm = () => {
   };
 
   const getAutoImage = () => {
+    // ✅ Use preset image if a preset was selected
+    if (selectedPreset) return selectedPreset.image;
     const name = form.name.toLowerCase();
     const cat = (selectedCategoryObj?.value || '').toLowerCase();
 
@@ -171,6 +209,47 @@ const AddProductForm = () => {
       <h2 className="text-2xl font-semibold mb-4">Add New Product</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+
+        {/* ✅ Preset Farm Product Picker */}
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Quick Select a Farm Product <span className="text-gray-400 font-normal">(optional — click to auto-fill)</span>
+          </label>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto pr-1">
+            {PRESET_PRODUCTS.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => selectPreset(preset)}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition cursor-pointer text-center ${
+                  selectedPreset?.name === preset.name
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-blue-300 bg-white"
+                }`}
+              >
+                <img
+                  src={preset.image}
+                  alt={preset.name}
+                  className="w-14 h-14 object-cover rounded-md"
+                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=100'; }}
+                />
+                <span className="text-xs font-medium text-gray-700 leading-tight">{preset.name}</span>
+              </button>
+            ))}
+          </div>
+          {selectedPreset && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-blue-600 font-medium">✅ Selected: {selectedPreset.name}</span>
+              <button
+                type="button"
+                onClick={() => { setSelectedPreset(null); setForm((prev) => ({ ...prev, name: "", category: "" })); }}
+                className="text-xs text-gray-400 hover:text-red-500 underline"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Product Type */}
         <div>
