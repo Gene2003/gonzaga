@@ -12,7 +12,7 @@ import img8 from '../../assets/8.png';
 const banners = [
   {
     img: img5,
-    objPos: 'object-top',
+    objPos: 'object-center',
     badge: 'Best Deals Today',
     title: 'Fresh Farm Produce',
     subtitle: 'Direct from farmers to your table — guaranteed freshness',
@@ -30,7 +30,7 @@ const banners = [
   },
   {
     img: img7,
-    objPos: 'object-top',
+    objPos: 'object-center',
     badge: 'Earn Commissions',
     title: 'Become an Affiliate',
     subtitle: 'Refer vendors and earn 50% registration commission',
@@ -105,13 +105,13 @@ const HeroWithCTA = () => {
                 className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
               >
                 <img src={b.img} alt={b.title} className={`w-full h-full object-cover ${b.objPos}`} />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/65 to-transparent flex items-center">
-                  <div className="px-8 sm:px-12 text-white max-w-md">
-                    <span className="inline-block bg-blue-600 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-3">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex items-end">
+                  <div className="px-8 sm:px-10 pb-8 text-white w-full max-w-lg">
+                    <span className="inline-block bg-blue-600 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-2">
                       {b.badge}
                     </span>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight mb-2">{b.title}</h2>
-                    <p className="text-white/80 text-sm mb-5">{b.subtitle}</p>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight mb-1">{b.title}</h2>
+                    <p className="text-white/85 text-sm mb-4">{b.subtitle}</p>
                     <button
                       onClick={() => navigate(b.to)}
                       className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow-lg"
