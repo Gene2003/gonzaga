@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import img1 from '../../assets/1.png';
 import img2 from '../../assets/2.png';
+import img3 from '../../assets/3.png';
 import img4 from '../../assets/4.png';
 import img5 from '../../assets/5.png';
+import img6 from '../../assets/6.png';
 import img7 from '../../assets/7.png';
+import img8 from '../../assets/8.png';
 
 const banners = [
   {
@@ -34,14 +37,14 @@ const banners = [
 ];
 
 const categoryLinks = [
-  { name: 'Vegetables', img: '/products/sukumawiki.jpg' },
-  { name: 'Tomatoes',   img: '/products/tomato.jpg' },
-  { name: 'Fruits',     img: '/products/watermelon.jpg' },
-  { name: 'Root Crops', img: '/products/potato.jpg' },
-  { name: 'Herbs',      img: '/products/rosemary.jpg' },
-  { name: 'Legumes',    img: '/products/beans.jpg' },
-  { name: 'Leafy Greens', img: '/products/managu.jpg' },
-  { name: 'Spices',     img: '/products/ginger.jpg' },
+  { name: 'Vegetables',   img: img1 },
+  { name: 'Tomatoes',     img: img2 },
+  { name: 'Fruits',       img: img3 },
+  { name: 'Root Crops',   img: img4 },
+  { name: 'Herbs',        img: img5 },
+  { name: 'Legumes',      img: img6 },
+  { name: 'Leafy Greens', img: img7 },
+  { name: 'Spices',       img: img8 },
 ];
 
 const sideCategories = [
@@ -72,11 +75,11 @@ const HeroWithCTA = () => {
         <div className="flex gap-3">
 
           {/* Left: Category sidebar */}
-          <div className="hidden lg:flex flex-col w-52 flex-shrink-0 bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="bg-blue-600 text-white text-sm font-bold px-4 py-3">
+          <div className="hidden lg:flex flex-col w-52 flex-shrink-0 h-[340px] bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-blue-600 text-white text-sm font-bold px-4 py-3 flex-shrink-0">
               All Categories
             </div>
-            <ul className="flex-1 py-1">
+            <ul className="overflow-y-auto py-1">
               {sideCategories.map(cat => (
                 <li key={cat}>
                   <button
@@ -179,7 +182,6 @@ const HeroWithCTA = () => {
                     src={cat.img}
                     alt={cat.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    onError={(e) => { e.target.src = '/images/1.png'; }}
                   />
                 </div>
                 <span className="text-xs font-medium text-gray-700 group-hover:text-blue-600 leading-tight text-center">{cat.name}</span>
