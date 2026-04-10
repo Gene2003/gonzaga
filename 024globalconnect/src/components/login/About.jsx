@@ -49,71 +49,164 @@ function Stat({ value, suffix = "", label }) {
   );
 }
 
-/* ── story card ── */
-function StoryCard({ img, name, role, quote }) {
+/* ── deal product card ── */
+function DealCard({ img, name, price, badge, badgeColor = "bg-blue-600" }) {
+  const navigate = useNavigate();
   return (
-    <div className="flex flex-col bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-      <img src={img} alt={name} className="w-full h-56 object-cover" />
-      <div className="p-6 flex flex-col gap-3">
-        <p className="text-gray-700 italic text-sm leading-relaxed">"{quote}"</p>
-        <div>
-          <p className="font-bold text-gray-900">{name}</p>
-          <p className="text-blue-600 text-xs font-medium uppercase tracking-wide">{role}</p>
-        </div>
+    <div
+      onClick={() => navigate('/products')}
+      className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow cursor-pointer group overflow-hidden border border-gray-100"
+    >
+      <div className="relative h-44 overflow-hidden">
+        <img
+          src={img}
+          alt={name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
+          onError={(e) => { e.target.src = '/images/1.png'; }}
+        />
+        <span className={`absolute top-2 left-2 ${badgeColor} text-white text-xs font-bold px-2 py-0.5 rounded-full`}>
+          {badge}
+        </span>
       </div>
+      <div className="p-3">
+        <p className="font-semibold text-gray-900 text-sm truncate">{name}</p>
+        <p className="text-blue-600 font-bold text-sm mt-0.5">{price}</p>
+      </div>
+    </div>
+  );
+}
+
+const dealProducts = [
+  { img: '/products/tomato.jpg',       name: 'Fresh Tomatoes',         price: 'From KES 80/kg',  badge: 'Hot Deal',    badgeColor: 'bg-red-500' },
+  { img: '/products/watermelon.jpg',   name: 'Sweet Watermelon',       price: 'From KES 45/kg',  badge: 'Top Seller',  badgeColor: 'bg-blue-600' },
+  { img: '/products/sukumawiki.jpg',   name: 'Sukuma Wiki (Kales)',     price: 'From KES 30/kg',  badge: 'Popular',     badgeColor: 'bg-green-500' },
+  { img: '/products/potato.jpg',       name: 'Irish Potatoes',         price: 'From KES 60/kg',  badge: 'Fresh',       badgeColor: 'bg-blue-500' },
+  { img: '/products/beans.jpg',        name: 'Beans',                  price: 'From KES 120/kg', badge: 'Best Value',  badgeColor: 'bg-blue-600' },
+  { img: '/products/carrots.jpg',      name: 'Fresh Carrots',          price: 'From KES 70/kg',  badge: 'New',         badgeColor: 'bg-purple-500' },
+  { img: '/products/ginger.jpg',       name: 'Fresh Ginger',           price: 'From KES 200/kg', badge: 'Premium',     badgeColor: 'bg-yellow-600' },
+  { img: '/products/garlic.jpg',       name: 'Garlic',                 price: 'From KES 350/kg', badge: 'Organic',     badgeColor: 'bg-green-600' },
+];
+
+const featuredProducts = [
+  { img: '/products/managu.jpg',       name: 'Managu (Black Nightshade)', price: 'From KES 40/kg',  badge: 'Fresh',  badgeColor: 'bg-green-500' },
+  { img: '/products/strawberry.jpg',   name: 'Strawberries',              price: 'From KES 300/kg', badge: 'Sweet',  badgeColor: 'bg-red-500' },
+  { img: '/products/capsicum.jpg',     name: 'Green Capsicum',            price: 'From KES 150/kg', badge: 'Crisp',  badgeColor: 'bg-green-600' },
+  { img: '/products/sweetpotato.jpg',  name: 'Sweet Potatoes',            price: 'From KES 55/kg',  badge: 'Local',  badgeColor: 'bg-blue-600' },
+  { img: '/products/dania.jpg',        name: 'Coriander (Dania)',         price: 'From KES 25/bunch',badge: 'Aromatic', badgeColor: 'bg-green-500' },
+  { img: '/products/pumpkin.jpg',      name: 'Pumpkin',                   price: 'From KES 35/kg',  badge: 'Big',    badgeColor: 'bg-yellow-600' },
+  { img: '/products/terere.jpg',       name: 'Terere (Amaranth)',         price: 'From KES 30/kg',  badge: 'Healthy', badgeColor: 'bg-green-600' },
+  { img: '/products/mrenda.jpg',       name: 'Mrenda (Jute Mallow)',      price: 'From KES 30/kg',  badge: 'Nutritious', badgeColor: 'bg-blue-500' },
+];
+
+/* ── Countdown timer (resets daily at midnight) ── */
+function useCountdown() {
+  const getSecondsUntilMidnight = () => {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    return Math.floor((midnight - now) / 1000);
+  };
+  const [secs, setSecs] = useState(getSecondsUntilMidnight);
+  useEffect(() => {
+    const t = setInterval(() => setSecs(s => s > 0 ? s - 1 : getSecondsUntilMidnight()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const h = String(Math.floor(secs / 3600)).padStart(2, '0');
+  const m = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+  const s = String(secs % 60).padStart(2, '0');
+  return { h, m, s };
+}
+
+function TimeBlock({ val, label }) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className="bg-gray-900 text-white font-mono font-bold text-xl sm:text-2xl px-3 py-1.5 rounded-lg min-w-[2.8rem] text-center">{val}</span>
+      <span className="text-blue-200 text-xs mt-1">{label}</span>
     </div>
   );
 }
 
 const About = () => {
   const navigate = useNavigate();
+  const { h, m, s } = useCountdown();
 
   const steps = [
-    {
-      num: "01",
-      title: "Register",
-      body: "Sign up as a farmer, wholesaler, retailer, or affiliate in minutes.",
-      img: img4,
-      imgAlt: "Person registering on phone",
-    },
-    {
-      num: "02",
-      title: "List or Browse",
-      body: "Vendors list products with photos and prices. Buyers browse fresh farm produce and goods.",
-      img: img6,
-      imgAlt: "Vendor listing products",
-    },
-    {
-      num: "03",
-      title: "Pay & Earn",
-      body: "Buyers pay securely via M-Pesa. Vendors earn. Affiliates get commissions.",
-      img: img9,
-      imgAlt: "Buyer receiving order",
-    },
+    { num: "01", title: "Register",      body: "Sign up as a farmer, wholesaler, retailer, or affiliate in minutes.", img: img4, imgAlt: "Person registering on phone" },
+    { num: "02", title: "List or Browse", body: "Vendors list products with photos and prices. Buyers browse fresh farm produce and goods.", img: img6, imgAlt: "Vendor listing products" },
+    { num: "03", title: "Pay & Earn",    body: "Buyers pay securely via M-Pesa. Vendors earn. Affiliates get commissions.", img: img9, imgAlt: "Buyer receiving order" },
   ];
 
   const ecosystem = [
-    { img: img5, title: "Farmers", desc: "List your crops, set your price, reach buyers across Kenya and beyond." },
-    { img: img1, title: "Vendors", desc: "Grow your market stall into a digital store accessible 24/7." },
-    { img: img9, title: "Buyers", desc: "Order fresh produce and goods delivered straight to your door." },
+    { img: img5, title: "Farmers",    desc: "List your crops, set your price, reach buyers across Kenya and beyond." },
+    { img: img1, title: "Vendors",    desc: "Grow your market stall into a digital store accessible 24/7." },
+    { img: img9, title: "Buyers",     desc: "Order fresh produce and goods delivered straight to your door." },
     { img: img4, title: "Affiliates", desc: "Refer vendors, earn 50% registration commission plus sales commissions." },
-  ];
-
-  const stories = [
-    { img: img7, name: "Grace M.", role: "Maize Farmer, Nakuru", quote: "I used to sell at the market at 6am. Now orders come to my phone while I'm still in the field." },
-    { img: img8, name: "Amina W.", role: "Smallholder Farmer, Kisumu", quote: "024 Global Connect helped me find buyers who pay fair prices. My income doubled this season." },
-    { img: img6, name: "David K.", role: "Horticulture Vendor, Nairobi", quote: "I list my mangoes, track stock, and get paid — all from one platform. It changed everything." },
   ];
 
   return (
     <>
+      {/* ── FLASH DEALS ── */}
+      <section className="bg-white py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Header bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+              <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+                <span className="text-blue-600">⚡</span> Flash Deals
+              </h2>
+              <div className="hidden sm:flex items-center gap-1.5">
+                <span className="text-sm text-gray-500 font-medium">Ends in:</span>
+                <div className="flex gap-1 items-center">
+                  <TimeBlock val={h} label="HRS" />
+                  <span className="text-blue-600 font-bold text-xl mb-4">:</span>
+                  <TimeBlock val={m} label="MIN" />
+                  <span className="text-blue-600 font-bold text-xl mb-4">:</span>
+                  <TimeBlock val={s} label="SEC" />
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/products')}
+              className="text-blue-600 font-semibold text-sm hover:underline self-start sm:self-auto"
+            >
+              See All Deals →
+            </button>
+          </div>
+
+          {/* Product grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+            {dealProducts.map(p => <DealCard key={p.name} {...p} />)}
+          </div>
+        </div>
+      </section>
+
       {/* ── STATS BAR ── */}
-      <section className="bg-blue-700 py-14">
+      <section className="bg-blue-600 py-14">
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-blue-600">
-          <Stat value={5000} suffix="+" label="Farmers Connected" />
-          <Stat value={200} suffix="+" label="Active Vendors" />
+          <Stat value={5000}  suffix="+" label="Farmers Connected" />
+          <Stat value={200}   suffix="+" label="Active Vendors" />
           <Stat value={50000} suffix="+" label="Products Listed" />
-          <Stat value={10} suffix="+" label="Counties Served" />
+          <Stat value={10}    suffix="+" label="Counties Served" />
+        </div>
+      </section>
+
+      {/* ── FEATURED PRODUCTS ── */}
+      <section className="bg-gray-50 py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+              <span className="text-blue-600">🌿</span> Featured Products
+            </h2>
+            <button
+              onClick={() => navigate('/products')}
+              className="text-blue-600 font-semibold text-sm hover:underline"
+            >
+              View All →
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {featuredProducts.map(p => <DealCard key={p.name} {...p} />)}
+          </div>
         </div>
       </section>
 
@@ -127,15 +220,12 @@ const About = () => {
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
               <div key={s.num} className="flex flex-col rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl transition-all overflow-hidden">
-                {/* Photo */}
                 <div className="relative h-52 overflow-hidden">
                   <img src={s.img} alt={s.imgAlt} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                  {/* Step badge */}
                   <span className="absolute top-4 left-4 bg-blue-600 text-white text-xs font-bold tracking-widest px-3 py-1 rounded-full">
                     STEP {s.num}
                   </span>
                 </div>
-                {/* Text */}
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">{s.title}</h3>
                   <p className="text-gray-500 leading-relaxed">{s.body}</p>
@@ -164,21 +254,6 @@ const About = () => {
                   <p className="text-gray-500 text-sm leading-relaxed">{e.desc}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FARMER STORIES ── */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-14">
-            <span className="text-blue-600 font-semibold text-sm uppercase tracking-widest">Real People. Real Impact.</span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-2">Success Stories</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {stories.map((s) => (
-              <StoryCard key={s.name} {...s} />
             ))}
           </div>
         </div>
@@ -237,23 +312,46 @@ const About = () => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <img src={img4} alt="Vendor with phone" className="rounded-2xl h-56 w-full object-cover" />
-            <img src={img3} alt="Market" className="rounded-2xl h-56 w-full object-cover mt-8" />
-            <img src={img6} alt="Farm tech" className="rounded-2xl h-56 w-full object-cover -mt-4" />
-            <img src={img9} alt="Buyers" className="rounded-2xl h-56 w-full object-cover mt-4" />
+            <img src={img3} alt="Market"             className="rounded-2xl h-56 w-full object-cover mt-8" />
+            <img src={img6} alt="Farm tech"          className="rounded-2xl h-56 w-full object-cover -mt-4" />
+            <img src={img9} alt="Buyers"             className="rounded-2xl h-56 w-full object-cover mt-4" />
           </div>
+        </div>
+      </section>
+
+      {/* ── BANNER AD ROW ── */}
+      <section className="bg-white py-6">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { img: img7, label: 'Fresh From the Farm',     sub: 'Order direct, save more' },
+            { img: img8, label: 'Meet Our Top Farmers',    sub: '5,000+ farmers ready to sell' },
+            { img: img6, label: 'Become a Vendor Today',   sub: 'Easy setup, start in minutes' },
+          ].map(b => (
+            <div
+              key={b.label}
+              onClick={() => navigate('/products')}
+              className="relative h-36 rounded-xl overflow-hidden cursor-pointer group shadow-sm"
+            >
+              <img src={b.img} alt={b.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-4">
+                <div>
+                  <p className="text-white font-bold text-sm">{b.label}</p>
+                  <p className="text-white/75 text-xs">{b.sub}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* ── JOIN CTA ── */}
       <section className="relative py-20 text-center text-white overflow-hidden">
-        {/* Background image */}
         <img
-          src="https://images.unsplash.com/photo-1593113598332-cd288d649433?w=1400&h=600&fit=crop"
+          src={img5}
           alt="Farmers together"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Light overlay — just enough to keep text readable */}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/50" />
         <div className="relative max-w-3xl mx-auto px-4">
           <h2 className="text-3xl sm:text-5xl font-extrabold mb-5 leading-tight">
             Ready to Transform Your Business?
@@ -264,13 +362,13 @@ const About = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={() => navigate('/products')}
-              className="px-8 py-4 bg-white text-blue-800 font-bold rounded-lg hover:bg-blue-50 transition text-lg"
+              className="px-8 py-4 bg-white text-blue-700 font-bold rounded-lg hover:bg-blue-50 transition text-lg"
             >
               Browse Marketplace
             </button>
             <button
               onClick={() => navigate('/register')}
-              className="px-8 py-4 bg-blue-600 border-2 border-blue-500 text-white font-bold rounded-lg hover:bg-blue-700 transition text-lg"
+              className="px-8 py-4 bg-blue-600 border-2 border-blue-400 text-white font-bold rounded-lg hover:bg-blue-700 transition text-lg"
             >
               Join Free
             </button>

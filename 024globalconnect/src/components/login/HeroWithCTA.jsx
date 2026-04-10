@@ -1,62 +1,194 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import bananaBg from '../../assets/banana-plantation.jpg';
+import img1 from '../../assets/1.png';
+import img2 from '../../assets/2.png';
+import img4 from '../../assets/4.png';
+import img5 from '../../assets/5.png';
+import img7 from '../../assets/7.png';
+
+const banners = [
+  {
+    img: img5,
+    badge: 'Best Deals Today',
+    title: 'Fresh Farm Produce',
+    subtitle: 'Direct from farmers to your table — guaranteed freshness',
+    cta: 'Shop Now',
+    to: '/products',
+  },
+  {
+    img: img1,
+    badge: 'New Vendors',
+    title: 'Start Selling Online',
+    subtitle: 'Join thousands of vendors selling fresh produce 24/7',
+    cta: 'Join as Vendor',
+    to: '/register',
+  },
+  {
+    img: img7,
+    badge: 'Earn Commissions',
+    title: 'Become an Affiliate',
+    subtitle: 'Refer vendors and earn 50% registration commission',
+    cta: 'Learn More',
+    to: '/register',
+  },
+];
+
+const categoryLinks = [
+  { name: 'Vegetables', img: '/products/sukumawiki.jpg' },
+  { name: 'Tomatoes',   img: '/products/tomato.jpg' },
+  { name: 'Fruits',     img: '/products/watermelon.jpg' },
+  { name: 'Root Crops', img: '/products/potato.jpg' },
+  { name: 'Herbs',      img: '/products/rosemary.jpg' },
+  { name: 'Legumes',    img: '/products/beans.jpg' },
+  { name: 'Leafy Greens', img: '/products/managu.jpg' },
+  { name: 'Spices',     img: '/products/ginger.jpg' },
+];
+
+const sideCategories = [
+  'Farm Products',
+  'Vegetables & Greens',
+  'Fruits & Berries',
+  'Grains & Cereals',
+  'Herbs & Spices',
+  'Root Vegetables',
+  'Legumes & Pulses',
+  'Dairy & Eggs',
+];
 
 const HeroWithCTA = () => {
   const navigate = useNavigate();
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const iv = setInterval(() => setCurrent(p => (p + 1) % banners.length), 4500);
+    return () => clearInterval(iv);
+  }, []);
 
   return (
-    <section className="relative h-screen w-full overflow-hidden text-white">
-      {/* Background — banana plantation */}
-      <img
-        src={bananaBg}
-        alt="Banana plantation"
-        className="absolute inset-0 w-full h-full object-cover z-0"
-      />
+    <section className="bg-gray-100">
 
-      {/* Dark gradient overlay */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/55 via-black/45 to-black/65" />
+      {/* ── MAIN HERO BLOCK ── */}
+      <div className="max-w-7xl mx-auto px-3 pt-3 pb-2">
+        <div className="flex gap-3">
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 sm:px-8 pt-20">
-        {/* Eyebrow */}
-        <span className="inline-block bg-blue-600 text-white text-xs sm:text-sm font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6">
-          Africa's Agricultural Marketplace
-        </span>
+          {/* Left: Category sidebar */}
+          <div className="hidden lg:flex flex-col w-52 flex-shrink-0 bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-blue-600 text-white text-sm font-bold px-4 py-3">
+              All Categories
+            </div>
+            <ul className="flex-1 py-1">
+              {sideCategories.map(cat => (
+                <li key={cat}>
+                  <button
+                    onClick={() => navigate('/products')}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 flex justify-between items-center transition"
+                  >
+                    <span>{cat}</span>
+                    <span className="text-gray-400">›</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6 max-w-4xl drop-shadow-lg">
-          Connecting Farmers, Vendors &amp; Buyers Across Africa
-        </h1>
+          {/* Center: Banner carousel */}
+          <div className="flex-1 relative h-[340px] rounded-xl overflow-hidden shadow-sm">
+            {banners.map((b, i) => (
+              <div
+                key={i}
+                className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              >
+                <img src={b.img} alt={b.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/65 to-transparent flex items-center">
+                  <div className="px-8 sm:px-12 text-white max-w-md">
+                    <span className="inline-block bg-blue-600 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-3">
+                      {b.badge}
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight mb-2">{b.title}</h2>
+                    <p className="text-white/80 text-sm mb-5">{b.subtitle}</p>
+                    <button
+                      onClick={() => navigate(b.to)}
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow-lg"
+                    >
+                      {b.cta}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
 
-        <p className="text-base sm:text-xl text-white/85 max-w-2xl mb-10 leading-relaxed">
-          Buy fresh produce directly from farmers. Sell your products to thousands of buyers.
-          Earn commissions as an affiliate. One platform — endless opportunity.
-        </p>
+            {/* Slide dots */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+              {banners.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${i === current ? 'bg-blue-600 w-6' : 'bg-white/60 w-2.5'}`}
+                />
+              ))}
+            </div>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
-            onClick={() => navigate('/products')}
-            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:shadow-blue-900/40 hover:scale-105"
-          >
-            Browse Marketplace
-          </button>
-          <button
-            onClick={() => navigate('/register')}
-            className="px-8 py-4 bg-white/10 border-2 border-white text-white hover:bg-white hover:text-blue-800 font-bold rounded-lg text-base sm:text-lg transition-all shadow-lg hover:scale-105"
-          >
-            Join as Vendor
-          </button>
-        </div>
+            {/* Prev / Next arrows */}
+            <button
+              onClick={() => setCurrent(p => (p - 1 + banners.length) % banners.length)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 bg-black/30 hover:bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center transition"
+            >‹</button>
+            <button
+              onClick={() => setCurrent(p => (p + 1) % banners.length)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 bg-black/30 hover:bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center transition"
+            >›</button>
+          </div>
 
-        {/* Scroll cue */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce opacity-70">
-          <span className="text-xs uppercase tracking-widest">Scroll</span>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          {/* Right: Mini banners */}
+          <div className="hidden xl:flex flex-col gap-3 w-44 flex-shrink-0">
+            <div
+              onClick={() => navigate('/register')}
+              className="relative flex-1 rounded-xl overflow-hidden cursor-pointer group shadow-sm"
+            >
+              <img src={img4} alt="Sell on platform" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
+                <p className="text-white text-xs font-bold">Sell on 024 Global →</p>
+              </div>
+            </div>
+            <div
+              onClick={() => navigate('/products')}
+              className="relative flex-1 rounded-xl overflow-hidden cursor-pointer group shadow-sm"
+            >
+              <img src={img2} alt="Browse deals" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
+                <p className="text-white text-xs font-bold">Browse Deals →</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
+
+      {/* ── CATEGORY ICONS ROW ── */}
+      <div className="max-w-7xl mx-auto px-3 pb-3">
+        <div className="bg-white rounded-xl shadow-sm px-4 py-4">
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            {categoryLinks.map(cat => (
+              <button
+                key={cat.name}
+                onClick={() => navigate('/products')}
+                className="flex flex-col items-center gap-2 group"
+              >
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 border-transparent group-hover:border-blue-400 transition bg-blue-50">
+                  <img
+                    src={cat.img}
+                    alt={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    onError={(e) => { e.target.src = '/images/1.png'; }}
+                  />
+                </div>
+                <span className="text-xs font-medium text-gray-700 group-hover:text-blue-600 leading-tight text-center">{cat.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
     </section>
   );
 };

@@ -82,11 +82,6 @@ const AddProductForm = () => {
   const selectedCategoryObj = categories.find((c) => c.value === form.category) || null;
   const isFarmCategory = selectedCategoryObj?.isFarm || false;
 
-  // ✅ Minimum quantity based on vendor type (only for farm categories)
-  const minQuantity =
-    vendorType === "farmer" ? 600 :
-    vendorType === "wholesaler" ? 300 :
-    100;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -140,13 +135,7 @@ const AddProductForm = () => {
     e.preventDefault();
 
     // ✅ Frontend validation
-    if (isFarmCategory) {
-      const qty = Number(form.quantity_kg);
-      if (qty < minQuantity) {
-        toast.error(`Minimum quantity for farm products is ${minQuantity} kg`);
-        return;
-      }
-    } else {
+    if (!isFarmCategory) {
       const stock = Number(form.stock);
       if (stock < 1) {
         toast.error("Stock must be at least 1");
@@ -377,27 +366,17 @@ const AddProductForm = () => {
         {form.category ? (
           isFarmCategory ? (
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Quantity (kg)
-                <span className="text-red-500 ml-1">
-                  — minimum {minQuantity} kg required
-                </span>
-              </label>
+              <label className="block text-sm font-medium mb-1">Quantity (kg)</label>
               <input
                 type="number"
                 name="quantity_kg"
                 value={form.quantity_kg}
                 onChange={handleChange}
-                placeholder={`Min ${minQuantity} kg`}
-                min={minQuantity}
+                placeholder="Enter quantity in kg"
+                min={1}
                 className="w-full border rounded-lg px-3 py-2"
                 required
               />
-              {form.quantity_kg && Number(form.quantity_kg) < minQuantity && (
-                <p className="text-red-500 text-xs mt-1">
-                  ⚠️ Minimum is {minQuantity} kg for this category
-                </p>
-              )}
             </div>
           ) : (
             <div>
