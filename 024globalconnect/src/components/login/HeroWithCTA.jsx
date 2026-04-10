@@ -101,7 +101,7 @@ const HeroWithCTA = () => {
                 key={i}
                 className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
               >
-                <img src={b.img} alt={b.title} className="w-full h-full object-cover" />
+                <img src={b.img} alt={b.title} className="w-full h-full object-cover object-top" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/65 to-transparent flex items-center">
                   <div className="px-8 sm:px-12 text-white max-w-md">
                     <span className="inline-block bg-blue-600 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-3">
