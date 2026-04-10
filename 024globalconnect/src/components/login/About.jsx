@@ -49,8 +49,8 @@ function Stat({ value, suffix = "", label }) {
   );
 }
 
-/* ── deal product card ── */
-function DealCard({ img, name, price, badge, badgeColor = "bg-blue-600" }) {
+/* ── product card ── */
+function ProductCard({ img, name, badge }) {
   const navigate = useNavigate();
   return (
     <div
@@ -61,74 +61,45 @@ function DealCard({ img, name, price, badge, badgeColor = "bg-blue-600" }) {
         <img
           src={img}
           alt={name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => { e.target.src = '/images/1.png'; }}
         />
-        <span className={`absolute top-2 left-2 ${badgeColor} text-white text-xs font-bold px-2 py-0.5 rounded-full`}>
+        <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
           {badge}
         </span>
       </div>
       <div className="p-3">
         <p className="font-semibold text-gray-900 text-sm truncate">{name}</p>
-        <p className="text-blue-600 font-bold text-sm mt-0.5">{price}</p>
+        <p className="text-blue-500 text-xs mt-0.5">Tap to browse →</p>
       </div>
     </div>
   );
 }
 
-const dealProducts = [
-  { img: '/products/tomato.jpg',       name: 'Fresh Tomatoes',         price: 'From KES 80/kg',  badge: 'Hot Deal',    badgeColor: 'bg-red-500' },
-  { img: '/products/watermelon.jpg',   name: 'Sweet Watermelon',       price: 'From KES 45/kg',  badge: 'Top Seller',  badgeColor: 'bg-blue-600' },
-  { img: '/products/sukumawiki.jpg',   name: 'Sukuma Wiki (Kales)',     price: 'From KES 30/kg',  badge: 'Popular',     badgeColor: 'bg-green-500' },
-  { img: '/products/potato.jpg',       name: 'Irish Potatoes',         price: 'From KES 60/kg',  badge: 'Fresh',       badgeColor: 'bg-blue-500' },
-  { img: '/products/beans.jpg',        name: 'Beans',                  price: 'From KES 120/kg', badge: 'Best Value',  badgeColor: 'bg-blue-600' },
-  { img: '/products/carrots.jpg',      name: 'Fresh Carrots',          price: 'From KES 70/kg',  badge: 'New',         badgeColor: 'bg-purple-500' },
-  { img: '/products/ginger.jpg',       name: 'Fresh Ginger',           price: 'From KES 200/kg', badge: 'Premium',     badgeColor: 'bg-yellow-600' },
-  { img: '/products/garlic.jpg',       name: 'Garlic',                 price: 'From KES 350/kg', badge: 'Organic',     badgeColor: 'bg-green-600' },
-];
-
 const featuredProducts = [
-  { img: '/products/managu.jpg',       name: 'Managu (Black Nightshade)', price: 'From KES 40/kg',  badge: 'Fresh',  badgeColor: 'bg-green-500' },
-  { img: '/products/strawberry.jpg',   name: 'Strawberries',              price: 'From KES 300/kg', badge: 'Sweet',  badgeColor: 'bg-red-500' },
-  { img: '/products/capsicum.jpg',     name: 'Green Capsicum',            price: 'From KES 150/kg', badge: 'Crisp',  badgeColor: 'bg-green-600' },
-  { img: '/products/sweetpotato.jpg',  name: 'Sweet Potatoes',            price: 'From KES 55/kg',  badge: 'Local',  badgeColor: 'bg-blue-600' },
-  { img: '/products/dania.jpg',        name: 'Coriander (Dania)',         price: 'From KES 25/bunch',badge: 'Aromatic', badgeColor: 'bg-green-500' },
-  { img: '/products/pumpkin.jpg',      name: 'Pumpkin',                   price: 'From KES 35/kg',  badge: 'Big',    badgeColor: 'bg-yellow-600' },
-  { img: '/products/terere.jpg',       name: 'Terere (Amaranth)',         price: 'From KES 30/kg',  badge: 'Healthy', badgeColor: 'bg-green-600' },
-  { img: '/products/mrenda.jpg',       name: 'Mrenda (Jute Mallow)',      price: 'From KES 30/kg',  badge: 'Nutritious', badgeColor: 'bg-blue-500' },
+  { img: '/products/tomato.jpg.jpeg',       name: 'Fresh Tomatoes',            badge: 'Fresh' },
+  { img: '/products/watermelon.jpg.jpeg',   name: 'Sweet Watermelon',          badge: 'Sweet' },
+  { img: '/products/sukumawiki.jpg.jpeg',   name: 'Sukuma Wiki (Kales)',        badge: 'Leafy' },
+  { img: '/products/potato.jpg.jpeg',       name: 'Irish Potatoes',            badge: 'Local' },
+  { img: '/products/beans.jpg.jpeg',        name: 'Beans',                     badge: 'Protein' },
+  { img: '/products/carrots.jpg.jpeg',      name: 'Fresh Carrots',             badge: 'Crunchy' },
+  { img: '/products/ginger.jpg.jpeg',       name: 'Fresh Ginger',              badge: 'Spice' },
+  { img: '/products/garlic.jpg.jpeg',       name: 'Garlic',                    badge: 'Organic' },
+  { img: '/products/managu.jpg.jpeg',       name: 'Managu',                    badge: 'Nutritious' },
+  { img: '/products/strawberry.jpg.jpeg',   name: 'Strawberries',              badge: 'Fruit' },
+  { img: '/products/capsicum.jpg.jpeg',     name: 'Green Capsicum',            badge: 'Crisp' },
+  { img: '/products/sweetpotato.jpg.jpeg',  name: 'Sweet Potatoes',            badge: 'Energy' },
+  { img: '/products/dania.jpg.jpeg',        name: 'Coriander (Dania)',         badge: 'Herb' },
+  { img: '/products/pumpkin.jpg.jpeg',      name: 'Pumpkin',                   badge: 'Seasonal' },
+  { img: '/products/terere.jpg.jpeg',       name: 'Terere (Amaranth)',         badge: 'Healthy' },
+  { img: '/products/mrenda.jpg.jpeg',       name: 'Mrenda',                    badge: 'Greens' },
+  { img: '/products/kunde.jpg.jpeg',        name: 'Kunde (Cowpeas)',           badge: 'Legume' },
+  { img: '/products/rosemary.jpg.jpeg',     name: 'Rosemary',                  badge: 'Herb' },
+  { img: '/products/green-chilli.jpg.jpeg', name: 'Green Chilli',              badge: 'Spicy' },
 ];
-
-/* ── Countdown timer (resets daily at midnight) ── */
-function useCountdown() {
-  const getSecondsUntilMidnight = () => {
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setHours(24, 0, 0, 0);
-    return Math.floor((midnight - now) / 1000);
-  };
-  const [secs, setSecs] = useState(getSecondsUntilMidnight);
-  useEffect(() => {
-    const t = setInterval(() => setSecs(s => s > 0 ? s - 1 : getSecondsUntilMidnight()), 1000);
-    return () => clearInterval(t);
-  }, []);
-  const h = String(Math.floor(secs / 3600)).padStart(2, '0');
-  const m = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
-  const s = String(secs % 60).padStart(2, '0');
-  return { h, m, s };
-}
-
-function TimeBlock({ val, label }) {
-  return (
-    <div className="flex flex-col items-center">
-      <span className="bg-gray-900 text-white font-mono font-bold text-xl sm:text-2xl px-3 py-1.5 rounded-lg min-w-[2.8rem] text-center">{val}</span>
-      <span className="text-blue-200 text-xs mt-1">{label}</span>
-    </div>
-  );
-}
 
 const About = () => {
   const navigate = useNavigate();
-  const { h, m, s } = useCountdown();
 
   const steps = [
     { num: "01", title: "Register",      body: "Sign up as a farmer, wholesaler, retailer, or affiliate in minutes.", img: img4, imgAlt: "Person registering on phone" },
@@ -145,41 +116,6 @@ const About = () => {
 
   return (
     <>
-      {/* ── FLASH DEALS ── */}
-      <section className="bg-white py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          {/* Header bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
-                <span className="text-blue-600">⚡</span> Flash Deals
-              </h2>
-              <div className="hidden sm:flex items-center gap-1.5">
-                <span className="text-sm text-gray-500 font-medium">Ends in:</span>
-                <div className="flex gap-1 items-center">
-                  <TimeBlock val={h} label="HRS" />
-                  <span className="text-blue-600 font-bold text-xl mb-4">:</span>
-                  <TimeBlock val={m} label="MIN" />
-                  <span className="text-blue-600 font-bold text-xl mb-4">:</span>
-                  <TimeBlock val={s} label="SEC" />
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate('/products')}
-              className="text-blue-600 font-semibold text-sm hover:underline self-start sm:self-auto"
-            >
-              See All Deals →
-            </button>
-          </div>
-
-          {/* Product grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
-            {dealProducts.map(p => <DealCard key={p.name} {...p} />)}
-          </div>
-        </div>
-      </section>
-
       {/* ── STATS BAR ── */}
       <section className="bg-blue-600 py-14">
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-blue-600">
@@ -204,8 +140,8 @@ const About = () => {
               View All →
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {featuredProducts.map(p => <DealCard key={p.name} {...p} />)}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {featuredProducts.map(p => <ProductCard key={p.name} {...p} />)}
           </div>
         </div>
       </section>
