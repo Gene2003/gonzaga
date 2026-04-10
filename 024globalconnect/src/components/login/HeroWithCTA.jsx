@@ -12,6 +12,7 @@ import img8 from '../../assets/8.png';
 const banners = [
   {
     img: img5,
+    objPos: 'object-top',
     badge: 'Best Deals Today',
     title: 'Fresh Farm Produce',
     subtitle: 'Direct from farmers to your table — guaranteed freshness',
@@ -20,6 +21,7 @@ const banners = [
   },
   {
     img: img1,
+    objPos: 'object-center',
     badge: 'New Vendors',
     title: 'Start Selling Online',
     subtitle: 'Join thousands of vendors selling fresh produce 24/7',
@@ -28,6 +30,7 @@ const banners = [
   },
   {
     img: img7,
+    objPos: 'object-top',
     badge: 'Earn Commissions',
     title: 'Become an Affiliate',
     subtitle: 'Refer vendors and earn 50% registration commission',
@@ -101,7 +104,7 @@ const HeroWithCTA = () => {
                 key={i}
                 className={`absolute inset-0 transition-opacity duration-700 ${i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
               >
-                <img src={b.img} alt={b.title} className="w-full h-full object-cover object-top" />
+                <img src={b.img} alt={b.title} className={`w-full h-full object-cover ${b.objPos}`} />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/65 to-transparent flex items-center">
                   <div className="px-8 sm:px-12 text-white max-w-md">
                     <span className="inline-block bg-blue-600 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-3">
