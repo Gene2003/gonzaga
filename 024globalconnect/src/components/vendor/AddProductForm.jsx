@@ -116,19 +116,9 @@ const AddProductForm = () => {
       if (name.includes(kw)) return url;
     }
 
-    const catMap = {
-      farm_products: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400',
-      food: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
-      electronics: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400',
-      fashion: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400',
-      health_beauty: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
-      home_kitchen: 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400',
-      books: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400',
-      toys: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400',
-      sports: 'https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?w=400',
-      automotive: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400',
-    };
-    return catMap[cat] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400';
+    // No saved/known image — search the web for one based on the product name
+    const query = (form.name || cat || 'product').trim();
+    return `https://loremflickr.com/400/400/${encodeURIComponent(query)}`;
   };
 
   const handleSubmit = async (e) => {

@@ -1,4 +1,5 @@
 # products/serializers.py
+from urllib.parse import quote_plus
 from rest_framework import serializers
 from django.db.models import Avg
 from .models import Product, ProductRating
@@ -128,30 +129,10 @@ class ProductSerializer(serializers.ModelSerializer):
             if keyword in name:
                 return url
 
-        # Category-based fallback
-        if any(k in category_name for k in ('farm', 'agri')):
-            return 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=400'
-        if any(k in category_name for k in ('food', 'groce')):
-            return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'
-        if 'electron' in category_name:
-            return 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400'
-        if any(k in category_name for k in ('fashion', 'cloth')):
-            return 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400'
-        if any(k in category_name for k in ('health', 'beauty')):
-            return 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400'
-        if any(k in category_name for k in ('home', 'kitchen')):
-            return 'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400'
-        if 'book' in category_name:
-            return 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400'
-        if any(k in category_name for k in ('toy', 'game')):
-            return 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=400'
-        if 'sport' in category_name:
-            return 'https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?w=400'
-        if any(k in category_name for k in ('auto', 'car')):
-            return 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400'
-
-        # Generic default
-        return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'
+        # No saved image — fall back to a real keyword-based web image search
+        # (loremflickr returns a Flickr photo tagged with the search term, no API key)
+        query = name.strip() or category_name.strip() or 'product'
+        return f'https://loremflickr.com/400/400/{quote_plus(query)}'
 
     def validate(self, data):
         user = self.context['request'].user
