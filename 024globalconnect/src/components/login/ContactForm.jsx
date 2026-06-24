@@ -168,14 +168,14 @@ const ContactForm = () => {
             <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 text-sm">
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-blue-600" />
-                <a href="tel:+254711917376" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  +254 711 917 376
+                <a href="tel:+254740504737" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  0740 504 737
                 </a>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-blue-600" />
-                <a href="mailto:info@024globalconnect.com" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  024globalconnect@gmail.com
+                <a href="mailto:gonzagagene80@gmail.com" className="text-gray-600 hover:text-blue-600 transition-colors">
+                  gonzagagene80@gmail.com
                 </a>
               </div>
             </div>
@@ -201,7 +201,7 @@ const ContactForm = () => {
                     <Building className="w-8 h-8 text-blue-600" />
                   </div>
                   <h4 className="font-semibold text-gray-800 mb-2">Our Office</h4>
-                  <p className="text-gray-600">Nairobi, Kenya</p>
+                  <p className="text-gray-600">Ongata Rongai, Kajiado</p>
                   <p className="text-gray-600">024GlobalConnect</p>
                 </div>
 
@@ -210,8 +210,8 @@ const ContactForm = () => {
                     <Phone className="w-8 h-8 text-green-600" />
                   </div>
                   <h4 className="font-semibold text-gray-800 mb-2">Call Us</h4>
-                  <a href="tel:+254711917376" className="text-blue-600 hover:text-purple-500 transition-colors">
-                    +254 711 917 376
+                  <a href="tel:+254740504737" className="text-blue-600 hover:text-purple-500 transition-colors">
+                    0740 504 737
                   </a>
                 </div>
 
@@ -220,8 +220,8 @@ const ContactForm = () => {
                     <Mail className="w-8 h-8 text-purple-600" />
                   </div>
                   <h4 className="font-semibold text-gray-800 mb-2">Email Us</h4>
-                  <a href="mailto:info@024globalconnect.com" className="text-blue-600 hover:text-purple-500 transition-colors break-all">
-                    024globalconnect@gmail.com
+                  <a href="mailto:gonzagagene80@gmail.com" className="text-blue-600 hover:text-purple-500 transition-colors break-all">
+                    gonzagagene80@gmail.com
                   </a>
                 </div>
 
@@ -422,7 +422,7 @@ const ContactForm = () => {
 
       {/* Floating Action Buttons */}
       <a
-        href="https://wa.me/254711917376"
+        href="https://wa.me/254740504737"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-20 left-5 bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 z-50"

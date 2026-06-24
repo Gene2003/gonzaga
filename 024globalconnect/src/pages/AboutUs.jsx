@@ -8,7 +8,6 @@ import "slick-carousel/slick/slick-theme.css";
 
 const AboutUs = () => {
   const stats = [
-    { number: '50K+', label: 'Active Affiliates', icon: Users },
     { number: '10+', label: 'Countries Served', icon: Globe },
     { number: '98%', label: 'Success Rate', icon: TrendingUp },
     { number: '24/7', label: 'Support Available', icon: Shield }
@@ -40,9 +39,9 @@ const AboutUs = () => {
   const teamMembers = [
     {
       name: 'Jimmy Murigi',
-      role: 'CEO & Co-Founder',
+      role: 'Frontend Developer',
       image: '',
-      bio: '10+ years in digital marketing and agricultural value chain development.'
+      bio: 'Building user-facing experiences for the 024 Global Connect platform.'
     },
     {
       name: 'Gonzaga Shyachi',
@@ -51,16 +50,16 @@ const AboutUs = () => {
       bio: 'Full-stack software developer building the platform infrastructure.'
     },
     {
-      name: 'John',
-      role: 'IT & System Manager',
+      name: 'Emmanuel',
+      role: 'Backend Engineer',
       image: '',
-      bio: 'Overseeing system reliability, security, and technical operations.'
+      bio: 'Overseeing backend systems, APIs, and platform reliability.'
     },
     {
-      name: 'Scovian',
-      role: 'Agribusiness Manager',
+      name: 'Stanley',
+      role: 'Frontend Engineer',
       image: '',
-      bio: 'Driving agribusiness strategy and farmer partnerships across the network.'
+      bio: 'Crafting responsive interfaces and frontend architecture.'
     },
   ];
 
@@ -161,15 +160,15 @@ const AboutUs = () => {
                   <div className="space-y-3">
                     <div className="flex items-center text-gray-700">
                       <Check className="w-5 h-5 text-green-500 mr-3" />
-                      <span>50,000+ active affiliate partners</span>
+                      <span>Pan-African agricultural network</span>
                     </div>
                     <div className="flex items-center text-gray-700">
                       <Check className="w-5 h-5 text-green-500 mr-3" />
-                      <span>$100M+ in partner commissions paid</span>
+                      <span>Secure M-Pesa & Paystack payments</span>
                     </div>
                     <div className="flex items-center text-gray-700">
                       <Check className="w-5 h-5 text-green-500 mr-3" />
-                      <span>1000+ successful brand partnerships</span>
+                      <span>Trusted vendor & buyer ecosystem</span>
                     </div>
                   </div>
                 </div>
