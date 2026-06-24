@@ -126,58 +126,6 @@ const AboutUs = () => {
         </div>
       </section>
 
-      {/* Our Story Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
-              <div className="space-y-4 text-gray-600 leading-relaxed">
-                <p>
-                  024 GLOBAL CONNECT is a pan african agritech company dedicated to building an EFFICIENT,PROFITABLE AND AGRICULTURAL MARKETPLACE.We connect producers, services providers,traders,input suppliers,processors, and logistics partners through a tech-enabled ecosystem that enhances trust,transparency, and business growth.</p>
-                <p>
-                  We focus on creating an enabling environment  where agricultural becomes a SUSTAINABLE LIVELIHOOD-Especially for youth and women.
-                </p>
-              </div>
-              <div className="mt-8">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-6">
-                  <div className="flex items-center mb-3">
-                    <Award className="w-6 h-6 mr-2" />
-                    <span className="font-semibold">Our Mission</span>
-                  </div>
-                  <p className="text-blue-100">
-                    To leverage appropriate technologies to make agricultural value chain interactions efficient and profitable—while creating decent work opportunities for youth and women across Africa.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-3xl p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-200/50 rounded-full blur-2xl"></div>
-                <div className="relative">
-                  <Globe className="w-24 h-24 text-blue-600 mb-6" />
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Global Impact</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center text-gray-700">
-                      <Check className="w-5 h-5 text-green-500 mr-3" />
-                      <span>Pan-African agricultural network</span>
-                    </div>
-                    <div className="flex items-center text-gray-700">
-                      <Check className="w-5 h-5 text-green-500 mr-3" />
-                      <span>Secure M-Pesa & Paystack payments</span>
-                    </div>
-                    <div className="flex items-center text-gray-700">
-                      <Check className="w-5 h-5 text-green-500 mr-3" />
-                      <span>Trusted vendor & buyer ecosystem</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Values Section */}
       <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
@@ -277,18 +225,6 @@ const AboutUs = () => {
           summary: 'Engineered to bring post-harvest losses down to 5% or less.',
         },
         {
-          icon: '📚', title: 'Upskilling & Capacity Building',
-          img: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&h=260&fit=crop',
-          bullets: ['Agribusiness training', 'Digital marketing skills', 'Financial literacy', 'Value chain coaching'],
-          summary: 'Empowering youth, women, and SMEs to grow strong, resilient agribusinesses.',
-        },
-        {
-          icon: '💸', title: 'Linkage to Affordable Finance',
-          img: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=600&h=260&fit=crop',
-          bullets: ['Tailor-made financing', 'Credit for inputs & operations', 'Asset financing', 'Working capital facilities'],
-          summary: 'Unlocking growth capital for agricultural entrepreneurs across Africa.',
-        },
-        {
           icon: '🤝', title: 'Affiliate Program',
           img: 'https://images.unsplash.com/photo-1553484771-047a44eee27a?w=600&h=260&fit=crop',
           bullets: ['Referral commissions', 'Linking buyers and sellers', 'Promoting agri products & services'],
@@ -365,11 +301,8 @@ const AboutUs = () => {
     </div>
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       {[
-        { num: 1, title: 'Pan-African Network', text: 'Establish a predictable, profitable agricultural marketplace network powered by technology across Africa.', img: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&h=240&fit=crop' },
-        { num: 2, title: 'Accurate Market Data', text: 'Provide farmers and traders with accurate market information and real-time pricing insights.', img: 'https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?w=600&h=240&fit=crop' },
-        { num: 3, title: 'Reduce Post-Harvest Losses', text: 'Cut post-harvest losses to 5% or less through smart logistics and timely market linkages.', img: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=240&fit=crop' },
-        { num: 4, title: 'Capacity Building', text: 'Enhance the capacity of value chain actors through hands-on training and mentorship programs.', img: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=240&fit=crop' },
-        { num: 5, title: 'Financial Inclusion', text: 'Create accessible linkages to affordable financial services for every agricultural entrepreneur.', img: 'https://images.unsplash.com/photo-1579621970795-87facc2f976d?w=600&h=240&fit=crop' },
+        { num: 1, title: 'Accurate Market Data', text: 'Provide farmers and traders with accurate market information and real-time pricing insights.', img: 'https://images.unsplash.com/photo-1444653614773-995cb1ef9efa?w=600&h=240&fit=crop' },
+        { num: 2, title: 'Reduce Post-Harvest Losses', text: 'Cut post-harvest losses to 5% or less through smart logistics and timely market linkages.', img: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=240&fit=crop' },
       ].map((g) => (
         <div key={g.num} className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group border border-gray-100 hover:-translate-y-1">
           <div className="h-44 overflow-hidden">
