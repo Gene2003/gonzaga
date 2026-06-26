@@ -116,6 +116,16 @@ const About = () => {
 
   return (
     <>
+      {/* ── STATS BAR ── */}
+      <section className="bg-blue-600 py-14">
+        <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 divide-x-0 md:divide-x divide-blue-600">
+          <Stat value={5000}  suffix="+" label="Farmers Connected" />
+          <Stat value={200}   suffix="+" label="Active Vendors" />
+          <Stat value={50000} suffix="+" label="Products Listed" />
+          <Stat value={10}    suffix="+" label="Counties Served" />
+        </div>
+      </section>
+
       {/* ── FEATURED PRODUCTS ── */}
       <section className="bg-gray-50 py-10">
         <div className="max-w-7xl mx-auto px-4">

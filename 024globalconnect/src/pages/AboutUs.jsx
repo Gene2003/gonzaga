@@ -8,6 +8,7 @@ import "slick-carousel/slick/slick-theme.css";
 
 const AboutUs = () => {
   const stats = [
+    { number: '50K+', label: 'Active Affiliates', icon: Users },
     { number: '10+', label: 'Countries Served', icon: Globe },
     { number: '98%', label: 'Success Rate', icon: TrendingUp },
     { number: '24/7', label: 'Support Available', icon: Shield }
@@ -39,9 +40,9 @@ const AboutUs = () => {
   const teamMembers = [
     {
       name: 'Jimmy Murigi',
-      role: 'Frontend Developer',
+      role: 'CEO & Co-Founder',
       image: '',
-      bio: 'Building user-facing experiences for the 024 Global Connect platform.'
+      bio: '10+ years in digital marketing and agricultural value chain development.'
     },
     {
       name: 'Gonzaga Shyachi',
@@ -50,16 +51,16 @@ const AboutUs = () => {
       bio: 'Full-stack software developer building the platform infrastructure.'
     },
     {
-      name: 'Emmanuel',
-      role: 'Backend Engineer',
+      name: 'John',
+      role: 'IT & System Manager',
       image: '',
-      bio: 'Overseeing backend systems, APIs, and platform reliability.'
+      bio: 'Overseeing system reliability, security, and technical operations.'
     },
     {
-      name: 'Stanley',
-      role: 'Frontend Engineer',
+      name: 'Scovian',
+      role: 'Agribusiness Manager',
       image: '',
-      bio: 'Crafting responsive interfaces and frontend architecture.'
+      bio: 'Driving agribusiness strategy and farmer partnerships across the network.'
     },
   ];
 
