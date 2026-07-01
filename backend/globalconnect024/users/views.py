@@ -36,7 +36,14 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import CustomUser, VendorRegistration, AffiliateCertificate, VendorFeedback
 from .tokens import account_activation_token
-from .utils import send_activation_email
+from .utils import send_activation_email, send_verification_code_email
+from .verification import (
+    issue_code_for_user,
+    check_verification_code,
+    record_wrong_attempt_for_user,
+    clear_lockout,
+    MAX_WRONG_ATTEMPTS,
+)
 from .serializers import RegistrationSerializer, UserSerializer
 from rest_framework.serializers import ModelSerializer
 
@@ -1047,3 +1054,170 @@ def vendor_feedback(request):
             'feedback': obj.feedback,
             'submitted_at': obj.submitted_at,
         }, status=201)
+
+
+# -------------------- Verification Code System --------------------
+# Agent (affiliate) verifies a farmer → farmer receives 024-XXX-NNNN code by email.
+# Code is later used to authenticate on WhatsApp bot / USSD.
+
+class IsAgent(BasePermission):
+    """Only affiliates (role='user') can verify farmers."""
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'user'
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsAgent])
+def verify_farmer(request):
+    """
+    Agent endpoint — mark a farmer as physically verified and issue their code.
+
+    Body:
+        { "user_id": <int> }
+    Returns:
+        { "message": ..., "code": "024-XXX-NNNN", "user_id": ..., "verified_by": ... }
+    """
+    user_id = request.data.get('user_id')
+    if not user_id:
+        return Response({'error': 'user_id is required.'}, status=400)
+
+    try:
+        farmer = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found.'}, status=404)
+
+    if farmer.role != 'vendor':
+        return Response({'error': 'Only vendor accounts can be verified for the WhatsApp/USSD network.'}, status=400)
+
+    if farmer.verification_code:
+        return Response({
+            'error': 'This user already has a verification code. Use the reissue endpoint if it must be regenerated.',
+            'existing_code': farmer.verification_code,
+        }, status=409)
+
+    try:
+        code = issue_code_for_user(farmer, agent=request.user)
+    except RuntimeError as e:
+        return Response({'error': str(e)}, status=500)
+
+    # Send code to farmer's email (background thread — never blocks)
+    send_verification_code_email(farmer, code, agent=request.user)
+
+    # Best-effort SMS notification too
+    if farmer.phone:
+        send_sms(
+            farmer.phone,
+            f"024Global: You have been verified. Your code is {code}. Keep it private — 5 wrong tries locks your account."
+        )
+
+    return Response({
+        'message': 'Farmer verified. Verification code issued and emailed.',
+        'code': code,
+        'user_id': farmer.id,
+        'verified_by': {
+            'id': request.user.id,
+            'username': request.user.username,
+            'certificate_number': request.user.certificate_number,
+        },
+        'verified_at': farmer.verified_at,
+    }, status=201)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_code(request):
+    """
+    Public endpoint — WhatsApp bot / USSD gateway calls this to check a code.
+
+    Body:
+        { "code": "024-XXX-NNNN" }
+    Returns:
+        200 { "ok": True, "user": {...} }                 — code correct, not locked
+        423 { "ok": False, "reason": "locked", "until": ... }  — 5-strike lockout in effect
+        401 { "ok": False, "reason": "wrong", "attempts_left": N }  — wrong code
+    """
+    code = request.data.get('code', '').strip()
+    result = check_verification_code(code)
+
+    if result.get('ok'):
+        u = result['user']
+        return Response({
+            'ok': True,
+            'user': {
+                'id': u.id,
+                'first_name': u.first_name,
+                'username': u.username,
+                'phone': u.phone,
+                'vendor_type': u.vendor_type,
+            }
+        }, status=200)
+
+    reason = result.get('reason')
+    if reason == 'locked':
+        return Response({
+            'ok': False,
+            'reason': 'locked',
+            'until': result['until'],
+            'message': 'Too many wrong attempts. Account is temporarily locked. Please call customer care: 0700 024 024',
+        }, status=423)
+
+    # Wrong / not-found. If the caller (WhatsApp session) knows which phone the
+    # attempt came from and it matches a user, decrement their attempt counter.
+    phone = request.data.get('phone')
+    if phone:
+        candidate = CustomUser.objects.filter(phone=phone, verification_code__isnull=False).first()
+        if candidate:
+            outcome = record_wrong_attempt_for_user(candidate)
+            if outcome['locked']:
+                return Response({
+                    'ok': False,
+                    'reason': 'locked',
+                    'until': outcome['until'],
+                    'message': 'Too many wrong attempts. Account has been locked for 24 hours.',
+                }, status=423)
+            return Response({
+                'ok': False,
+                'reason': 'wrong',
+                'attempts_left': outcome['attempts_left'],
+                'message': f"Incorrect code. You have {outcome['attempts_left']} attempts remaining.",
+            }, status=401)
+
+    return Response({
+        'ok': False,
+        'reason': 'wrong',
+        'message': 'Incorrect code. Please try again.',
+    }, status=401)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAgent])
+def my_verifications(request):
+    """Agent-only — list every user this agent has verified."""
+    verified = CustomUser.objects.filter(verified_by_agent=request.user).order_by('-verified_at')
+    return Response({
+        'count': verified.count(),
+        'verifications': [
+            {
+                'user_id': u.id,
+                'username': u.username,
+                'first_name': u.first_name,
+                'phone': u.phone,
+                'vendor_type': u.vendor_type,
+                'verified_at': u.verified_at,
+                'code': u.verification_code,   # visible to the issuing agent for support
+            }
+            for u in verified
+        ],
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsCustomAdmin])
+def admin_unlock_verification(request, user_id):
+    """Admin — clear a 5-strike lockout so the user can try again."""
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found.'}, status=404)
+    clear_lockout(user)
+    return Response({'message': f'Lockout cleared for {user.username}.'})

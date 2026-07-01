@@ -57,6 +57,20 @@ class CustomUser(AbstractUser):
     registered_by_affiliate = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referred_users', help_text="The affiliate who referred this user, if applicable.")
     paystack_subaccount_code = models.CharField(max_length=100, blank=True, null=True, help_text="Paystack subaccount code for vendors to receive payments.")
 
+    # Verification code — for WhatsApp bot / USSD authentication
+    # Format: 024-XXX-NNNN (exactly 12 chars). Generated with `secrets` after agent verification.
+    verification_code = models.CharField(max_length=12, unique=True, blank=True, null=True,
+                                          help_text="Unique auth code (024-XXX-NNNN). Issued only after physical verification by an agent.")
+    verification_code_issued_at = models.DateTimeField(null=True, blank=True)
+    verified_by_agent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                          related_name='verifications_performed',
+                                          help_text="The agent (affiliate) who physically verified this user.")
+    verified_at = models.DateTimeField(null=True, blank=True)
+    code_wrong_attempts = models.PositiveSmallIntegerField(default=0,
+                                                            help_text="Number of consecutive wrong code attempts (5-strike lockout).")
+    code_locked_until = models.DateTimeField(null=True, blank=True,
+                                              help_text="If set and in the future, code checks are rejected.")
+
 
     def save (self, *args, **kwargs):
         #auto generate the 5 digit code for vendors

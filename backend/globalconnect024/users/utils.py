@@ -51,6 +51,38 @@ def send_sms(phone, message):
     threading.Thread(target=_send, daemon=True).start()
 
 
+def send_verification_code_email(user, code, agent):
+    """
+    Send the newly-issued 024-XXX-NNNN verification code to the user's email.
+    Called after an agent has physically verified the farmer.
+    """
+    def _send():
+        try:
+            subject = "Your 024 Global Connect Verification Code"
+            agent_name = (agent.first_name or agent.username) if agent else "an agent"
+            body = (
+                f"Hi {user.first_name or user.username},\n\n"
+                f"You have been successfully verified by {agent_name} on 024 Global Connect.\n\n"
+                f"Your unique verification code is:\n\n"
+                f"    {code}\n\n"
+                f"Use this code to authenticate on our WhatsApp bot (+254 700 024 024) or USSD (*024#).\n\n"
+                f"IMPORTANT — keep this code private:\n"
+                f"  - It is personal to you and cannot be shared.\n"
+                f"  - After 5 wrong attempts your account will be locked for 24 hours.\n"
+                f"  - If you forget it, contact us at 0700 024 024.\n\n"
+                f"Welcome to the network!\n"
+                f"— 024 Global Connect"
+            )
+            email = EmailMultiAlternatives(
+                subject, body, settings.DEFAULT_FROM_EMAIL, [user.email]
+            )
+            email.send(fail_silently=True)
+            print(f"✅ Verification code sent to {user.email}")
+        except Exception as e:
+            print(f"[VERIFICATION EMAIL] Error: {e}")
+    threading.Thread(target=_send, daemon=True).start()
+
+
 def send_activation_email(request, user):
     # Generate UID and token
     uid = urlsafe_base64_encode(force_bytes(user.pk))

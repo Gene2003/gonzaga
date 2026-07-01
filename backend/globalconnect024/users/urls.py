@@ -39,6 +39,12 @@ from .views import (
     get_dashboard_stats,
     update_user_status,
     delete_user,
+
+    # Verification code system
+    verify_farmer,
+    verify_code,
+    my_verifications,
+    admin_unlock_verification,
 )
 
 urlpatterns = [
@@ -87,4 +93,9 @@ urlpatterns = [
     path('admin/commissions/<int:referral_id>/payout/', mark_commission_paid, name='payout_commission'),
     path('admin/system-logs/', system_logs, name='system_logs'),
 
+    # 🔑 Verification Code System (WhatsApp bot / USSD auth)
+    path('agent/verify-farmer/', verify_farmer, name='verify_farmer'),
+    path('agent/my-verifications/', my_verifications, name='my_verifications'),
+    path('verify-code/', verify_code, name='verify_code'),
+    path('admin/users/<int:user_id>/unlock-code/', admin_unlock_verification, name='admin_unlock_verification'),
 ]
